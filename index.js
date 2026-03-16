@@ -45,7 +45,8 @@ async function fetchPolymarketTrades() {
 }
 
 /**
- * Filter trades where USDC amount (size * price) >= threshold.
+ * Filter trades where USDC value (size * price) >= threshold.
+ * Polymarket size is in shares; real USDC = size * price.
  * @param {Array} trades - Raw trade objects from API
  * @returns {Array<{ tradeId: string, market: string, side: string, size: number, price: number, timestamp: number }>}
  */
@@ -53,12 +54,12 @@ function detectWhales(trades) {
   const whaleTrades = [];
   for (const t of trades) {
     console.log('[Polymarket] Checking trade size:', t.size || t.usdcSize);
+    const usdcValue = parseFloat(t.size) * parseFloat(t.price);
+    if (Number.isNaN(usdcValue)) continue;
+    if (usdcValue < WHALE_SIZE_USDC) continue;
+
     const size = parseFloat(t.size);
     const price = parseFloat(t.price);
-    if (Number.isNaN(size) || Number.isNaN(price)) continue;
-    const sizeUsdc = size * price;
-    if (sizeUsdc < WHALE_SIZE_USDC) continue;
-
     const tradeId =
       t.transactionHash ||
       t.id ||
@@ -70,7 +71,7 @@ function detectWhales(trades) {
       tradeId,
       market: String(market),
       side: side === 'BUY' ? 'YES' : side === 'SELL' ? 'NO' : side || '—',
-      size: sizeUsdc,
+      size: usdcValue,
       price: price * 100,
       timestamp: Number(t.timestamp) || 0,
     };
@@ -143,7 +144,7 @@ async function runWhaleDetection() {
           '',
           `Market: ${w.market}`,
           `Side: ${w.side}`,
-          `Amount: $${Math.round(w.size).toLocaleString()}`,
+          `Amount: $${w.size.toFixed(0)}`,
           `Price: ${w.price.toFixed(1)}%`,
           '',
           'ozscan.xyz',
