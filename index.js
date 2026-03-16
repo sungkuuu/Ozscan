@@ -48,7 +48,7 @@ async function fetchPolymarketTrades() {
 async function fetchKalshiMarkets() {
   try {
     console.log('[Kalshi] Fetching markets...');
-    const res = await fetch('https://api.elections.kalshi.com/trade-api/v2/markets?limit=10&status=open');
+    const res = await fetch('https://api.elections.kalshi.com/trade-api/v2/markets?limit=5');
     console.log('[Kalshi] Response status:', res.status);
     const data = await res.json();
     const markets = data.markets || [];
@@ -56,6 +56,7 @@ async function fetchKalshiMarkets() {
     if (markets[0]) console.log('[Kalshi] Sample:', JSON.stringify(markets[0], null, 2));
   } catch(e) {
     console.error('[Kalshi] Error:', e.message);
+    console.error('[Kalshi] Error stack:', e.stack);
   }
 }
 
