@@ -65,6 +65,122 @@ async function fetchKalshiMarkets() {
   }
 }
 
+async function fetchKalshiOdds() {
+  try {
+    const res = await fetch('https://api.elections.kalshi.com/trade-api/v2/markets?limit=100&status=open');
+    if (!res.ok) {
+      console.error('[Arb] Kalshi odds error status:', res.status);
+      return [];
+    }
+    const data = await res.json();
+    const markets = data.markets || [];
+    return markets
+      .map((m) => ({
+        ticker: m.ticker,
+        title: m.title || m.name || '',
+        yesPrice: parseFloat(m.yes_ask_dollars),
+      }))
+      .filter((m) => m.title && !Number.isNaN(m.yesPrice) && m.yesPrice > 0 && m.yesPrice < 1);
+  } catch (e) {
+    console.error('[Arb] Kalshi odds error:', e.message);
+    return [];
+  }
+}
+
+async function fetchPolymarketOdds() {
+  try {
+    const res = await fetch('https://clob.polymarket.com/markets?limit=100');
+    if (!res.ok) {
+      console.error('[Arb] Polymarket odds error status:', res.status);
+      return [];
+    }
+    const data = await res.json();
+    const markets = data.markets || data || [];
+    return markets
+      .map((m) => {
+        const price =
+          typeof m.yesPrice === 'number'
+            ? m.yesPrice
+            : typeof m.yes_price === 'number'
+            ? m.yes_price
+            : typeof m.price === 'number'
+            ? m.price
+            : null;
+        return {
+          slug: m.slug,
+          question: m.question || m.title || '',
+          price: price,
+        };
+      })
+      .filter((m) => m.question && typeof m.price === 'number' && m.price > 0 && m.price < 1);
+  } catch (e) {
+    console.error('[Arb] Polymarket odds error:', e.message);
+    return [];
+  }
+}
+
+function keywordScore(a, b) {
+  const aw = a.toLowerCase().split(/\W+/).filter(Boolean);
+  const bw = new Set(b.toLowerCase().split(/\W+/).filter(Boolean));
+  let score = 0;
+  for (const w of aw) {
+    if (bw.has(w)) score += 1;
+  }
+  return score;
+}
+
+async function detectArbitrage() {
+  try {
+    const [kalshi, poly] = await Promise.all([fetchKalshiOdds(), fetchPolymarketOdds()]);
+    console.log('[Arb] Kalshi markets:', kalshi.length, 'Polymarket markets:', poly.length);
+
+    for (const k of kalshi) {
+      let best = null;
+      let bestScore = 0;
+      for (const p of poly) {
+        const s = keywordScore(k.title, p.question);
+        if (s > bestScore) {
+          bestScore = s;
+          best = p;
+        }
+      }
+      if (!best || bestScore < 3) continue;
+
+      const polyPrice = best.price;
+      const kalshiPrice = k.yesPrice;
+      const gap = Math.abs(polyPrice - kalshiPrice);
+      if (gap <= 0.05) continue;
+
+      const lowerPlatform = polyPrice < kalshiPrice ? 'Polymarket' : 'Kalshi';
+      const higherPlatform = polyPrice > kalshiPrice ? 'Polymarket' : 'Kalshi';
+
+      if (bot && process.env.ADMIN_CHAT_ID) {
+        const title = k.title || best.question;
+        const msg = [
+          '🔄 ARBITRAGE ALERT',
+          '',
+          `Event: ${title}`,
+          `Polymarket: ${(polyPrice * 100).toFixed(1)}%`,
+          `Kalshi: ${(kalshiPrice * 100).toFixed(1)}%`,
+          `Gap: ${(gap * 100).toFixed(1)}%`,
+          '',
+          `Buy ${lowerPlatform === 'Polymarket' ? 'YES on Polymarket' : 'YES on Kalshi'}, Sell ${higherPlatform === 'Polymarket' ? 'YES on Polymarket' : 'YES on Kalshi'}`,
+          `Expected profit: ~${(gap * 100 - 1).toFixed(1)}%`,
+          '',
+          'ozscan.xyz',
+        ].join('\n');
+        try {
+          await bot.sendMessage(process.env.ADMIN_CHAT_ID, msg);
+        } catch (err) {
+          console.error('[Arb] Telegram send failed:', err.message);
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[Arb] detectArbitrage error:', e.message);
+  }
+}
+
 /**
  * Filter trades where USDC value (size * price) >= threshold.
  * Polymarket size is in shares; real USDC = size * price.
@@ -273,3 +389,5 @@ app.listen(PORT, async () => {
 });
 
 setTimeout(fetchKalshiMarkets, 5000);
+
+setInterval(detectArbitrage, 5 * 60 * 1000);
