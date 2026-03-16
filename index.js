@@ -266,3 +266,5 @@ app.listen(PORT, async () => {
   runWhaleDetection();
   setInterval(runWhaleDetection, POLL_INTERVAL_MS);
 });
+
+setTimeout(fetchKalshiMarkets, 5000);
