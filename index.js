@@ -183,6 +183,17 @@ async function runWhaleDetection() {
           console.error('Telegram send failed:', err.message);
         }
       }
+
+      if (pool) {
+        await pool.query(
+          `
+  INSERT INTO whale_trades (trade_id, market, side, size, price, timestamp)
+  VALUES ($1, $2, $3, $4, $5, to_timestamp($6))
+  ON CONFLICT (trade_id) DO NOTHING
+`,
+          [w.tradeId, w.market, w.side, w.size, w.price, w.timestamp]
+        );
+      }
     }
   } catch (e) {
     console.error('[Polymarket] Error:', e.message);
@@ -222,6 +233,20 @@ app.get('/health', (req, res) => {
 app.listen(PORT, async () => {
   console.log(`OzScan server running on port ${PORT}`);
   await ensureWhaleTradesTable();
+  if (pool) {
+    await pool.query(`
+  CREATE TABLE IF NOT EXISTS whale_trades (
+    id SERIAL PRIMARY KEY,
+    trade_id TEXT UNIQUE,
+    market TEXT,
+    side TEXT,
+    size NUMERIC,
+    price NUMERIC,
+    timestamp TIMESTAMPTZ,
+    created_at TIMESTAMP DEFAULT NOW()
+  )
+`);
+  }
   runWhaleDetection();
   setInterval(runWhaleDetection, POLL_INTERVAL_MS);
 });
