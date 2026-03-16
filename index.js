@@ -5,9 +5,9 @@ const { Pool } = require('pg');
 const fetch = require('node-fetch');
 
 const PORT = process.env.PORT || 3000;
-const TRADES_URL = 'https://clob.polymarket.com/trades?limit=50';
+const TRADES_URL = 'https://clob.polymarket.com/trades?limit=100&size_threshold=1000';
 const TRADES_URL_FALLBACK = 'https://data-api.polymarket.com/trades?limit=50';
-const WHALE_SIZE_USDC = 10000;
+const WHALE_SIZE_USDC = 5000;
 const POLL_INTERVAL_MS = 60 * 1000;
 
 const app = express();
@@ -55,8 +55,9 @@ function detectWhales(trades) {
   for (const t of trades) {
     console.log('[Polymarket] Checking trade size:', t.size || t.usdcSize);
     const usdcValue = parseFloat(t.size) * parseFloat(t.price);
+    console.log('[Polymarket] USDC value:', usdcValue.toFixed(2));
     if (Number.isNaN(usdcValue)) continue;
-    if (usdcValue < WHALE_SIZE_USDC) continue;
+    if (usdcValue < WHALE_SIZE_USDC) continue; // whale threshold $5K
 
     const size = parseFloat(t.size);
     const price = parseFloat(t.price);
@@ -144,7 +145,7 @@ async function runWhaleDetection() {
           '',
           `Market: ${w.market}`,
           `Side: ${w.side}`,
-          `Amount: $${w.size.toFixed(0)}`,
+          `Amount: $${w.size.toFixed(0)} USDC`,
           `Price: ${w.price.toFixed(1)}%`,
           '',
           'ozscan.xyz',
