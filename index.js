@@ -41,6 +41,7 @@ async function fetchPolymarketTrades() {
   const data = await res.json();
   const trades = Array.isArray(data) ? data : [];
   console.log('[Polymarket] Trades count:', trades.length);
+  console.log('[Polymarket] Sample trade fields:', JSON.stringify(trades[0], null, 2));
   return trades;
 }
 
