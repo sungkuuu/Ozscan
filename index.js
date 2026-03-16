@@ -46,6 +46,27 @@ async function fetchPolymarketTrades() {
 }
 
 /**
+ * Fetch open election markets from Kalshi.
+ */
+async function fetchKalshiMarkets() {
+  try {
+    const res = await fetch(
+      'https://api.elections.kalshi.com/trade-api/v2/markets?limit=100&status=open'
+    );
+    if (!res.ok) {
+      console.error('[Kalshi] Error status:', res.status);
+      return;
+    }
+    const data = await res.json();
+    const markets = Array.isArray(data.markets) ? data.markets : data;
+    console.log('[Kalshi] Markets count:', markets.length);
+    console.log('[Kalshi] Sample:', JSON.stringify(markets[0], null, 2));
+  } catch (e) {
+    console.error('[Kalshi] Error:', e.message);
+  }
+}
+
+/**
  * Filter trades where USDC value (size * price) >= threshold.
  * Polymarket size is in shares; real USDC = size * price.
  * @param {Array} trades - Raw trade objects from API
@@ -218,6 +239,7 @@ if (process.env.BOT_TOKEN) {
       await bot.deleteWebHook();
       bot.startPolling({ restart: false });
       console.log('✅ Telegram polling started');
+      await fetchKalshiMarkets();
     } catch (e) {
       console.error('Telegram start error:', e.message);
     }
