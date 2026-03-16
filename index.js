@@ -45,23 +45,16 @@ async function fetchPolymarketTrades() {
   return trades;
 }
 
-/**
- * Fetch open election markets from Kalshi.
- */
 async function fetchKalshiMarkets() {
   try {
-    const res = await fetch(
-      'https://api.elections.kalshi.com/trade-api/v2/markets?limit=100&status=open'
-    );
-    if (!res.ok) {
-      console.error('[Kalshi] Error status:', res.status);
-      return;
-    }
+    console.log('[Kalshi] Fetching markets...');
+    const res = await fetch('https://api.elections.kalshi.com/trade-api/v2/markets?limit=10&status=open');
+    console.log('[Kalshi] Response status:', res.status);
     const data = await res.json();
-    const markets = Array.isArray(data.markets) ? data.markets : data;
+    const markets = data.markets || [];
     console.log('[Kalshi] Markets count:', markets.length);
-    console.log('[Kalshi] Sample:', JSON.stringify(markets[0], null, 2));
-  } catch (e) {
+    if (markets[0]) console.log('[Kalshi] Sample:', JSON.stringify(markets[0], null, 2));
+  } catch(e) {
     console.error('[Kalshi] Error:', e.message);
   }
 }
