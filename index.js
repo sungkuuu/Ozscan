@@ -7,7 +7,7 @@ const fetch = require('node-fetch');
 const PORT = process.env.PORT || 3000;
 const TRADES_URL = 'https://clob.polymarket.com/trades?limit=100&size_threshold=1000';
 const TRADES_URL_FALLBACK = 'https://data-api.polymarket.com/trades?limit=50';
-const WHALE_SIZE_USDC = 500;
+const WHALE_SIZE_USDC = 2000;
 const POLL_INTERVAL_MS = 60 * 1000;
 
 const app = express();
