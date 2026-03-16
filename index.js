@@ -25,6 +25,7 @@ const alertedTradeIds = new Set();
  * @returns {Promise<Array>} Array of recent trades
  */
 async function fetchPolymarketTrades() {
+  console.log('[Polymarket] Fetching trades...');
   const headers = {};
   if (process.env.POLYMARKET_API_KEY) {
     headers['Authorization'] = `Bearer ${process.env.POLYMARKET_API_KEY}`;
@@ -33,11 +34,14 @@ async function fetchPolymarketTrades() {
   if (!res.ok && res.status === 401) {
     res = await fetch(TRADES_URL_FALLBACK);
   }
+  console.log('[Polymarket] Response status:', res.status);
   if (!res.ok) {
     throw new Error(`Polymarket trades API error: ${res.status}`);
   }
   const data = await res.json();
-  return Array.isArray(data) ? data : [];
+  const trades = Array.isArray(data) ? data : [];
+  console.log('[Polymarket] Trades count:', trades.length);
+  return trades;
 }
 
 /**
@@ -48,6 +52,7 @@ async function fetchPolymarketTrades() {
 function detectWhales(trades) {
   const whaleTrades = [];
   for (const t of trades) {
+    console.log('[Polymarket] Checking trade size:', t.size || t.usdcSize);
     const size = parseFloat(t.size);
     const price = parseFloat(t.price);
     if (Number.isNaN(size) || Number.isNaN(price)) continue;
@@ -61,14 +66,16 @@ function detectWhales(trades) {
     const market = t.title || t.slug || t.conditionId || t.asset || 'Unknown market';
     const side = (t.outcome || t.side || '').toUpperCase();
 
-    whaleTrades.push({
+    const whale = {
       tradeId,
       market: String(market),
       side: side === 'BUY' ? 'YES' : side === 'SELL' ? 'NO' : side || '—',
       size: sizeUsdc,
       price: price * 100,
       timestamp: Number(t.timestamp) || 0,
-    });
+    };
+    console.log('[Whale] Detected:', JSON.stringify(whale));
+    whaleTrades.push(whale);
   }
   return whaleTrades;
 }
@@ -148,8 +155,8 @@ async function runWhaleDetection() {
         }
       }
     }
-  } catch (err) {
-    console.error('Whale detection error:', err.message);
+  } catch (e) {
+    console.error('[Polymarket] Error:', e.message);
   }
 }
 
