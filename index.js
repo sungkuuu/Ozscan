@@ -20,6 +20,11 @@ const pool = process.env.DATABASE_URL
 // Trade IDs we've already sent an alert for (avoid duplicates)
 const alertedTradeIds = new Set();
 
+setInterval(() => {
+  alertedTradeIds.clear();
+  console.log('[Whale] Cleared alerted trade IDs cache');
+}, 60 * 60 * 1000);
+
 /**
  * Fetch recent trades from Polymarket CLOB.
  * @returns {Promise<Array>} Array of recent trades
