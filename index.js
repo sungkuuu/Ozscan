@@ -95,24 +95,20 @@ async function fetchPolymarketOdds() {
       return [];
     }
     const data = await res.json();
-    const markets = data.markets || data.results || (Array.isArray(data) ? data : []);
+    const markets = data.data || (Array.isArray(data) ? data : []);
+
+    console.log('[Arb] Polymarket sample market:', JSON.stringify(markets[0], null, 2));
+
     return markets
-      .map((m) => {
-        const price =
-          typeof m.yesPrice === 'number'
-            ? m.yesPrice
-            : typeof m.yes_price === 'number'
-            ? m.yes_price
-            : typeof m.price === 'number'
-            ? m.price
-            : null;
+      .map(m => {
+        const price = m.tokens?.[0]?.price ?? m.outcomePrices?.[0] ?? null;
         return {
-          slug: m.slug,
+          slug: m.condition_id || m.slug || '',
           question: m.question || m.title || '',
-          price: price,
+          price: price !== null ? parseFloat(price) : null,
         };
       })
-      .filter((m) => m.question && typeof m.price === 'number' && m.price > 0 && m.price < 1);
+      .filter(m => m.question && m.price !== null && m.price > 0 && m.price < 1);
   } catch (e) {
     console.error('[Arb] Polymarket odds error:', e.message);
     return [];
