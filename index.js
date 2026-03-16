@@ -20,6 +20,9 @@ const pool = process.env.DATABASE_URL
 // Trade IDs we've already sent an alert for (avoid duplicates)
 const alertedTradeIds = new Set();
 
+// Smart money: key = proxyWallet, value = { wins: 0, totalBets: 0, totalUsdc: 0, recentMarkets: [], pseudonym: '' }
+const smartMoneyTracker = new Map();
+
 /**
  * Fetch recent trades from Polymarket CLOB.
  * @returns {Promise<Array>} Array of recent trades
@@ -54,6 +57,28 @@ async function fetchPolymarketTrades() {
 function detectWhales(trades) {
   const whaleTrades = [];
   for (const t of trades) {
+    // Update smart money tracker for every trade
+    const proxyWallet = t.proxyWallet;
+    if (proxyWallet) {
+      const usdcForTracker = Number.isNaN(parseFloat(t.size) * parseFloat(t.price))
+        ? 0
+        : parseFloat(t.size) * parseFloat(t.price);
+      if (!smartMoneyTracker.has(proxyWallet)) {
+        smartMoneyTracker.set(proxyWallet, {
+          wins: 0,
+          totalBets: 0,
+          totalUsdc: 0,
+          recentMarkets: [],
+          pseudonym: '',
+        });
+      }
+      const entry = smartMoneyTracker.get(proxyWallet);
+      entry.totalBets += 1;
+      entry.totalUsdc += usdcForTracker;
+      entry.recentMarkets.push(t.title || 'Unknown market');
+      if (t.pseudonym) entry.pseudonym = t.pseudonym;
+    }
+
     console.log('[Polymarket] Checking trade size:', t.size || t.usdcSize);
     const usdcValue = parseFloat(t.size) * parseFloat(t.price);
     console.log('[Polymarket] USDC value:', usdcValue.toFixed(2));
@@ -131,8 +156,36 @@ async function storeWhaleTrade(whale) {
  */
 async function runWhaleDetection() {
   try {
+    smartMoneyTracker.clear();
+
     const trades = await fetchPolymarketTrades();
     const whales = detectWhales(trades);
+
+    // Smart money alerts: 3+ trades in batch and total USDC > 500
+    for (const [wallet, entry] of smartMoneyTracker) {
+      if (entry.totalBets >= 3 && entry.totalUsdc > 500) {
+        if (bot && process.env.ADMIN_CHAT_ID) {
+          const walletShort = wallet.slice(0, 8) + '...';
+          const pseudonymPart = entry.pseudonym ? ` (${entry.pseudonym})` : '';
+          const marketsList = entry.recentMarkets.join(', ');
+          const text = [
+            '🧠 SMART MONEY — Polymarket',
+            '',
+            `Wallet: ${walletShort}${pseudonymPart}`,
+            `Bets: ${entry.totalBets} trades`,
+            `Total: $${entry.totalUsdc.toFixed(0)} USDC`,
+            `Markets: ${marketsList}`,
+            '',
+            'ozscan.xyz',
+          ].join('\n');
+          try {
+            await bot.sendMessage(process.env.ADMIN_CHAT_ID, text);
+          } catch (err) {
+            console.error('Telegram send failed:', err.message);
+          }
+        }
+      }
+    }
 
     for (const w of whales) {
       if (alertedTradeIds.has(w.tradeId)) continue;
