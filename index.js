@@ -156,7 +156,7 @@ async function runWhaleDetection() {
 // Telegram bot (only if BOT_TOKEN is set)
 let bot = null;
 if (process.env.BOT_TOKEN) {
-  bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+  bot = new TelegramBot(process.env.BOT_TOKEN);
 
   bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
@@ -165,6 +165,16 @@ if (process.env.BOT_TOKEN) {
       'OzScan - Prediction Market Intelligence. Commands coming soon.'
     );
   });
+
+  setTimeout(async () => {
+    try {
+      await bot.deleteWebHook();
+      bot.startPolling({ restart: false });
+      console.log('✅ Telegram polling started');
+    } catch (e) {
+      console.error('Telegram start error:', e.message);
+    }
+  }, 3000);
 }
 
 // Health check endpoint
