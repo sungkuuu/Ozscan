@@ -95,7 +95,7 @@ async function fetchPolymarketOdds() {
       return [];
     }
     const data = await res.json();
-    const markets = data.markets || data || [];
+    const markets = data.markets || data.results || (Array.isArray(data) ? data : []);
     return markets
       .map((m) => {
         const price =
