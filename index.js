@@ -106,15 +106,14 @@ async function fetchPolymarketOdds() {
     const data = await res.json();
     const markets = data.data || (Array.isArray(data) ? data : []);
 
-    console.log('[Arb] Polymarket active markets:', markets.filter(m => m.active && !m.closed).length);
+    console.log('[Arb] Polymarket markets:', markets.length);
 
     return markets
-      .filter(m => m.active === true)
       .map(m => {
         const price = parseFloat(m.tokens?.[0]?.price ?? 0);
         return { slug: m.condition_id || '', question: m.question || '', price };
       })
-      .filter(m => m.question && m.price > 0 && m.price < 1);
+      .filter(m => m.question && m.price > 0.01 && m.price < 0.99);
   } catch (e) {
     console.error('[Arb] Polymarket odds error:', e.message);
     return [];
