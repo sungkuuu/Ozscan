@@ -408,4 +408,5 @@ app.listen(PORT, async () => {
 
 setTimeout(fetchKalshiMarkets, 5000);
 
+detectArbitrage();
 setInterval(detectArbitrage, 5 * 60 * 1000);
