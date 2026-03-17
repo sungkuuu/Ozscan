@@ -139,14 +139,23 @@ function keywordScore(a, b) {
 }
 
 async function detectArbitrage() {
+  console.log('[Arb] Starting arbitrage detection...');
   try {
-    const [kalshi, poly] = await Promise.all([fetchKalshiOdds(), fetchPolymarketOdds()]);
-    console.log('[Arb] Kalshi markets:', kalshi.length, 'Polymarket markets:', poly.length);
+    const [kalshiOdds, polyOdds] = await Promise.all([
+      fetchKalshiOdds(),
+      fetchPolymarketOdds(),
+    ]);
+    console.log(
+      '[Arb] Kalshi count:',
+      kalshiOdds.length,
+      'Polymarket count:',
+      polyOdds.length
+    );
 
-    for (const k of kalshi) {
+    for (const k of kalshiOdds) {
       let best = null;
       let bestScore = 0;
-      for (const p of poly) {
+      for (const p of polyOdds) {
         const s = keywordScore(k.title, p.question);
         if (s > bestScore) {
           bestScore = s;
@@ -186,7 +195,7 @@ async function detectArbitrage() {
       }
     }
   } catch (e) {
-    console.error('[Arb] detectArbitrage error:', e.message);
+    console.error('[Arb] Fatal error:', e.message, e.stack);
   }
 }
 
