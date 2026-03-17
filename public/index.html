@@ -232,6 +232,15 @@
     .wallet-addr { color: var(--text); word-break: break-all; }
     .wallet-meta { color: var(--text-muted); font-size: 11px; margin-top: 2px; }
     .empty-msg { color: var(--text-faint); font-size: 12px; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .smart-money-list { list-style: none; padding: 0; margin: 0; }
+    .smart-money-item {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .smart-money-item:last-child { border-bottom: 0; }
   </style>
 </head>
 <body>
@@ -247,23 +256,31 @@
       </div>
     </div>
     <nav class="tabs">
-      <a href="#" class="active">Whale Feed</a>
-      <a href="#">Smart Money</a>
+      <a href="#" class="tab active" data-tab="whale">Whale Feed</a>
+      <a href="#" class="tab" data-tab="smart">Smart Money</a>
     </nav>
   </header>
 
   <div class="layout">
     <main>
-      <div class="feed-header">
-        <span class="feed-label">Recent Whale Trades</span>
-        <div class="chips">
-          <button type="button" class="active" data-min="0">All</button>
-          <button type="button" data-min="2000">$2K+</button>
-          <button type="button" data-min="5000">$5K+</button>
-          <button type="button" data-min="10000">$10K+</button>
+      <div id="whale-feed-panel" class="panel active">
+        <div class="feed-header">
+          <span class="feed-label">Recent Whale Trades</span>
+          <div class="chips">
+            <button type="button" class="active" data-min="0">All</button>
+            <button type="button" data-min="2000">$2K+</button>
+            <button type="button" data-min="5000">$5K+</button>
+            <button type="button" data-min="10000">$10K+</button>
+          </div>
         </div>
+        <ul class="whale-list" id="whale-list"></ul>
       </div>
-      <ul class="whale-list" id="whale-list"></ul>
+      <div id="smart-money-panel" class="panel">
+        <div class="feed-header">
+          <span class="feed-label">Smart Money (by trade count)</span>
+        </div>
+        <ul class="smart-money-list" id="smart-money-list"></ul>
+      </div>
     </main>
 
     <aside>
@@ -374,13 +391,41 @@
               </li>`;
           }).join('');
 
-      const total = whales.reduce((s, w) => s + (Number(w.size) || 0), 0);
-      const sizes = whales.map(w => Number(w.size) || 0).filter(Boolean);
-      const maxSize = sizes.length ? Math.max(...sizes) : 0;
-      statCount.textContent = whales.length;
-      statVolume.textContent = formatAmount(total);
-      statAvg.textContent = whales.length ? formatAmount(total / whales.length) : '$0';
-      statMax.textContent = formatAmount(maxSize);
+    }
+
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/stats');
+        const s = await res.json();
+        statCount.textContent = Number(s.total_trades) || 0;
+        statVolume.textContent = formatAmount(Number(s.total_volume) || 0);
+        statAvg.textContent = formatAmount(Number(s.avg_bet) || 0);
+        statMax.textContent = formatAmount(Number(s.max_bet) || 0);
+      } catch (e) {}
+    }
+
+    function renderSmartMoney(list) {
+      const el = document.getElementById('smart-money-list');
+      if (!list || list.length === 0) {
+        el.innerHTML = '<li class="smart-money-item"><span class="empty-msg">No smart money data yet.</span></li>';
+        return;
+      }
+      el.innerHTML = list.map(row => {
+        const id = escapeHtml((row.trade_id || '').slice(0, 16) + ((row.trade_id || '').length > 16 ? '…' : ''));
+        const count = Number(row.trade_count) || 0;
+        const vol = formatAmount(Number(row.total_volume) || 0);
+        return `<li class="smart-money-item"><span class="wallet-addr">${id}</span><div class="wallet-meta">${count} trades · ${vol} volume</div></li>`;
+      }).join('');
+    }
+
+    async function fetchSmartMoney() {
+      try {
+        const res = await fetch('/api/smart-money');
+        const list = await res.json();
+        renderSmartMoney(Array.isArray(list) ? list : []);
+      } catch (e) {
+        document.getElementById('smart-money-list').innerHTML = '<li class="smart-money-item"><span class="empty-msg">Failed to load.</span></li>';
+      }
     }
 
     async function fetchWhales() {
@@ -403,8 +448,26 @@
       });
     });
 
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const t = tab.dataset.tab;
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        if (t === 'whale') {
+          document.getElementById('whale-feed-panel').classList.add('active');
+        } else {
+          document.getElementById('smart-money-panel').classList.add('active');
+          fetchSmartMoney();
+        }
+      });
+    });
+
     fetchWhales();
+    fetchStats();
     setInterval(fetchWhales, 30000);
+    setInterval(fetchStats, 30000);
   </script>
 </body>
 </html>

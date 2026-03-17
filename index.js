@@ -403,6 +403,43 @@ app.get('/api/whales', async (req, res) => {
   }
 });
 
+app.get('/api/stats', async (req, res) => {
+  if (!pool) return res.json({ total_trades: 0, total_volume: 0, avg_bet: 0, max_bet: 0 });
+  try {
+    const result = await pool.query(`
+      SELECT
+        COUNT(*) AS total_trades,
+        SUM(size::numeric * price::numeric) AS total_volume,
+        AVG(size::numeric * price::numeric) AS avg_bet,
+        MAX(size::numeric * price::numeric) AS max_bet
+      FROM whale_trades
+      WHERE timestamp > NOW() - INTERVAL '24 hours'
+    `);
+    res.json(result.rows[0] || {});
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/smart-money', async (req, res) => {
+  if (!pool) return res.json([]);
+  try {
+    const result = await pool.query(`
+      SELECT
+        trade_id,
+        COUNT(*) AS trade_count,
+        SUM(size::numeric * price::numeric) AS total_volume
+      FROM whale_trades
+      GROUP BY trade_id
+      ORDER BY trade_count DESC
+      LIMIT 20
+    `);
+    res.json(result.rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'ozscan' });
