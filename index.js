@@ -74,7 +74,7 @@ async function fetchKalshiOdds() {
     }
     const data = await res.json();
     const markets = data.markets || [];
-    return markets
+    const kalshiOdds = markets
       .filter((m) => {
         const title = m.title || m.question || '';
         const commaCount = (title.match(/,/g) || []).length;
@@ -90,6 +90,8 @@ async function fetchKalshiOdds() {
         yesPrice: parseFloat(m.yes_ask_dollars),
       }))
       .filter((m) => m.title && !Number.isNaN(m.yesPrice) && m.yesPrice > 0 && m.yesPrice < 1);
+    console.log('[Arb] Kalshi sample item:', JSON.stringify(kalshiOdds[0]));
+    return kalshiOdds;
   } catch (e) {
     console.error('[Arb] Kalshi odds error:', e.message);
     return [];
@@ -108,12 +110,14 @@ async function fetchPolymarketOdds() {
 
     console.log('[Arb] Polymarket markets:', markets.length);
 
-    return markets
+    const polyOdds = markets
       .map(m => {
         const price = parseFloat(m.tokens?.[0]?.price ?? 0);
         return { slug: m.condition_id || '', question: m.question || '', price };
       })
       .filter(m => m.question && m.price > 0.01 && m.price < 0.99);
+    console.log('[Arb] Polymarket sample item:', JSON.stringify(polyOdds[0]));
+    return polyOdds;
   } catch (e) {
     console.error('[Arb] Polymarket odds error:', e.message);
     return [];
