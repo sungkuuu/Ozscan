@@ -74,6 +74,8 @@ async function fetchKalshiOdds() {
     }
     const data = await res.json();
     const markets = data.markets || [];
+    console.log('[Arb] Kalshi raw market sample:', JSON.stringify(markets[0]));
+    console.log('[Arb] Kalshi total markets before filter:', markets.length);
     const kalshiOdds = markets
       .filter((m) => {
         const title = m.title || m.question || '';
