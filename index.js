@@ -78,7 +78,7 @@ async function fetchKalshiOdds() {
       .filter((m) => {
         const title = m.title || m.question || '';
         const commaCount = (title.match(/,/g) || []).length;
-        return commaCount <= 1; // single event only
+        return commaCount <= 3;
       })
       .filter(
         (m) =>
@@ -98,7 +98,7 @@ async function fetchKalshiOdds() {
 
 async function fetchPolymarketOdds() {
   try {
-    const res = await fetch('https://clob.polymarket.com/markets?limit=100');
+    const res = await fetch('https://clob.polymarket.com/markets?limit=100&active=true&closed=false');
     if (!res.ok) {
       console.error('[Arb] Polymarket odds error status:', res.status);
       return [];
@@ -113,6 +113,12 @@ async function fetchPolymarketOdds() {
     );
 
     return markets
+      .filter(
+        (m) =>
+          m.active === true &&
+          m.closed === false &&
+          m.accepting_orders === true
+      )
       .map(m => {
         const price = m.tokens?.[0]?.price ?? m.outcomePrices?.[0] ?? null;
         return {
