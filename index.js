@@ -98,7 +98,7 @@ async function fetchKalshiOdds() {
 
 async function fetchPolymarketOdds() {
   try {
-    const res = await fetch('https://clob.polymarket.com/markets?limit=100&active=true&closed=false');
+    const res = await fetch('https://clob.polymarket.com/markets?limit=100');
     if (!res.ok) {
       console.error('[Arb] Polymarket odds error status:', res.status);
       return [];
@@ -106,28 +106,15 @@ async function fetchPolymarketOdds() {
     const data = await res.json();
     const markets = data.data || (Array.isArray(data) ? data : []);
 
-    console.log('[Arb] Polymarket sample market:', JSON.stringify(markets[0]));
-    console.log(
-      '[Arb] Polymarket sample market keys:',
-      markets[0] ? Object.keys(markets[0]) : 'empty'
-    );
+    console.log('[Arb] Polymarket active markets:', markets.filter(m => m.active && !m.closed).length);
 
     return markets
-      .filter(
-        (m) =>
-          m.active === true &&
-          m.closed === false &&
-          m.accepting_orders === true
-      )
+      .filter(m => m.active === true && m.closed !== true)
       .map(m => {
-        const price = m.tokens?.[0]?.price ?? m.outcomePrices?.[0] ?? null;
-        return {
-          slug: m.condition_id || m.slug || '',
-          question: m.question || m.title || '',
-          price: price !== null ? parseFloat(price) : null,
-        };
+        const price = parseFloat(m.tokens?.[0]?.price ?? 0);
+        return { slug: m.condition_id || '', question: m.question || '', price };
       })
-      .filter(m => m.question && m.price !== null && m.price > 0 && m.price < 1);
+      .filter(m => m.question && m.price > 0 && m.price < 1);
   } catch (e) {
     console.error('[Arb] Polymarket odds error:', e.message);
     return [];
