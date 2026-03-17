@@ -408,12 +408,11 @@ app.get('/api/stats', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT
-        COUNT(*) AS total_trades,
-        SUM(size::numeric * price::numeric) AS total_volume,
-        AVG(size::numeric * price::numeric) AS avg_bet,
-        MAX(size::numeric * price::numeric) AS max_bet
+        COUNT(*) as total_trades,
+        COALESCE(SUM(size::numeric * price::numeric), 0) as total_volume,
+        COALESCE(AVG(size::numeric * price::numeric), 0) as avg_bet,
+        COALESCE(MAX(size::numeric * price::numeric), 0) as max_bet
       FROM whale_trades
-      WHERE timestamp > NOW() - INTERVAL '24 hours'
     `);
     res.json(result.rows[0] || {});
   } catch (e) {
@@ -426,13 +425,13 @@ app.get('/api/smart-money', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT
-        trade_id,
-        COUNT(*) AS trade_count,
-        SUM(size::numeric * price::numeric) AS total_volume
+        market,
+        COUNT(*) as trade_count,
+        SUM(size::numeric * price::numeric) as total_volume
       FROM whale_trades
-      GROUP BY trade_id
-      ORDER BY trade_count DESC
-      LIMIT 20
+      GROUP BY market
+      ORDER BY total_volume DESC
+      LIMIT 10
     `);
     res.json(result.rows);
   } catch (e) {
