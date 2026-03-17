@@ -75,6 +75,15 @@ async function fetchKalshiOdds() {
     const data = await res.json();
     const markets = data.markets || [];
     return markets
+      .filter((m) => {
+        const title = m.title || m.question || '';
+        const commaCount = (title.match(/,/g) || []).length;
+        return commaCount <= 1; // single event only
+      })
+      .filter(
+        (m) =>
+          m.yes_ask_dollars !== '0.0000' && m.yes_ask_dollars !== '1.0000'
+      )
       .map((m) => ({
         ticker: m.ticker,
         title: m.title || m.name || '',
