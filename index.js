@@ -12,6 +12,8 @@ const POLL_INTERVAL_MS = 60 * 1000;
 
 const app = express();
 
+app.use(express.static('public'));
+
 // PostgreSQL connection
 const pool = process.env.DATABASE_URL
   ? new Pool({ connectionString: process.env.DATABASE_URL })
@@ -390,6 +392,16 @@ if (process.env.BOT_TOKEN) {
     }
   }, 3000);
 }
+
+app.get('/api/whales', async (req, res) => {
+  if (!pool) return res.json([]);
+  try {
+    const result = await pool.query('SELECT * FROM whale_trades ORDER BY timestamp DESC LIMIT 50');
+    res.json(result.rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
