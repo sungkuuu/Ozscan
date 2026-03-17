@@ -109,7 +109,7 @@ async function fetchPolymarketOdds() {
     console.log('[Arb] Polymarket active markets:', markets.filter(m => m.active && !m.closed).length);
 
     return markets
-      .filter(m => m.active === true && m.closed !== true)
+      .filter(m => m.active === true)
       .map(m => {
         const price = parseFloat(m.tokens?.[0]?.price ?? 0);
         return { slug: m.condition_id || '', question: m.question || '', price };
