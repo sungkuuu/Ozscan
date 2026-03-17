@@ -144,6 +144,20 @@ async function detectArbitrage() {
       polyOdds.length
     );
 
+    console.log('[Arb] Kalshi sample:', JSON.stringify(kalshiOdds[0]));
+    console.log('[Arb] Polymarket sample:', JSON.stringify(polyOdds[0]));
+
+    for (const k of kalshiOdds) {
+      for (const p of polyOdds) {
+        const kWords = k.title.toLowerCase().split(/\s+/);
+        const pWords = p.question.toLowerCase().split(/\s+/);
+        const shared = kWords.filter(w => w.length > 4 && pWords.includes(w));
+        if (shared.length >= 2) {
+          console.log('[Arb] Match found:', k.title, '<=>', p.question, 'gap:', Math.abs(k.yesPrice - p.price).toFixed(2));
+        }
+      }
+    }
+
     for (const k of kalshiOdds) {
       let best = null;
       let bestScore = 0;
