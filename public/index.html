@@ -418,186 +418,215 @@
     </div>
   </div>
 
-+  <script>
-+    const whaleList = document.getElementById('whale-list');
-+    const statCount = document.getElementById('stat-count');
-+    const statVolume = document.getElementById('stat-volume');
-+    const statAvg = document.getElementById('stat-avg');
-+    const statMax = document.getElementById('stat-max');
-+    const walletList = document.getElementById('wallet-list');
-+    const themeToggle = document.getElementById('theme-toggle');
-+
-+    let minAmount = 0;
-+    let whales = [];
-+
-+    const saved = localStorage.getItem('ozscan-theme');
-+    if (saved === 'dark') {
-+      document.documentElement.setAttribute('data-theme', 'dark');
-+      themeToggle.textContent = 'Light';
-+    }
-+
-+    themeToggle.addEventListener('click', () => {
-+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-+      if (isDark) {
-+        document.documentElement.removeAttribute('data-theme');
-+        localStorage.setItem('ozscan-theme', 'light');
-+        themeToggle.textContent = 'Dark';
-+      } else {
-+        document.documentElement.setAttribute('data-theme', 'dark');
-+        localStorage.setItem('ozscan-theme', 'dark');
-+        themeToggle.textContent = 'Light';
-+      }
-+    });
-+
-+    function formatAmount(n) {
-+      if (n >= 1e9) return '$' + (n / 1e9).toFixed(1) + 'B';
-+      if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
-+      if (n >= 1e3) return '$' + (n / 1e3).toFixed(1) + 'K';
-+      return '$' + Number(n).toLocaleString();
-+    }
-+
-+    function timeAgo(ts) {
-+      const sec = typeof ts === 'number' ? ts : (/^\\d+$/.test(String(ts)) ? parseInt(ts, 10) : new Date(ts).getTime() / 1000);
-+      const s = Math.floor((Date.now() / 1000 - sec));
-+      if (s < 60) return s + 's ago';
-+      const m = Math.floor(s / 60);
-+      if (m < 60) return m + 'm ago';
-+      const h = Math.floor(m / 60);
-+      if (h < 24) return h + 'h ago';
-+      return Math.floor(h / 24) + 'd ago';
-+    }
-+
-+    function escapeHtml(s) {
-+      const div = document.createElement('div');
-+      div.textContent = s == null ? '' : s;
-+      return div.innerHTML;
-+    }
-+
-+    function filtered() {
-+      return whales.filter(w => (Number(w.size) || 0) >= minAmount);
-+    }
-+
-+    function badgeClass(side) {
-+      const s = (side || '').toUpperCase();
-+      if (s === 'YES') return 'badge badge-yes';
-+      if (s === 'NO') return 'badge badge-no';
-+      return 'badge badge-over';
-+    }
-+
-+    function barClass(side) {
-+      const s = (side || '').toUpperCase();
-+      return s === 'NO' ? 'bar red' : 'bar';
-+    }
-+
-+    function render() {
-+      const list = filtered();
-+      whaleList.innerHTML = list.length === 0
-+        ? `<li class=\"whale-row\"><div class=\"icon\">🐟</div><div class=\"market\"><div class=\"market-title\"><span class=\"empty-msg\">No whale trades in this range.</span></div></div><div class=\"odds\"></div><div class=\"amount\"></div></li>`
-+        : list.map(w => {
-+            const size = Number(w.size) || 0;
-+            const side = (w.side || 'YES').toUpperCase();
-+            const market = (w.market || '').trim();
-+            const marketTrunc = market.length > 92 ? market.slice(0, 92) + '…' : market;
-+            const ts = w.timestamp != null ? w.timestamp : (w.created_at ? new Date(w.created_at).getTime() / 1000 : null);
-+            const timeStr = ts != null ? timeAgo(ts) : '—';
-+            const price = Number(w.price) || 0;
-+            const priceClamped = Math.max(0, Math.min(100, price));
-+            const icon = size >= 10000 ? '🐋' : '🐟';
-+            return `
-+              <li class=\"whale-row\">
-+                <div class=\"icon\">${icon}</div>
-+                <div class=\"market\">
-+                  <div class=\"market-title\">${escapeHtml(marketTrunc)}</div>
-+                  <div class=\"meta\">
-+                    <span class=\"${badgeClass(side)}\">${escapeHtml(side)}</span>
-+                    <span class=\"mono\" style=\"color:var(--text3); font-weight:700;\">Polymarket</span>
-+                    <span class=\"mono\" style=\"color:var(--text3);\">${escapeHtml(timeStr)}</span>
-+                  </div>
-+                </div>
-+                <div class=\"odds\">
-+                  <div class=\"odds-val\">${priceClamped.toFixed(0)}%</div>
-+                  <div class=\"${barClass(side)}\"><span style=\"width:${priceClamped.toFixed(0)}%\"></span></div>
-+                </div>
-+                <div class=\"amount\">${formatAmount(size)}</div>
-+              </li>`;
-+          }).join('');
-+    }
-+
-+    async function fetchStats() {
-+      try {
-+        const res = await fetch('/api/stats');
-+        const s = await res.json();
-+        statCount.textContent = Number(s.total_trades) || 0;
-+        statVolume.textContent = formatAmount(Number(s.total_volume) || 0);
-+        statAvg.textContent = formatAmount(Number(s.avg_bet) || 0);
-+        statMax.textContent = formatAmount(Number(s.max_bet) || 0);
-+      } catch (e) {}
-+    }
-+
-+    function renderSmartMoney(list) {
-+      const el = document.getElementById('smart-money-list');
-+      if (!list || list.length === 0) {
-+        el.innerHTML = '<li class=\"smart-money-item\"><span class=\"empty-msg\">No smart money data yet.</span></li>';
-+        return;
-+      }
-+      el.innerHTML = list.map(row => {
-+        const market = escapeHtml((row.market || '').slice(0, 90) + ((row.market || '').length > 90 ? '…' : ''));
-+        const count = Number(row.trade_count) || 0;
-+        const vol = formatAmount(Number(row.total_volume) || 0);
-+        return `<li class=\"smart-money-item\"><div class=\"wallet-addr\">${market}</div><div class=\"wallet-meta\">${count} trades · ${vol} volume</div></li>`;
-+      }).join('');
-+    }
-+
-+    async function fetchSmartMoney() {
-+      try {
-+        const res = await fetch('/api/smart-money');
-+        const list = await res.json();
-+        renderSmartMoney(Array.isArray(list) ? list : []);
-+      } catch (e) {
-+        document.getElementById('smart-money-list').innerHTML = '<li class=\"smart-money-item\"><span class=\"empty-msg\">Failed to load.</span></li>';
-+      }
-+    }
-+
-+    async function fetchWhales() {
-+      try {
-+        const res = await fetch('/api/whales');
-+        whales = await res.json();
-+        if (!Array.isArray(whales)) whales = [];
-+        render();
-+      } catch (e) {
-+        whaleList.innerHTML = '<li class=\"whale-row\"><div class=\"icon\">🐟</div><div class=\"market\"><div class=\"market-title\"><span class=\"empty-msg\">Failed to load.</span></div></div><div></div><div></div></li>';
-+      }
-+    }
-+
-+    document.querySelectorAll('.chips button').forEach(btn => {
-+      btn.addEventListener('click', () => {
-+        document.querySelectorAll('.chips button').forEach(b => b.classList.remove('active'));
-+        btn.classList.add('active');
-+        minAmount = Number(btn.dataset.min) || 0;
-+        render();
-+      });
-+    });
-+
-+    document.querySelectorAll('.tab').forEach(tab => {
-+      tab.addEventListener('click', (e) => {
-+        e.preventDefault();
-+        const t = tab.dataset.tab;
-+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-+        tab.classList.add('active');
-+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-+        if (t === 'whale') {
-+          document.getElementById('whale-feed-panel').classList.add('active');
-+        } else {
-+          document.getElementById('smart-money-panel').classList.add('active');
-+          fetchSmartMoney();
-+        }
-+      });
-+    });
-+
-+    fetchWhales();
-+    fetchStats();
-+    setInterval(fetchWhales, 30000);
-+    setInterval(fetchStats, 30000);
-+  </script>
-+</body>
-+</html>
+  <script>
+    const whaleList = document.getElementById('whale-list');
+    const statCount = document.getElementById('stat-count');
+    const statVolume = document.getElementById('stat-volume');
+    const statAvg = document.getElementById('stat-avg');
+    const statMax = document.getElementById('stat-max');
+    const walletList = document.getElementById('wallet-list');
+    const themeToggle = document.getElementById('theme-toggle');
+
+    let minAmount = 0;
+    let whales = [];
+
+    const saved = localStorage.getItem('ozscan-theme');
+    if (saved === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      themeToggle.textContent = 'Light';
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const isDark =
+        document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('ozscan-theme', 'light');
+        themeToggle.textContent = 'Dark';
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('ozscan-theme', 'dark');
+        themeToggle.textContent = 'Light';
+      }
+    });
+
+    function formatAmount(n) {
+      if (n >= 1e9) return '$' + (n / 1e9).toFixed(1) + 'B';
+      if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+      if (n >= 1e3) return '$' + (n / 1e3).toFixed(1) + 'K';
+      return '$' + Number(n).toLocaleString();
+    }
+
+    function timeAgo(ts) {
+      const sec =
+        typeof ts === 'number'
+          ? ts
+          : /^\d+$/.test(String(ts))
+            ? parseInt(ts, 10)
+            : new Date(ts).getTime() / 1000;
+      const s = Math.floor(Date.now() / 1000 - sec);
+      if (s < 60) return s + 's ago';
+      const m = Math.floor(s / 60);
+      if (m < 60) return m + 'm ago';
+      const h = Math.floor(m / 60);
+      if (h < 24) return h + 'h ago';
+      return Math.floor(h / 24) + 'd ago';
+    }
+
+    function escapeHtml(s) {
+      const div = document.createElement('div');
+      div.textContent = s == null ? '' : s;
+      return div.innerHTML;
+    }
+
+    function filtered() {
+      return whales.filter((w) => (Number(w.size) || 0) >= minAmount);
+    }
+
+    function badgeClass(side) {
+      const s = (side || '').toUpperCase();
+      if (s === 'YES') return 'badge badge-yes';
+      if (s === 'NO') return 'badge badge-no';
+      return 'badge badge-over';
+    }
+
+    function barClass(side) {
+      const s = (side || '').toUpperCase();
+      return s === 'NO' ? 'bar red' : 'bar';
+    }
+
+    function render() {
+      const list = filtered();
+      whaleList.innerHTML =
+        list.length === 0
+          ? `<li class="whale-row"><div class="icon">🐟</div><div class="market"><div class="market-title"><span class="empty-msg">No whale trades in this range.</span></div></div><div class="odds"></div><div class="amount"></div></li>`
+          : list
+              .map((w) => {
+                const size = Number(w.size) || 0;
+                const side = (w.side || 'YES').toUpperCase();
+                const market = (w.market || '').trim();
+                const marketTrunc =
+                  market.length > 92 ? market.slice(0, 92) + '…' : market;
+                const ts =
+                  w.timestamp != null
+                    ? w.timestamp
+                    : w.created_at
+                      ? new Date(w.created_at).getTime() / 1000
+                      : null;
+                const timeStr = ts != null ? timeAgo(ts) : '—';
+                const price = Number(w.price) || 0;
+                const priceClamped = Math.max(0, Math.min(100, price));
+                const icon = size >= 10000 ? '🐋' : '🐟';
+                return `
+              <li class="whale-row">
+                <div class="icon">${icon}</div>
+                <div class="market">
+                  <div class="market-title">${escapeHtml(marketTrunc)}</div>
+                  <div class="meta">
+                    <span class="${badgeClass(side)}">${escapeHtml(side)}</span>
+                    <span class="mono" style="color:var(--text3); font-weight:700;">Polymarket</span>
+                    <span class="mono" style="color:var(--text3);">${escapeHtml(timeStr)}</span>
+                  </div>
+                </div>
+                <div class="odds">
+                  <div class="odds-val">${priceClamped.toFixed(0)}%</div>
+                  <div class="${barClass(side)}"><span style="width:${priceClamped.toFixed(0)}%"></span></div>
+                </div>
+                <div class="amount">${formatAmount(size)}</div>
+              </li>`;
+              })
+              .join('');
+    }
+
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/stats');
+        const s = await res.json();
+        statCount.textContent = Number(s.total_trades) || 0;
+        statVolume.textContent = formatAmount(Number(s.total_volume) || 0);
+        statAvg.textContent = formatAmount(Number(s.avg_bet) || 0);
+        statMax.textContent = formatAmount(Number(s.max_bet) || 0);
+      } catch (e) {}
+    }
+
+    function renderSmartMoney(list) {
+      const el = document.getElementById('smart-money-list');
+      if (!list || list.length === 0) {
+        el.innerHTML =
+          '<li class="smart-money-item"><span class="empty-msg">No smart money data yet.</span></li>';
+        return;
+      }
+      el.innerHTML = list
+        .map((row) => {
+          const market = escapeHtml(
+            (row.market || '').slice(0, 90) +
+              ((row.market || '').length > 90 ? '…' : '')
+          );
+          const count = Number(row.trade_count) || 0;
+          const vol = formatAmount(Number(row.total_volume) || 0);
+          return `<li class="smart-money-item"><div class="wallet-addr">${market}</div><div class="wallet-meta">${count} trades · ${vol} volume</div></li>`;
+        })
+        .join('');
+    }
+
+    async function fetchSmartMoney() {
+      try {
+        const res = await fetch('/api/smart-money');
+        const list = await res.json();
+        renderSmartMoney(Array.isArray(list) ? list : []);
+      } catch (e) {
+        document.getElementById('smart-money-list').innerHTML =
+          '<li class="smart-money-item"><span class="empty-msg">Failed to load.</span></li>';
+      }
+    }
+
+    async function fetchWhales() {
+      try {
+        const res = await fetch('/api/whales');
+        whales = await res.json();
+        if (!Array.isArray(whales)) whales = [];
+        render();
+      } catch (e) {
+        whaleList.innerHTML =
+          '<li class="whale-row"><div class="icon">🐟</div><div class="market"><div class="market-title"><span class="empty-msg">Failed to load.</span></div></div><div></div><div></div></li>';
+      }
+    }
+
+    document.querySelectorAll('.chips button').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document
+          .querySelectorAll('.chips button')
+          .forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        minAmount = Number(btn.dataset.min) || 0;
+        render();
+      });
+    });
+
+    document.querySelectorAll('.tab').forEach((tab) => {
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const t = tab.dataset.tab;
+        document
+          .querySelectorAll('.tab')
+          .forEach((x) => x.classList.remove('active'));
+        tab.classList.add('active');
+        document
+          .querySelectorAll('.panel')
+          .forEach((p) => p.classList.remove('active'));
+        if (t === 'whale') {
+          document.getElementById('whale-feed-panel').classList.add('active');
+        } else {
+          document.getElementById('smart-money-panel').classList.add('active');
+          fetchSmartMoney();
+        }
+      });
+    });
+
+    fetchWhales();
+    fetchStats();
+    setInterval(fetchWhales, 30000);
+    setInterval(fetchStats, 30000);
+  </script>
+</body>
+</html>
