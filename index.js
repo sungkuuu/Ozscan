@@ -70,14 +70,18 @@ async function ensureSmartMoneyWalletsTable() {
 async function fetchPolymarketLeaderboard() {
   if (!pool) return;
   try {
+    console.log('[Leaderboard] Fetching...');
     const res = await fetch(
-      'https://data-api.polymarket.com/profiles?limit=20&sortBy=profitAndLoss&sortDirection=desc'
+      'https://data-api.polymarket.com/profiles?limit=20&sortBy=profitAndLoss&sortDirection=DESC'
     );
+    console.log('[Leaderboard] Response status:', res.status);
+    const text = await res.text();
+    console.log('[Leaderboard] Response:', text.slice(0, 500));
     if (!res.ok) {
       console.error('[SmartMoney] Leaderboard fetch status:', res.status);
       return;
     }
-    const data = await res.json();
+    const data = JSON.parse(text);
     const profiles = data.profiles || data.results || (Array.isArray(data) ? data : []);
     const top = (Array.isArray(profiles) ? profiles : []).slice(0, 20);
 
