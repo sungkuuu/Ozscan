@@ -128,6 +128,100 @@ async function fetchPolymarketOdds() {
   }
 }
 
+async function fetchPolymarketTopMarketsForOdds() {
+  const res = await fetch('https://clob.polymarket.com/markets?limit=100');
+  if (!res.ok) {
+    throw new Error(`Polymarket markets error: ${res.status}`);
+  }
+  const data = await res.json();
+  const markets = data.data || (Array.isArray(data) ? data : []);
+  return markets
+    .map((m) => {
+      const price = parseFloat(m.tokens?.[0]?.price ?? 0);
+      return {
+        market_id: m.condition_id || m.id || m.slug || '',
+        question: m.question || m.title || '',
+        price,
+      };
+    })
+    .filter((m) => m.market_id && m.question && m.price > 0 && m.price < 1);
+}
+
+async function ensureOddsSnapshotsTable() {
+  if (!pool) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS odds_snapshots (
+      id SERIAL PRIMARY KEY,
+      market_id TEXT,
+      question TEXT,
+      price NUMERIC,
+      recorded_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
+}
+
+async function runOddsMovementDetection() {
+  if (!pool) return;
+  try {
+    const current = await fetchPolymarketTopMarketsForOdds();
+    if (current.length === 0) return;
+
+    // Save snapshots
+    const values = [];
+    const params = [];
+    let i = 1;
+    for (const m of current) {
+      values.push(`($${i++}, $${i++}, $${i++})`);
+      params.push(m.market_id, m.question, m.price);
+    }
+    await pool.query(
+      `INSERT INTO odds_snapshots (market_id, question, price) VALUES ${values.join(', ')}`,
+      params
+    );
+
+    // Fetch previous snapshots ~30 minutes ago (latest snapshot at or before that point)
+    const marketIds = current.map((m) => m.market_id);
+    const prevResult = await pool.query(
+      `
+      SELECT DISTINCT ON (market_id)
+        market_id,
+        price
+      FROM odds_snapshots
+      WHERE recorded_at <= NOW() - INTERVAL '30 minutes'
+        AND market_id = ANY($1)
+      ORDER BY market_id, recorded_at DESC
+    `,
+      [marketIds]
+    );
+    const prevMap = new Map(prevResult.rows.map((r) => [r.market_id, parseFloat(r.price)]));
+
+    for (const m of current) {
+      const prev = prevMap.get(m.market_id);
+      if (typeof prev !== 'number' || Number.isNaN(prev)) continue;
+      const move = m.price - prev;
+      if (Math.abs(move) < 0.10) continue;
+
+      if (bot && process.env.ADMIN_CHAT_ID) {
+        const sign = move >= 0 ? '+' : '-';
+        const msg = [
+          '⚡ ODDS SPIKE',
+          `${m.question}`,
+          `${(prev * 100).toFixed(0)}% → ${(m.price * 100).toFixed(0)}%`,
+          `Move: ${sign}${(Math.abs(move) * 100).toFixed(0)}%`,
+          'ozscan.xyz',
+        ].join('\n');
+        try {
+          await bot.sendMessage(process.env.ADMIN_CHAT_ID, msg);
+        } catch (e) {
+          console.error('[Odds] Telegram send failed:', e.message);
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[Odds] Movement detection error:', e.message);
+  }
+}
+
 function keywordScore(a, b) {
   const aw = a.toLowerCase().split(/\W+/).filter(Boolean);
   const bw = new Set(b.toLowerCase().split(/\W+/).filter(Boolean));
@@ -185,28 +279,7 @@ async function detectArbitrage() {
 
       const lowerPlatform = polyPrice < kalshiPrice ? 'Polymarket' : 'Kalshi';
       const higherPlatform = polyPrice > kalshiPrice ? 'Polymarket' : 'Kalshi';
-
-      if (bot && process.env.ADMIN_CHAT_ID) {
-        const title = k.title || best.question;
-        const msg = [
-          '🔄 ARBITRAGE ALERT',
-          '',
-          `Event: ${title}`,
-          `Polymarket: ${(polyPrice * 100).toFixed(1)}%`,
-          `Kalshi: ${(kalshiPrice * 100).toFixed(1)}%`,
-          `Gap: ${(gap * 100).toFixed(1)}%`,
-          '',
-          `Buy ${lowerPlatform === 'Polymarket' ? 'YES on Polymarket' : 'YES on Kalshi'}, Sell ${higherPlatform === 'Polymarket' ? 'YES on Polymarket' : 'YES on Kalshi'}`,
-          `Expected profit: ~${(gap * 100 - 1).toFixed(1)}%`,
-          '',
-          'ozscan.xyz',
-        ].join('\n');
-        try {
-          await bot.sendMessage(process.env.ADMIN_CHAT_ID, msg);
-        } catch (err) {
-          console.error('[Arb] Telegram send failed:', err.message);
-        }
-      }
+      // Arbitrage Telegram alerts disabled
     }
   } catch (e) {
     console.error('[Arb] Fatal error:', e.message, e.stack);
@@ -448,6 +521,7 @@ app.get('/health', (req, res) => {
 app.listen(PORT, async () => {
   console.log(`OzScan server running on port ${PORT}`);
   await ensureWhaleTradesTable();
+  await ensureOddsSnapshotsTable();
   if (pool) {
     await pool.query(`
   CREATE TABLE IF NOT EXISTS whale_trades (
@@ -464,9 +538,11 @@ app.listen(PORT, async () => {
   }
   runWhaleDetection();
   setInterval(runWhaleDetection, POLL_INTERVAL_MS);
+  setInterval(runOddsMovementDetection, 5 * 60 * 1000);
 });
 
 setTimeout(fetchKalshiMarkets, 5000);
 
-detectArbitrage();
-setInterval(detectArbitrage, 5 * 60 * 1000);
+// Arbitrage feature disabled
+// detectArbitrage();
+// setInterval(detectArbitrage, 5 * 60 * 1000);
