@@ -333,4 +333,271 @@
   </style>
 </head>
 <body>
-  <header class=\"topbar\">\n    <div class=\"topbar-inner\">\n      <div class=\"topbar-row\">\n        <div class=\"logo mono\"><span class=\"dot\"></span> OZSCAN</div>\n        <div class=\"right-top\">\n          <span class=\"live mono\"><span class=\"dot\"></span> LIVE</span>\n          <button type=\"button\" class=\"toggle\" id=\"theme-toggle\" aria-label=\"Toggle dark mode\">Dark</button>\n        </div>\n      </div>\n      <nav class=\"tabs\">\n        <a href=\"#\" class=\"tab active\" data-tab=\"whale\">Whale Feed</a>\n        <a href=\"#\" class=\"tab\" data-tab=\"smart\">Smart Money</a>\n      </nav>\n    </div>\n  </header>\n\n  <div class=\"wrap\">\n    <div class=\"layout\">\n      <main>\n        <section id=\"whale-feed-panel\" class=\"panel active\">\n          <div class=\"card\">\n            <div class=\"feed-top\">\n              <div class=\"feed-title mono\">Recent Whale Trades</div>\n              <div class=\"chips\">\n                <button type=\"button\" class=\"chip active\" data-min=\"0\">All</button>\n                <button type=\"button\" class=\"chip\" data-min=\"2000\">$2K+</button>\n                <button type=\"button\" class=\"chip\" data-min=\"5000\">$5K+</button>\n                <button type=\"button\" class=\"chip\" data-min=\"10000\">$10K+</button>\n              </div>\n            </div>\n            <div class=\"grid-header\">\n              <div> </div>\n              <div>Market</div>\n              <div class=\"right\">Odds</div>\n              <div class=\"right\">Amount</div>\n            </div>\n            <ul class=\"whale-list\" id=\"whale-list\"></ul>\n          </div>\n        </section>\n\n        <section id=\"smart-money-panel\" class=\"panel\">\n          <div class=\"card\">\n            <div class=\"feed-top\">\n              <div class=\"feed-title mono\">Smart Money</div>\n              <div class=\"mono\" style=\"color:var(--text3); font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;\">Top markets by volume</div>\n            </div>\n            <div class=\"card-inner\">\n              <ul class=\"smart-money-list\" id=\"smart-money-list\"></ul>\n            </div>\n          </div>\n        </section>\n      </main>\n\n      <aside class=\"sidebar\">\n        <div class=\"stat-stack\">\n          <div class=\"stat\">\n            <div class=\"stat-label\">Today's trades</div>\n            <div class=\"stat-value\" id=\"stat-count\">0</div>\n          </div>\n          <div class=\"stat\">\n            <div class=\"stat-label\">Total volume</div>\n            <div class=\"stat-value\" id=\"stat-volume\">$0</div>\n          </div>\n          <div class=\"stat\">\n            <div class=\"stat-label\">Avg bet</div>\n            <div class=\"stat-value\" id=\"stat-avg\">$0</div>\n          </div>\n          <div class=\"stat\">\n            <div class=\"stat-label\">Largest</div>\n            <div class=\"stat-value\" id=\"stat-max\">$0</div>\n          </div>\n\n          <div class=\"divider\"></div>\n\n          <div>\n            <h3 class=\"top-wallets-title\">Top Wallets</h3>\n            <ul class=\"wallet-list\" id=\"wallet-list\">\n              <li class=\"wallet-item\"><span class=\"empty-msg\">No wallet data yet</span></li>\n            </ul>\n          </div>\n        </div>\n      </aside>\n    </div>\n  </div>\n\n+  <script>\n+    const whaleList = document.getElementById('whale-list');\n+    const statCount = document.getElementById('stat-count');\n+    const statVolume = document.getElementById('stat-volume');\n+    const statAvg = document.getElementById('stat-avg');\n+    const statMax = document.getElementById('stat-max');\n+    const walletList = document.getElementById('wallet-list');\n+    const themeToggle = document.getElementById('theme-toggle');\n+\n+    let minAmount = 0;\n+    let whales = [];\n+\n+    const saved = localStorage.getItem('ozscan-theme');\n+    if (saved === 'dark') {\n+      document.documentElement.setAttribute('data-theme', 'dark');\n+      themeToggle.textContent = 'Light';\n+    }\n+\n+    themeToggle.addEventListener('click', () => {\n+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';\n+      if (isDark) {\n+        document.documentElement.removeAttribute('data-theme');\n+        localStorage.setItem('ozscan-theme', 'light');\n+        themeToggle.textContent = 'Dark';\n+      } else {\n+        document.documentElement.setAttribute('data-theme', 'dark');\n+        localStorage.setItem('ozscan-theme', 'dark');\n+        themeToggle.textContent = 'Light';\n+      }\n+    });\n+\n+    function formatAmount(n) {\n+      if (n >= 1e9) return '$' + (n / 1e9).toFixed(1) + 'B';\n+      if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';\n+      if (n >= 1e3) return '$' + (n / 1e3).toFixed(1) + 'K';\n+      return '$' + Number(n).toLocaleString();\n+    }\n+\n+    function timeAgo(ts) {\n+      const sec = typeof ts === 'number' ? ts : (/^\\d+$/.test(String(ts)) ? parseInt(ts, 10) : new Date(ts).getTime() / 1000);\n+      const s = Math.floor((Date.now() / 1000 - sec));\n+      if (s < 60) return s + 's ago';\n+      const m = Math.floor(s / 60);\n+      if (m < 60) return m + 'm ago';\n+      const h = Math.floor(m / 60);\n+      if (h < 24) return h + 'h ago';\n+      return Math.floor(h / 24) + 'd ago';\n+    }\n+\n+    function escapeHtml(s) {\n+      const div = document.createElement('div');\n+      div.textContent = s == null ? '' : s;\n+      return div.innerHTML;\n+    }\n+\n+    function filtered() {\n+      return whales.filter(w => (Number(w.size) || 0) >= minAmount);\n+    }\n+\n+    function badgeClass(side) {\n+      const s = (side || '').toUpperCase();\n+      if (s === 'YES') return 'badge badge-yes';\n+      if (s === 'NO') return 'badge badge-no';\n+      return 'badge badge-over';\n+    }\n+\n+    function barClass(side) {\n+      const s = (side || '').toUpperCase();\n+      return s === 'NO' ? 'bar red' : 'bar';\n+    }\n+\n+    function render() {\n+      const list = filtered();\n+      whaleList.innerHTML = list.length === 0\n+        ? `<li class=\"whale-row\"><div class=\"icon\">🐟</div><div class=\"market\"><div class=\"market-title\"><span class=\"empty-msg\">No whale trades in this range.</span></div></div><div class=\"odds\"></div><div class=\"amount\"></div></li>`\n+        : list.map(w => {\n+            const size = Number(w.size) || 0;\n+            const side = (w.side || 'YES').toUpperCase();\n+            const market = (w.market || '').trim();\n+            const marketTrunc = market.length > 92 ? market.slice(0, 92) + '…' : market;\n+            const ts = w.timestamp != null ? w.timestamp : (w.created_at ? new Date(w.created_at).getTime() / 1000 : null);\n+            const timeStr = ts != null ? timeAgo(ts) : '—';\n+            const price = Number(w.price) || 0;\n+            const priceClamped = Math.max(0, Math.min(100, price));\n+            const icon = size >= 10000 ? '🐋' : '🐟';\n+            return `\n+              <li class=\"whale-row\">\n+                <div class=\"icon\">${icon}</div>\n+                <div class=\"market\">\n+                  <div class=\"market-title\">${escapeHtml(marketTrunc)}</div>\n+                  <div class=\"meta\">\n+                    <span class=\"${badgeClass(side)}\">${escapeHtml(side)}</span>\n+                    <span class=\"mono\" style=\"color:var(--text3); font-weight:700;\">Polymarket</span>\n+                    <span class=\"mono\" style=\"color:var(--text3);\">${escapeHtml(timeStr)}</span>\n+                  </div>\n+                </div>\n+                <div class=\"odds\">\n+                  <div class=\"odds-val\">${priceClamped.toFixed(0)}%</div>\n+                  <div class=\"${barClass(side)}\"><span style=\"width:${priceClamped.toFixed(0)}%\"></span></div>\n+                </div>\n+                <div class=\"amount\">${formatAmount(size)}</div>\n+              </li>`;\n+          }).join('');\n+    }\n+\n+    async function fetchStats() {\n+      try {\n+        const res = await fetch('/api/stats');\n+        const s = await res.json();\n+        statCount.textContent = Number(s.total_trades) || 0;\n+        statVolume.textContent = formatAmount(Number(s.total_volume) || 0);\n+        statAvg.textContent = formatAmount(Number(s.avg_bet) || 0);\n+        statMax.textContent = formatAmount(Number(s.max_bet) || 0);\n+      } catch (e) {}\n+    }\n+\n+    function renderSmartMoney(list) {\n+      const el = document.getElementById('smart-money-list');\n+      if (!list || list.length === 0) {\n+        el.innerHTML = '<li class=\"smart-money-item\"><span class=\"empty-msg\">No smart money data yet.</span></li>';\n+        return;\n+      }\n+      el.innerHTML = list.map(row => {\n+        const market = escapeHtml((row.market || '').slice(0, 90) + ((row.market || '').length > 90 ? '…' : ''));\n+        const count = Number(row.trade_count) || 0;\n+        const vol = formatAmount(Number(row.total_volume) || 0);\n+        return `<li class=\"smart-money-item\"><div class=\"wallet-addr\">${market}</div><div class=\"wallet-meta\">${count} trades · ${vol} volume</div></li>`;\n+      }).join('');\n+    }\n+\n+    async function fetchSmartMoney() {\n+      try {\n+        const res = await fetch('/api/smart-money');\n+        const list = await res.json();\n+        renderSmartMoney(Array.isArray(list) ? list : []);\n+      } catch (e) {\n+        document.getElementById('smart-money-list').innerHTML = '<li class=\"smart-money-item\"><span class=\"empty-msg\">Failed to load.</span></li>';\n+      }\n+    }\n+\n+    async function fetchWhales() {\n+      try {\n+        const res = await fetch('/api/whales');\n+        whales = await res.json();\n+        if (!Array.isArray(whales)) whales = [];\n+        render();\n+      } catch (e) {\n+        whaleList.innerHTML = '<li class=\"whale-row\"><div class=\"icon\">🐟</div><div class=\"market\"><div class=\"market-title\"><span class=\"empty-msg\">Failed to load.</span></div></div><div></div><div></div></li>';\n+      }\n+    }\n+\n+    document.querySelectorAll('.chips button').forEach(btn => {\n+      btn.addEventListener('click', () => {\n+        document.querySelectorAll('.chips button').forEach(b => b.classList.remove('active'));\n+        btn.classList.add('active');\n+        minAmount = Number(btn.dataset.min) || 0;\n+        render();\n+      });\n+    });\n+\n+    document.querySelectorAll('.tab').forEach(tab => {\n+      tab.addEventListener('click', (e) => {\n+        e.preventDefault();\n+        const t = tab.dataset.tab;\n+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));\n+        tab.classList.add('active');\n+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));\n+        if (t === 'whale') {\n+          document.getElementById('whale-feed-panel').classList.add('active');\n+        } else {\n+          document.getElementById('smart-money-panel').classList.add('active');\n+          fetchSmartMoney();\n+        }\n+      });\n+    });\n+\n+    fetchWhales();\n+    fetchStats();\n+    setInterval(fetchWhales, 30000);\n+    setInterval(fetchStats, 30000);\n+  </script>\n+</body>\n+</html>
+  <header class=\"topbar\">
+    <div class=\"topbar-inner\">
+      <div class=\"topbar-row\">
+        <div class=\"logo mono\"><span class=\"dot\"></span> OZSCAN</div>
+        <div class=\"right-top\">
+          <span class=\"live mono\"><span class=\"dot\"></span> LIVE</span>
+          <button type=\"button\" class=\"toggle\" id=\"theme-toggle\" aria-label=\"Toggle dark mode\">Dark</button>
+        </div>
+      </div>
+      <nav class=\"tabs\">
+        <a href=\"#\" class=\"tab active\" data-tab=\"whale\">Whale Feed</a>
+        <a href=\"#\" class=\"tab\" data-tab=\"smart\">Smart Money</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class=\"wrap\">
+    <div class=\"layout\">
+      <main>
+        <section id=\"whale-feed-panel\" class=\"panel active\">
+          <div class=\"card\">
+            <div class=\"feed-top\">
+              <div class=\"feed-title mono\">Recent Whale Trades</div>
+              <div class=\"chips\">
+                <button type=\"button\" class=\"chip active\" data-min=\"0\">All</button>
+                <button type=\"button\" class=\"chip\" data-min=\"2000\">$2K+</button>
+                <button type=\"button\" class=\"chip\" data-min=\"5000\">$5K+</button>
+                <button type=\"button\" class=\"chip\" data-min=\"10000\">$10K+</button>
+              </div>
+            </div>
+            <div class=\"grid-header\">
+              <div> </div>
+              <div>Market</div>
+              <div class=\"right\">Odds</div>
+              <div class=\"right\">Amount</div>
+            </div>
+            <ul class=\"whale-list\" id=\"whale-list\"></ul>
+          </div>
+        </section>
+
+        <section id=\"smart-money-panel\" class=\"panel\">
+          <div class=\"card\">
+            <div class=\"feed-top\">
+              <div class=\"feed-title mono\">Smart Money</div>
+              <div class=\"mono\" style=\"color:var(--text3); font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;\">Top markets by volume</div>
+            </div>
+            <div class=\"card-inner\">
+              <ul class=\"smart-money-list\" id=\"smart-money-list\"></ul>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <aside class=\"sidebar\">
+        <div class=\"stat-stack\">
+          <div class=\"stat\">
+            <div class=\"stat-label\">Today's trades</div>
+            <div class=\"stat-value\" id=\"stat-count\">0</div>
+          </div>
+          <div class=\"stat\">
+            <div class=\"stat-label\">Total volume</div>
+            <div class=\"stat-value\" id=\"stat-volume\">$0</div>
+          </div>
+          <div class=\"stat\">
+            <div class=\"stat-label\">Avg bet</div>
+            <div class=\"stat-value\" id=\"stat-avg\">$0</div>
+          </div>
+          <div class=\"stat\">
+            <div class=\"stat-label\">Largest</div>
+            <div class=\"stat-value\" id=\"stat-max\">$0</div>
+          </div>
+
+          <div class=\"divider\"></div>
+
+          <div>
+            <h3 class=\"top-wallets-title\">Top Wallets</h3>
+            <ul class=\"wallet-list\" id=\"wallet-list\">
+              <li class=\"wallet-item\"><span class=\"empty-msg\">No wallet data yet</span></li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
++  <script>
++    const whaleList = document.getElementById('whale-list');
++    const statCount = document.getElementById('stat-count');
++    const statVolume = document.getElementById('stat-volume');
++    const statAvg = document.getElementById('stat-avg');
++    const statMax = document.getElementById('stat-max');
++    const walletList = document.getElementById('wallet-list');
++    const themeToggle = document.getElementById('theme-toggle');
++
++    let minAmount = 0;
++    let whales = [];
++
++    const saved = localStorage.getItem('ozscan-theme');
++    if (saved === 'dark') {
++      document.documentElement.setAttribute('data-theme', 'dark');
++      themeToggle.textContent = 'Light';
++    }
++
++    themeToggle.addEventListener('click', () => {
++      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
++      if (isDark) {
++        document.documentElement.removeAttribute('data-theme');
++        localStorage.setItem('ozscan-theme', 'light');
++        themeToggle.textContent = 'Dark';
++      } else {
++        document.documentElement.setAttribute('data-theme', 'dark');
++        localStorage.setItem('ozscan-theme', 'dark');
++        themeToggle.textContent = 'Light';
++      }
++    });
++
++    function formatAmount(n) {
++      if (n >= 1e9) return '$' + (n / 1e9).toFixed(1) + 'B';
++      if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
++      if (n >= 1e3) return '$' + (n / 1e3).toFixed(1) + 'K';
++      return '$' + Number(n).toLocaleString();
++    }
++
++    function timeAgo(ts) {
++      const sec = typeof ts === 'number' ? ts : (/^\\d+$/.test(String(ts)) ? parseInt(ts, 10) : new Date(ts).getTime() / 1000);
++      const s = Math.floor((Date.now() / 1000 - sec));
++      if (s < 60) return s + 's ago';
++      const m = Math.floor(s / 60);
++      if (m < 60) return m + 'm ago';
++      const h = Math.floor(m / 60);
++      if (h < 24) return h + 'h ago';
++      return Math.floor(h / 24) + 'd ago';
++    }
++
++    function escapeHtml(s) {
++      const div = document.createElement('div');
++      div.textContent = s == null ? '' : s;
++      return div.innerHTML;
++    }
++
++    function filtered() {
++      return whales.filter(w => (Number(w.size) || 0) >= minAmount);
++    }
++
++    function badgeClass(side) {
++      const s = (side || '').toUpperCase();
++      if (s === 'YES') return 'badge badge-yes';
++      if (s === 'NO') return 'badge badge-no';
++      return 'badge badge-over';
++    }
++
++    function barClass(side) {
++      const s = (side || '').toUpperCase();
++      return s === 'NO' ? 'bar red' : 'bar';
++    }
++
++    function render() {
++      const list = filtered();
++      whaleList.innerHTML = list.length === 0
++        ? `<li class=\"whale-row\"><div class=\"icon\">🐟</div><div class=\"market\"><div class=\"market-title\"><span class=\"empty-msg\">No whale trades in this range.</span></div></div><div class=\"odds\"></div><div class=\"amount\"></div></li>`
++        : list.map(w => {
++            const size = Number(w.size) || 0;
++            const side = (w.side || 'YES').toUpperCase();
++            const market = (w.market || '').trim();
++            const marketTrunc = market.length > 92 ? market.slice(0, 92) + '…' : market;
++            const ts = w.timestamp != null ? w.timestamp : (w.created_at ? new Date(w.created_at).getTime() / 1000 : null);
++            const timeStr = ts != null ? timeAgo(ts) : '—';
++            const price = Number(w.price) || 0;
++            const priceClamped = Math.max(0, Math.min(100, price));
++            const icon = size >= 10000 ? '🐋' : '🐟';
++            return `
++              <li class=\"whale-row\">
++                <div class=\"icon\">${icon}</div>
++                <div class=\"market\">
++                  <div class=\"market-title\">${escapeHtml(marketTrunc)}</div>
++                  <div class=\"meta\">
++                    <span class=\"${badgeClass(side)}\">${escapeHtml(side)}</span>
++                    <span class=\"mono\" style=\"color:var(--text3); font-weight:700;\">Polymarket</span>
++                    <span class=\"mono\" style=\"color:var(--text3);\">${escapeHtml(timeStr)}</span>
++                  </div>
++                </div>
++                <div class=\"odds\">
++                  <div class=\"odds-val\">${priceClamped.toFixed(0)}%</div>
++                  <div class=\"${barClass(side)}\"><span style=\"width:${priceClamped.toFixed(0)}%\"></span></div>
++                </div>
++                <div class=\"amount\">${formatAmount(size)}</div>
++              </li>`;
++          }).join('');
++    }
++
++    async function fetchStats() {
++      try {
++        const res = await fetch('/api/stats');
++        const s = await res.json();
++        statCount.textContent = Number(s.total_trades) || 0;
++        statVolume.textContent = formatAmount(Number(s.total_volume) || 0);
++        statAvg.textContent = formatAmount(Number(s.avg_bet) || 0);
++        statMax.textContent = formatAmount(Number(s.max_bet) || 0);
++      } catch (e) {}
++    }
++
++    function renderSmartMoney(list) {
++      const el = document.getElementById('smart-money-list');
++      if (!list || list.length === 0) {
++        el.innerHTML = '<li class=\"smart-money-item\"><span class=\"empty-msg\">No smart money data yet.</span></li>';
++        return;
++      }
++      el.innerHTML = list.map(row => {
++        const market = escapeHtml((row.market || '').slice(0, 90) + ((row.market || '').length > 90 ? '…' : ''));
++        const count = Number(row.trade_count) || 0;
++        const vol = formatAmount(Number(row.total_volume) || 0);
++        return `<li class=\"smart-money-item\"><div class=\"wallet-addr\">${market}</div><div class=\"wallet-meta\">${count} trades · ${vol} volume</div></li>`;
++      }).join('');
++    }
++
++    async function fetchSmartMoney() {
++      try {
++        const res = await fetch('/api/smart-money');
++        const list = await res.json();
++        renderSmartMoney(Array.isArray(list) ? list : []);
++      } catch (e) {
++        document.getElementById('smart-money-list').innerHTML = '<li class=\"smart-money-item\"><span class=\"empty-msg\">Failed to load.</span></li>';
++      }
++    }
++
++    async function fetchWhales() {
++      try {
++        const res = await fetch('/api/whales');
++        whales = await res.json();
++        if (!Array.isArray(whales)) whales = [];
++        render();
++      } catch (e) {
++        whaleList.innerHTML = '<li class=\"whale-row\"><div class=\"icon\">🐟</div><div class=\"market\"><div class=\"market-title\"><span class=\"empty-msg\">Failed to load.</span></div></div><div></div><div></div></li>';
++      }
++    }
++
++    document.querySelectorAll('.chips button').forEach(btn => {
++      btn.addEventListener('click', () => {
++        document.querySelectorAll('.chips button').forEach(b => b.classList.remove('active'));
++        btn.classList.add('active');
++        minAmount = Number(btn.dataset.min) || 0;
++        render();
++      });
++    });
++
++    document.querySelectorAll('.tab').forEach(tab => {
++      tab.addEventListener('click', (e) => {
++        e.preventDefault();
++        const t = tab.dataset.tab;
++        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
++        tab.classList.add('active');
++        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
++        if (t === 'whale') {
++          document.getElementById('whale-feed-panel').classList.add('active');
++        } else {
++          document.getElementById('smart-money-panel').classList.add('active');
++          fetchSmartMoney();
++        }
++      });
++    });
++
++    fetchWhales();
++    fetchStats();
++    setInterval(fetchWhales, 30000);
++    setInterval(fetchStats, 30000);
++  </script>
++</body>
++</html>
