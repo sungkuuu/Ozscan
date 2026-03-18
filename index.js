@@ -52,6 +52,73 @@ async function fetchPolymarketTrades() {
   return trades;
 }
 
+async function ensureSmartMoneyWalletsTable() {
+  if (!pool) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS smart_money_wallets (
+      id SERIAL PRIMARY KEY,
+      address TEXT UNIQUE NOT NULL,
+      label TEXT,
+      total_profit NUMERIC DEFAULT 0,
+      win_rate NUMERIC DEFAULT 0,
+      trade_count INTEGER DEFAULT 0,
+      last_updated TIMESTAMP DEFAULT NOW()
+    )
+  `);
+}
+
+async function fetchPolymarketLeaderboard() {
+  if (!pool) return;
+  try {
+    const res = await fetch(
+      'https://data-api.polymarket.com/profiles?limit=20&sortBy=profitAndLoss&sortDirection=desc'
+    );
+    if (!res.ok) {
+      console.error('[SmartMoney] Leaderboard fetch status:', res.status);
+      return;
+    }
+    const data = await res.json();
+    const profiles = data.profiles || data.results || (Array.isArray(data) ? data : []);
+    const top = (Array.isArray(profiles) ? profiles : []).slice(0, 20);
+
+    const rows = top
+      .map((p) => ({
+        address: p.proxyAddress || p.proxyWallet || p.address || p.wallet || null,
+        label: p.name || p.pseudonym || p.username || null,
+        total_profit: p.profitAndLoss ?? p.pnl ?? p.profit ?? 0,
+        win_rate: p.winRate ?? p.win_rate ?? 0,
+        trade_count: p.tradeCount ?? p.trade_count ?? 0,
+      }))
+      .filter((r) => r.address);
+
+    if (rows.length === 0) return;
+
+    const values = [];
+    const params = [];
+    let i = 1;
+    for (const r of rows) {
+      values.push(`($${i++}, $${i++}, $${i++}, $${i++}, $${i++})`);
+      params.push(r.address, r.label, r.total_profit, r.win_rate, r.trade_count);
+    }
+
+    await pool.query(
+      `
+      INSERT INTO smart_money_wallets (address, label, total_profit, win_rate, trade_count)
+      VALUES ${values.join(', ')}
+      ON CONFLICT (address) DO UPDATE SET
+        label = EXCLUDED.label,
+        total_profit = EXCLUDED.total_profit,
+        win_rate = EXCLUDED.win_rate,
+        trade_count = EXCLUDED.trade_count,
+        last_updated = NOW()
+    `,
+      params
+    );
+  } catch (e) {
+    console.error('[SmartMoney] Leaderboard error:', e.message);
+  }
+}
+
 async function fetchKalshiMarkets() {
   try {
     console.log('[Kalshi] Fetching markets...');
@@ -309,6 +376,7 @@ function detectWhales(trades) {
       `${t.conditionId || t.asset || 'unknown'}-${t.timestamp}-${size}-${price}`;
     const market = t.title || t.slug || t.conditionId || t.asset || 'Unknown market';
     const side = (t.outcome || t.side || '').toUpperCase();
+    const proxyWallet = t.proxyWallet;
 
     const whale = {
       tradeId,
@@ -317,6 +385,7 @@ function detectWhales(trades) {
       size: usdcValue,
       price: price * 100,
       timestamp: Number(t.timestamp) || 0,
+      proxyWallet: proxyWallet || null,
     };
     console.log('[Whale] Detected:', JSON.stringify(whale));
     whaleTrades.push(whale);
@@ -350,8 +419,8 @@ async function storeWhaleTrade(whale) {
   if (!pool) return;
   try {
     await pool.query(
-      `INSERT INTO whale_trades (trade_id, market, side, size, price, timestamp)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO whale_trades (trade_id, market, side, size, price, timestamp, proxy_wallet)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        ON CONFLICT (trade_id) DO NOTHING`,
       [
         whale.tradeId,
@@ -360,6 +429,7 @@ async function storeWhaleTrade(whale) {
         whale.size,
         whale.price,
         whale.timestamp,
+        whale.proxyWallet,
       ]
     );
   } catch (err) {
@@ -485,17 +555,37 @@ app.get('/api/stats', async (req, res) => {
 app.get('/api/smart-money', async (req, res) => {
   if (!pool) return res.json([]);
   try {
-    const result = await pool.query(`
-      SELECT
-        market,
-        COUNT(*) as trade_count,
-        SUM(size::numeric * price::numeric) as total_volume
-      FROM whale_trades
-      GROUP BY market
-      ORDER BY total_volume DESC
-      LIMIT 10
+    const wallets = await pool.query(`
+      SELECT address, label, total_profit, win_rate, trade_count
+      FROM smart_money_wallets
+      ORDER BY total_profit DESC
+      LIMIT 20
     `);
-    res.json(result.rows);
+
+    const out = await Promise.all(
+      (wallets.rows || []).map(async (w) => {
+        const trades = await pool.query(
+          `
+          SELECT *
+          FROM whale_trades
+          WHERE proxy_wallet = $1
+          ORDER BY timestamp DESC
+          LIMIT 20
+        `,
+          [w.address]
+        );
+        return {
+          address: w.address,
+          label: w.label,
+          total_profit: w.total_profit,
+          win_rate: w.win_rate,
+          trade_count: w.trade_count,
+          recent_trades: trades.rows || [],
+        };
+      })
+    );
+
+    res.json(out);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -511,6 +601,7 @@ app.listen(PORT, async () => {
   console.log(`OzScan server running on port ${PORT}`);
   await ensureWhaleTradesTable();
   await ensureOddsSnapshotsTable();
+  await ensureSmartMoneyWalletsTable();
   if (pool) {
     await pool.query(`
   CREATE TABLE IF NOT EXISTS whale_trades (
@@ -524,10 +615,16 @@ app.listen(PORT, async () => {
     created_at TIMESTAMP DEFAULT NOW()
   )
 `);
+    await pool.query(
+      `ALTER TABLE whale_trades ADD COLUMN IF NOT EXISTS proxy_wallet TEXT;`
+    );
   }
   runWhaleDetection();
   setInterval(runWhaleDetection, POLL_INTERVAL_MS);
   setInterval(runOddsMovementDetection, 5 * 60 * 1000);
+
+  fetchPolymarketLeaderboard();
+  setInterval(fetchPolymarketLeaderboard, 6 * 60 * 60 * 1000);
 });
 
 setTimeout(fetchKalshiMarkets, 5000);
