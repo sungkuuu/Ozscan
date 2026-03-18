@@ -10,19 +10,19 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root { --bg:#fff; --bg2:#f7f7f5; --text:#1a1a18; --text2:#5f5e5a; --text3:#888780; --border:rgba(0,0,0,0.1); --accent:#0f6e56; --color-border-tertiary: rgba(0,0,0,0.08); }
-    [data-dark], [data-theme=\"dark\"] { --bg:#0e0e0c; --bg2:#171714; --text:#f0efe9; --text2:#b4b2a9; --text3:#888780; --border:rgba(255,255,255,0.08); --accent:#5dcaa5; --color-border-tertiary: rgba(255,255,255,0.12); }
+    [data-dark], [data-theme="dark"] { --bg:#0e0e0c; --bg2:#171714; --text:#f0efe9; --text2:#b4b2a9; --text3:#888780; --border:rgba(255,255,255,0.08); --accent:#5dcaa5; --color-border-tertiary: rgba(255,255,255,0.12); }
 
     * { box-sizing: border-box; }
     body {
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      font-family: \"IBM Plex Sans\", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      font-family: "IBM Plex Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       font-size: 13px;
       line-height: 1.5;
     }
 
-    .mono { font-family: \"IBM Plex Mono\", ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .mono { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
 
     .topbar {
       position: sticky;
@@ -78,7 +78,7 @@
       text-transform: uppercase;
     }
     .toggle {
-      font-family: \"IBM Plex Mono\", ui-monospace, monospace;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
       border: 1px solid var(--border);
       background: var(--bg2);
       color: var(--text);
@@ -102,12 +102,12 @@
       text-decoration: none;
       color: var(--text2);
       font-weight: 600;
-      font-family: \"IBM Plex Mono\", ui-monospace, monospace;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
       letter-spacing: 0.01em;
     }
     .tab.active { color: var(--text); }
     .tab.active::after {
-      content: \"\";
+      content: "";
       position: absolute;
       left: 0;
       right: 0;
@@ -162,7 +162,7 @@
       gap: 8px;
     }
     .chip {
-      font-family: \"IBM Plex Mono\", ui-monospace, monospace;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
       font-size: 12px;
       font-weight: 700;
       border-radius: 999px;
@@ -193,7 +193,7 @@
       font-weight: 700;
       letter-spacing: 0.10em;
       text-transform: uppercase;
-      font-family: \"IBM Plex Mono\", ui-monospace, monospace;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
     }
     .grid-header div:nth-child(1) { opacity: 0.5; }
     .grid-header .right { text-align: right; }
@@ -237,7 +237,7 @@
       font-size: 11px;
     }
     .badge {
-      font-family: \"IBM Plex Mono\", ui-monospace, monospace;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
       font-size: 10px;
       font-weight: 600;
       padding: 2px 8px;
@@ -250,13 +250,13 @@
     .badge-yes { background: #E1F5EE; color: #085041; }
     .badge-no { background: #FCEBEB; color: #791F1F; }
     .badge-over { background: #E6F1FB; color: #0C447C; }
-    [data-dark] .badge-yes, [data-theme=\"dark\"] .badge-yes { background: color-mix(in srgb, #085041 26%, transparent); color: #9ff0d9; }
-    [data-dark] .badge-no, [data-theme=\"dark\"] .badge-no { background: color-mix(in srgb, #791F1F 30%, transparent); color: #ffb3b3; }
-    [data-dark] .badge-over, [data-theme=\"dark\"] .badge-over { background: color-mix(in srgb, #0C447C 30%, transparent); color: #b9dcff; }
+    [data-dark] .badge-yes, [data-theme="dark"] .badge-yes { background: color-mix(in srgb, #085041 26%, transparent); color: #9ff0d9; }
+    [data-dark] .badge-no, [data-theme="dark"] .badge-no { background: color-mix(in srgb, #791F1F 30%, transparent); color: #ffb3b3; }
+    [data-dark] .badge-over, [data-theme="dark"] .badge-over { background: color-mix(in srgb, #0C447C 30%, transparent); color: #b9dcff; }
 
     .odds {
       text-align: right;
-      font-family: \"IBM Plex Mono\", ui-monospace, monospace;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
     }
     .odds-val { font-weight: 700; color: var(--text); font-size: 12px; }
     .bar {
@@ -278,7 +278,7 @@
 
     .amount {
       text-align: right;
-      font-family: \"IBM Plex Mono\", ui-monospace, monospace;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
       font-weight: 700;
       color: var(--text);
       white-space: nowrap;
@@ -301,11 +301,11 @@
       letter-spacing: 0.10em;
       text-transform: uppercase;
       color: var(--text3);
-      font-family: \"IBM Plex Mono\", ui-monospace, monospace;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
     }
     .stat-value {
       margin-top: 6px;
-      font-family: \"IBM Plex Mono\", ui-monospace, monospace;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
       font-weight: 800;
       font-size: 18px;
       color: var(--text);
@@ -317,100 +317,100 @@
       letter-spacing: 0.10em;
       text-transform: uppercase;
       color: var(--text3);
-      font-family: \"IBM Plex Mono\", ui-monospace, monospace;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
       margin: 0 0 8px 0;
     }
     .wallet-list { list-style: none; padding: 0; margin: 0; }
     .wallet-item { padding: 10px 0; border-bottom: 1px solid var(--border); }
     .wallet-item:last-child { border-bottom: 0; }
-    .wallet-addr { font-family: \"IBM Plex Mono\", ui-monospace, monospace; font-weight: 700; color: var(--text); }
+    .wallet-addr { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 700; color: var(--text); }
     .wallet-meta { margin-top: 3px; font-size: 11px; color: var(--text2); }
 
     .smart-money-list { list-style: none; padding: 0; margin: 0; }
     .smart-money-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
     .smart-money-item:last-child { border-bottom: 0; }
-    .empty-msg { color: var(--text3); font-family: \"IBM Plex Mono\", ui-monospace, monospace; }
+    .empty-msg { color: var(--text3); font-family: "IBM Plex Mono", ui-monospace, monospace; }
   </style>
 </head>
 <body>
-  <header class=\"topbar\">
-    <div class=\"topbar-inner\">
-      <div class=\"topbar-row\">
-        <div class=\"logo mono\"><span class=\"dot\"></span> OZSCAN</div>
-        <div class=\"right-top\">
-          <span class=\"live mono\"><span class=\"dot\"></span> LIVE</span>
-          <button type=\"button\" class=\"toggle\" id=\"theme-toggle\" aria-label=\"Toggle dark mode\">Dark</button>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-row">
+        <div class="logo mono"><span class="dot"></span> OZSCAN</div>
+        <div class="right-top">
+          <span class="live mono"><span class="dot"></span> LIVE</span>
+          <button type="button" class="toggle" id="theme-toggle" aria-label="Toggle dark mode">Dark</button>
         </div>
       </div>
-      <nav class=\"tabs\">
-        <a href=\"#\" class=\"tab active\" data-tab=\"whale\">Whale Feed</a>
-        <a href=\"#\" class=\"tab\" data-tab=\"smart\">Smart Money</a>
+      <nav class="tabs">
+        <a href="#" class="tab active" data-tab="whale">Whale Feed</a>
+        <a href="#" class="tab" data-tab="smart">Smart Money</a>
       </nav>
     </div>
   </header>
 
-  <div class=\"wrap\">
-    <div class=\"layout\">
+  <div class="wrap">
+    <div class="layout">
       <main>
-        <section id=\"whale-feed-panel\" class=\"panel active\">
-          <div class=\"card\">
-            <div class=\"feed-top\">
-              <div class=\"feed-title mono\">Recent Whale Trades</div>
-              <div class=\"chips\">
-                <button type=\"button\" class=\"chip active\" data-min=\"0\">All</button>
-                <button type=\"button\" class=\"chip\" data-min=\"2000\">$2K+</button>
-                <button type=\"button\" class=\"chip\" data-min=\"5000\">$5K+</button>
-                <button type=\"button\" class=\"chip\" data-min=\"10000\">$10K+</button>
+        <section id="whale-feed-panel" class="panel active">
+          <div class="card">
+            <div class="feed-top">
+              <div class="feed-title mono">Recent Whale Trades</div>
+              <div class="chips">
+                <button type="button" class="chip active" data-min="0">All</button>
+                <button type="button" class="chip" data-min="2000">$2K+</button>
+                <button type="button" class="chip" data-min="5000">$5K+</button>
+                <button type="button" class="chip" data-min="10000">$10K+</button>
               </div>
             </div>
-            <div class=\"grid-header\">
+            <div class="grid-header">
               <div> </div>
               <div>Market</div>
-              <div class=\"right\">Odds</div>
-              <div class=\"right\">Amount</div>
+              <div class="right">Odds</div>
+              <div class="right">Amount</div>
             </div>
-            <ul class=\"whale-list\" id=\"whale-list\"></ul>
+            <ul class="whale-list" id="whale-list"></ul>
           </div>
         </section>
 
-        <section id=\"smart-money-panel\" class=\"panel\">
-          <div class=\"card\">
-            <div class=\"feed-top\">
-              <div class=\"feed-title mono\">Smart Money</div>
-              <div class=\"mono\" style=\"color:var(--text3); font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;\">Top markets by volume</div>
+        <section id="smart-money-panel" class="panel">
+          <div class="card">
+            <div class="feed-top">
+              <div class="feed-title mono">Smart Money</div>
+              <div class="mono" style="color:var(--text3); font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;">Top markets by volume</div>
             </div>
-            <div class=\"card-inner\">
-              <ul class=\"smart-money-list\" id=\"smart-money-list\"></ul>
+            <div class="card-inner">
+              <ul class="smart-money-list" id="smart-money-list"></ul>
             </div>
           </div>
         </section>
       </main>
 
-      <aside class=\"sidebar\">
-        <div class=\"stat-stack\">
-          <div class=\"stat\">
-            <div class=\"stat-label\">Today's trades</div>
-            <div class=\"stat-value\" id=\"stat-count\">0</div>
+      <aside class="sidebar">
+        <div class="stat-stack">
+          <div class="stat">
+            <div class="stat-label">Today's trades</div>
+            <div class="stat-value" id="stat-count">0</div>
           </div>
-          <div class=\"stat\">
-            <div class=\"stat-label\">Total volume</div>
-            <div class=\"stat-value\" id=\"stat-volume\">$0</div>
+          <div class="stat">
+            <div class="stat-label">Total volume</div>
+            <div class="stat-value" id="stat-volume">$0</div>
           </div>
-          <div class=\"stat\">
-            <div class=\"stat-label\">Avg bet</div>
-            <div class=\"stat-value\" id=\"stat-avg\">$0</div>
+          <div class="stat">
+            <div class="stat-label">Avg bet</div>
+            <div class="stat-value" id="stat-avg">$0</div>
           </div>
-          <div class=\"stat\">
-            <div class=\"stat-label\">Largest</div>
-            <div class=\"stat-value\" id=\"stat-max\">$0</div>
+          <div class="stat">
+            <div class="stat-label">Largest</div>
+            <div class="stat-value" id="stat-max">$0</div>
           </div>
 
-          <div class=\"divider\"></div>
+          <div class="divider"></div>
 
           <div>
-            <h3 class=\"top-wallets-title\">Top Wallets</h3>
-            <ul class=\"wallet-list\" id=\"wallet-list\">
-              <li class=\"wallet-item\"><span class=\"empty-msg\">No wallet data yet</span></li>
+            <h3 class="top-wallets-title">Top Wallets</h3>
+            <ul class="wallet-list" id="wallet-list">
+              <li class="wallet-item"><span class="empty-msg">No wallet data yet</span></li>
             </ul>
           </div>
         </div>
