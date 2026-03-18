@@ -424,17 +424,6 @@ async function runWhaleDetection() {
           console.error('Telegram send failed:', err.message);
         }
       }
-
-      if (pool) {
-        await pool.query(
-          `
-  INSERT INTO whale_trades (trade_id, market, side, size, price, timestamp)
-  VALUES ($1, $2, $3, $4, $5, to_timestamp($6))
-  ON CONFLICT (trade_id) DO NOTHING
-`,
-          [w.tradeId, w.market, w.side, w.size, w.price, w.timestamp]
-        );
-      }
     }
   } catch (e) {
     console.error('[Polymarket] Error:', e.message);
@@ -482,9 +471,9 @@ app.get('/api/stats', async (req, res) => {
     const result = await pool.query(`
       SELECT
         COUNT(*) as total_trades,
-        COALESCE(SUM(size::numeric * price::numeric), 0) as total_volume,
-        COALESCE(AVG(size::numeric * price::numeric), 0) as avg_bet,
-        COALESCE(MAX(size::numeric * price::numeric), 0) as max_bet
+        COALESCE(SUM(size::numeric), 0) as total_volume,
+        COALESCE(AVG(size::numeric), 0) as avg_bet,
+        COALESCE(MAX(size::numeric), 0) as max_bet
       FROM whale_trades
     `);
     res.json(result.rows[0] || {});
