@@ -512,9 +512,14 @@ async function checkResolvedTrades() {
     const trades = unresolved.rows || [];
     if (trades.length === 0) return;
 
-    console.log('[Resolve] Checking unresolved trades:', trades.length);
+    // Process max 50 per cycle to avoid rate limits
+    const batch = trades.slice(0, 50);
+    console.log(`[Resolve] Checking ${batch.length} of ${trades.length} unresolved trades`);
 
-    for (const t of trades) {
+    for (let i = 0; i < batch.length; i++) {
+      const t = batch[i];
+      // Rate limit: 1s between API calls
+      if (i > 0) await new Promise(r => setTimeout(r, 1000));
       const conditionId = t.condition_id || guessConditionIdFromTrade(t);
       if (!conditionId) continue;
 
@@ -695,12 +700,16 @@ app.get('/api/smart-money', async (req, res) => {
   if (!pool) return res.json([]);
   try {
     const source = req.query.source; // 'monthly', 'alltime', or undefined for all
-    const sourceFilter = source
-      ? `AND sp.source IN ($1, 'both')`
-      : '';
-    const params = source ? [source] : [];
+    const params = [];
 
-    // Exclude wallets that spam same market+side 10+ times
+    // Use INNER JOIN when filtering by source, LEFT JOIN for all
+    const joinType = source ? 'INNER JOIN' : 'LEFT JOIN';
+    const sourceFilter = source
+      ? `AND sp.source IN ($${params.length + 1}, 'both')`
+      : '';
+    if (source) params.push(source);
+
+    // Exclude wallets that spam same market+side 30+ times
     const spamWallets = await pool.query(`
       SELECT DISTINCT proxy_wallet FROM whale_trades
       WHERE proxy_wallet IS NOT NULL
@@ -735,7 +744,7 @@ app.get('/api/smart-money', async (req, res) => {
         ) as total_profit,
         COALESCE(sp.source, 'other') as source
       FROM whale_trades w
-      LEFT JOIN smart_profiles sp ON sp.address = w.proxy_wallet
+      ${joinType} smart_profiles sp ON sp.address = w.proxy_wallet
       WHERE w.proxy_wallet IS NOT NULL
       ${sourceFilter}
       ${spamFilter}
@@ -1044,6 +1053,26 @@ app.get('/api/backfill-test', async (req, res) => {
     });
   } catch (e) {
     console.error('[Backfill-Test] Error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/profiles-debug', async (req, res) => {
+  if (!pool) return res.json({ error: 'no db' });
+  try {
+    const counts = await pool.query(
+      `SELECT source, COUNT(*) as count FROM smart_profiles GROUP BY source ORDER BY count DESC`
+    );
+    const sample = await pool.query(
+      `SELECT address, source FROM smart_profiles WHERE source != 'other' LIMIT 10`
+    );
+    const total = await pool.query('SELECT COUNT(*) as count FROM smart_profiles');
+    res.json({
+      total: Number(total.rows[0].count),
+      by_source: counts.rows,
+      non_other_sample: sample.rows,
+    });
+  } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
