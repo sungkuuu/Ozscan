@@ -72,7 +72,13 @@ async function fetchPolymarketLeaderboard() {
   try {
     console.log('[Leaderboard] Fetching...');
     const res = await fetch(
-      'https://data-api.polymarket.com/profiles?limit=20&sortBy=profitAndLoss&sortDirection=DESC'
+      'https://data-api.polymarket.com/profiles?limit=20&sortBy=profitAndLoss&sortDirection=desc&offset=0',
+      {
+        headers: {
+          Accept: 'application/json',
+          'User-Agent': 'Mozilla/5.0',
+        },
+      }
     );
     console.log('[Leaderboard] Response status:', res.status);
     const text = await res.text();
