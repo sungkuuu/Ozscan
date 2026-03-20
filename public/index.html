@@ -464,6 +464,21 @@
                 <button type="button" class="chip" data-min="10000">$10K+</button>
               </div>
             </div>
+
+            <div id="spikes-section" class="spikes-section" style="display:none;">
+              <div class="feed-top">
+                <div class="feed-title mono">⚡ Odds Spikes</div>
+                <div class="mono sm-sub">30min &ge; 10% moves</div>
+              </div>
+              <div class="grid-header" style="grid-template-columns: 32px 1fr 140px 72px;">
+                <div> </div>
+                <div>Market</div>
+                <div class="right">Odds</div>
+                <div class="right">Change</div>
+              </div>
+              <div id="spikes-list"></div>
+            </div>
+
             <div class="grid-header">
               <div> </div>
               <div>Market</div>
@@ -471,20 +486,6 @@
               <div class="right">Amount</div>
             </div>
             <ul class="whale-list" id="whale-list"></ul>
-          </div>
-
-          <div class="card spikes-section">
-            <div class="feed-top">
-              <div class="feed-title mono">⚡ Odds Spikes</div>
-              <div class="mono sm-sub">30min &ge; 10% moves</div>
-            </div>
-            <div class="grid-header" style="grid-template-columns: 32px 1fr 140px 72px;">
-              <div> </div>
-              <div>Market</div>
-              <div class="right">Odds</div>
-              <div class="right">Change</div>
-            </div>
-            <div id="spikes-list"></div>
           </div>
         </section>
 
@@ -798,11 +799,14 @@
     });
 
     function renderSpikes(spikes) {
+      const section = document.getElementById('spikes-section');
       const el = document.getElementById('spikes-list');
       if (!spikes || spikes.length === 0) {
-        el.innerHTML = '<div class="spike-row"><div class="icon">—</div><div class="market"><div class="market-title"><span class="empty-msg">No odds spikes detected.</span></div></div><div></div><div></div></div>';
+        section.style.display = 'none';
+        el.innerHTML = '';
         return;
       }
+      section.style.display = '';
       el.innerHTML = spikes.map(s => {
         const prev = (parseFloat(s.prev_price) * 100).toFixed(0);
         const curr = (parseFloat(s.current_price) * 100).toFixed(0);
@@ -834,8 +838,7 @@
         const data = await res.json();
         renderSpikes(Array.isArray(data) ? data : []);
       } catch (e) {
-        document.getElementById('spikes-list').innerHTML =
-          '<div class="spike-row"><div class="icon">—</div><div class="market"><div class="market-title"><span class="empty-msg">Failed to load.</span></div></div><div></div><div></div></div>';
+        document.getElementById('spikes-section').style.display = 'none';
       }
     }
 
