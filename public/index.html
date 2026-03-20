@@ -326,9 +326,50 @@
     .wallet-addr { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 700; color: var(--text); }
     .wallet-meta { margin-top: 3px; font-size: 11px; color: var(--text2); }
 
-    .smart-money-list { list-style: none; padding: 0; margin: 0; }
-    .smart-money-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
-    .smart-money-item:last-child { border-bottom: 0; }
+    .sm-sub {
+      color: var(--text3);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .sm-table-wrap {
+      overflow-x: auto;
+      border-top: 1px solid var(--border);
+    }
+    .sm-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 12px;
+    }
+    .sm-table thead th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--bg2);
+      color: var(--text3);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+    .sm-table thead th.num { text-align: right; }
+    .sm-table tbody td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: middle;
+    }
+    .sm-table tbody tr:last-child td { border-bottom: 0; }
+    .sm-table tbody tr:hover td { background: color-mix(in srgb, var(--bg2) 55%, transparent); }
+    .sm-table .num { text-align: right; font-weight: 600; }
+    .sm-table .wallet-cell { color: var(--text); font-weight: 600; letter-spacing: 0.02em; }
+    .sm-table .empty-cell {
+      color: var(--text3);
+      text-align: center;
+      padding: 28px 14px;
+    }
     .empty-msg { color: var(--text3); font-family: "IBM Plex Mono", ui-monospace, monospace; }
   </style>
 </head>
@@ -377,10 +418,20 @@
           <div class="card">
             <div class="feed-top">
               <div class="feed-title mono">Smart Money</div>
-              <div class="mono" style="color:var(--text3); font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;">Top markets by volume</div>
+              <div class="mono sm-sub">Top wallets by volume</div>
             </div>
-            <div class="card-inner">
-              <ul class="smart-money-list" id="smart-money-list"></ul>
+            <div class="sm-table-wrap">
+              <table class="sm-table" aria-label="Smart money wallets">
+                <thead>
+                  <tr>
+                    <th>Wallet</th>
+                    <th class="num">Trades</th>
+                    <th class="num">Volume</th>
+                    <th class="num">Largest</th>
+                  </tr>
+                </thead>
+                <tbody id="smart-money-tbody"></tbody>
+              </table>
             </div>
           </div>
         </section>
@@ -549,22 +600,45 @@
       } catch (e) {}
     }
 
+    function shortenWallet(addr) {
+      const s = (addr == null ? '' : String(addr)).trim();
+      if (!s) return '—';
+      if (s.length <= 10) return escapeHtml(s);
+      return escapeHtml(s.slice(0, 6) + '…' + s.slice(-4));
+    }
+
+    function formatVolumeUsd(n) {
+      const x = Number(n) || 0;
+      if (x >= 1e6) return '$' + (x / 1e6).toFixed(1) + 'M';
+      if (x >= 1e3) return '$' + (x / 1e3).toFixed(1) + 'K';
+      return '$' + Math.round(x).toLocaleString();
+    }
+
+    function formatBiggestUsd(n) {
+      const x = Number(n) || 0;
+      if (x >= 1e6) return '$' + (x / 1e6).toFixed(1) + 'M';
+      if (x >= 1e3) return '$' + (x / 1e3).toFixed(1) + 'K';
+      return '$' + Math.round(x).toLocaleString();
+    }
+
     function renderSmartMoney(list) {
-      const el = document.getElementById('smart-money-list');
+      const el = document.getElementById('smart-money-tbody');
       if (!list || list.length === 0) {
         el.innerHTML =
-          '<li class="smart-money-item"><span class="empty-msg">No smart money data yet.</span></li>';
+          '<tr><td colspan="4" class="empty-cell empty-msg">No smart money data yet.</td></tr>';
         return;
       }
       el.innerHTML = list
         .map((row) => {
-          const market = escapeHtml(
-            (row.market || '').slice(0, 90) +
-              ((row.market || '').length > 90 ? '…' : '')
-          );
           const count = Number(row.trade_count) || 0;
-          const vol = formatAmount(Number(row.total_volume) || 0);
-          return `<li class="smart-money-item"><div class="wallet-addr">${market}</div><div class="wallet-meta">${count} trades · ${vol} volume</div></li>`;
+          const vol = formatVolumeUsd(row.total_volume);
+          const big = formatBiggestUsd(row.biggest_bet);
+          return `<tr>
+            <td class="wallet-cell">${shortenWallet(row.address)}</td>
+            <td class="num">${count}</td>
+            <td class="num">${escapeHtml(vol)}</td>
+            <td class="num">${escapeHtml(big)}</td>
+          </tr>`;
         })
         .join('');
     }
@@ -575,8 +649,8 @@
         const list = await res.json();
         renderSmartMoney(Array.isArray(list) ? list : []);
       } catch (e) {
-        document.getElementById('smart-money-list').innerHTML =
-          '<li class="smart-money-item"><span class="empty-msg">Failed to load.</span></li>';
+        document.getElementById('smart-money-tbody').innerHTML =
+          '<tr><td colspan="4" class="empty-cell empty-msg">Failed to load.</td></tr>';
       }
     }
 
@@ -625,8 +699,10 @@
 
     fetchWhales();
     fetchStats();
+    fetchSmartMoney();
     setInterval(fetchWhales, 30000);
     setInterval(fetchStats, 30000);
+    setInterval(fetchSmartMoney, 60000);
   </script>
 </body>
 </html>
