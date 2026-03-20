@@ -709,13 +709,14 @@ app.get('/api/smart-money', async (req, res) => {
       : '';
     if (source) params.push(source);
 
-    // Exclude wallets that spam same market+side 30+ times
+    // Exclude wallets that spam same market+side 30+ times (but not seed wallets)
     const spamWallets = await pool.query(`
       SELECT DISTINCT proxy_wallet FROM whale_trades
       WHERE proxy_wallet IS NOT NULL
+        AND proxy_wallet != ALL($1::text[])
       GROUP BY proxy_wallet, market, side
       HAVING COUNT(*) >= 30
-    `);
+    `, [SEED_WALLETS]);
     const spamSet = spamWallets.rows.map(r => r.proxy_wallet);
     const spamFilter = spamSet.length > 0
       ? `AND w.proxy_wallet != ALL($${params.length + 1}::text[])`
@@ -891,9 +892,13 @@ const SEED_ALLTIME = [
   '0x2005d16a84ceefa912d4e380cd32e7ff827875ea',
   '0x94f199fb7789f1aef7fff6b758d6b375100f4c7a',
   '0x885783760858e1bd5dd09a3c3f916cfa251ac270',
+  '0x204f72f35326db932158cba6adff0b9a1da95e14',
   '0x23786fdad0073692157c6d7dc81f281843a35fcb',
+  '0xe90bec87d9ef430f27f9dcfe72c34b76967d5da2',
   '0xd0c042c08f755ff940249f62745e82d356345565',
+  '0xdc876e6873772d38716fda7f2452a78d426d7ab6',
   '0x006cc834cc092684f1b56626e23bedb3835c16ea',
+  '0x507e52ef684ca2dd91f90a9d26d149dd3288beae',
   '0xdb27bf2ac5d428a9c63dbc914611036855a6c56e',
   '0x16f91db2592924cfed6e03b7e5cb5bb1e32299e3',
 ];
