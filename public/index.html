@@ -445,6 +445,7 @@
       </div>
       <nav class="tabs">
         <a href="#" class="tab active" data-tab="whale">Whale Feed</a>
+        <a href="#" class="tab" data-tab="spikes">Odds Spikes</a>
         <a href="#" class="tab" data-tab="smart">Smart Money</a>
       </nav>
     </div>
@@ -465,20 +466,6 @@
               </div>
             </div>
 
-            <div id="spikes-section" class="spikes-section" style="display:none;">
-              <div class="feed-top">
-                <div class="feed-title mono">⚡ Odds Spikes</div>
-                <div class="mono sm-sub">30min &ge; 10% moves</div>
-              </div>
-              <div class="grid-header" style="grid-template-columns: 32px 1fr 140px 72px;">
-                <div> </div>
-                <div>Market</div>
-                <div class="right">Odds</div>
-                <div class="right">Change</div>
-              </div>
-              <div id="spikes-list"></div>
-            </div>
-
             <div class="grid-header">
               <div> </div>
               <div>Market</div>
@@ -486,6 +473,28 @@
               <div class="right">Amount</div>
             </div>
             <ul class="whale-list" id="whale-list"></ul>
+          </div>
+        </section>
+
+        <section id="spikes-panel" class="panel">
+          <div class="card">
+            <div class="feed-top">
+              <div class="feed-title mono">⚡ Odds Spikes</div>
+              <div class="mono sm-sub">30min &ge; 10% moves</div>
+            </div>
+            <div class="sm-lb-wrap">
+              <table class="sm-lb-table" aria-label="Odds spikes">
+                <thead>
+                  <tr>
+                    <th>Market</th>
+                    <th class="num">Odds</th>
+                    <th class="num">Change</th>
+                    <th class="num">Time</th>
+                  </tr>
+                </thead>
+                <tbody id="spikes-tbody"></tbody>
+              </table>
+            </div>
           </div>
         </section>
 
@@ -791,6 +800,9 @@
           .forEach((p) => p.classList.remove('active'));
         if (t === 'whale') {
           document.getElementById('whale-feed-panel').classList.add('active');
+        } else if (t === 'spikes') {
+          document.getElementById('spikes-panel').classList.add('active');
+          fetchSpikes();
         } else {
           document.getElementById('smart-money-panel').classList.add('active');
           fetchSmartMoney();
@@ -799,14 +811,11 @@
     });
 
     function renderSpikes(spikes) {
-      const section = document.getElementById('spikes-section');
-      const el = document.getElementById('spikes-list');
+      const el = document.getElementById('spikes-tbody');
       if (!spikes || spikes.length === 0) {
-        section.style.display = 'none';
-        el.innerHTML = '';
+        el.innerHTML = '<tr><td colspan="4" class="empty-cell empty-msg">No spikes detected in the last 30 minutes</td></tr>';
         return;
       }
-      section.style.display = '';
       el.innerHTML = spikes.map(s => {
         const prev = (parseFloat(s.prev_price) * 100).toFixed(0);
         const curr = (parseFloat(s.current_price) * 100).toFixed(0);
@@ -818,17 +827,12 @@
         const ago = mins < 1 ? 'just now' : mins < 60 ? mins + 'm ago' : Math.floor(mins / 60) + 'h ago';
         const q = s.question || '';
         const qTrunc = q.length > 80 ? q.slice(0, 80) + '…' : q;
-        return `<div class="spike-row">
-          <div class="icon">⚡</div>
-          <div class="market">
-            <div class="market-title">${escapeHtml(qTrunc)}</div>
-            <div class="meta">
-              <span class="mono" style="color:var(--text3);">${escapeHtml(ago)}</span>
-            </div>
-          </div>
-          <div class="spike-arrow">${prev}% → ${curr}%</div>
-          <div class="spike-change ${dir}">${sign}${change.toFixed(0)}%</div>
-        </div>`;
+        return `<tr>
+          <td>${escapeHtml(qTrunc)}</td>
+          <td class="num">${prev}% → ${curr}%</td>
+          <td class="num spike-change ${dir}">${sign}${change.toFixed(0)}%</td>
+          <td class="num">${escapeHtml(ago)}</td>
+        </tr>`;
       }).join('');
     }
 
@@ -838,7 +842,8 @@
         const data = await res.json();
         renderSpikes(Array.isArray(data) ? data : []);
       } catch (e) {
-        document.getElementById('spikes-section').style.display = 'none';
+        document.getElementById('spikes-tbody').innerHTML =
+          '<tr><td colspan="4" class="empty-cell empty-msg">Failed to load.</td></tr>';
       }
     }
 
