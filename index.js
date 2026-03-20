@@ -609,6 +609,39 @@ app.get('/api/whales', async (req, res) => {
   }
 });
 
+app.get('/api/wallet/:address', async (req, res) => {
+  if (!pool) return res.json({ wallet: req.params.address, trades: [], summary: {} });
+  try {
+    const addr = req.params.address;
+    const trades = await pool.query(
+      `SELECT market, side, size, price, timestamp, resolved, won, final_price, slug
+       FROM whale_trades
+       WHERE proxy_wallet = $1
+       ORDER BY timestamp DESC
+       LIMIT 100`,
+      [addr]
+    );
+    const summary = await pool.query(
+      `SELECT
+         COUNT(*) as total_bets,
+         SUM(size) as total_volume,
+         SUM(CASE WHEN won=TRUE THEN 1 ELSE 0 END) as wins,
+         COUNT(CASE WHEN resolved=TRUE THEN 1 END) as resolved,
+         CASE WHEN COUNT(CASE WHEN resolved=TRUE THEN 1 END) > 0
+           THEN ROUND(
+             SUM(CASE WHEN won=TRUE THEN 1 ELSE 0 END)::numeric
+             / COUNT(CASE WHEN resolved=TRUE THEN 1 END) * 100
+           ) ELSE NULL END as win_rate
+       FROM whale_trades
+       WHERE proxy_wallet = $1`,
+      [addr]
+    );
+    res.json({ wallet: addr, trades: trades.rows, summary: summary.rows[0] || {} });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.get('/api/stats', async (req, res) => {
   if (!pool) return res.json({ total_trades: 0, total_volume: 0, avg_bet: 0, max_bet: 0 });
   try {

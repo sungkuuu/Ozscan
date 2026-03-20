@@ -227,11 +227,12 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .market-link {
+    .market-link, .wallet-link {
       color: var(--text);
       text-decoration: none;
+      cursor: pointer;
     }
-    .market-link:hover {
+    .market-link:hover, .wallet-link:hover {
       color: var(--accent);
       text-decoration: underline;
     }
@@ -528,6 +529,33 @@
             </div>
           </div>
         </section>
+
+        <section id="wallet-panel" class="panel">
+          <div class="card">
+            <div class="feed-top">
+              <div class="feed-title mono" id="wallet-title">Wallet History</div>
+              <button type="button" class="chip" id="wallet-back">Back</button>
+            </div>
+            <div style="padding:14px;">
+              <div id="wallet-summary" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;"></div>
+            </div>
+            <div class="sm-lb-wrap">
+              <table class="sm-lb-table" aria-label="Wallet bet history">
+                <thead>
+                  <tr>
+                    <th>Market</th>
+                    <th class="num">Side</th>
+                    <th class="num">Amount</th>
+                    <th class="num">Odds</th>
+                    <th class="num">Result</th>
+                    <th class="num">Time</th>
+                  </tr>
+                </thead>
+                <tbody id="wallet-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
       </main>
 
       <aside class="sidebar">
@@ -732,8 +760,9 @@
           const big = formatBiggestUsd(row.biggest_bet);
           const tradeLabel = count === 1 ? 'trade' : 'trades';
           const wr = row.win_rate != null ? Math.round(Number(row.win_rate)) + '%' : '-';
+          const addr = row.address || '';
           return `<tr>
-            <td class="wallet-cell">${shortenWallet(row.address)}</td>
+            <td class="wallet-cell"><span class="wallet-link" data-wallet="${escapeHtml(addr)}">${shortenWallet(addr)}</span></td>
             <td class="num">${count} ${tradeLabel}</td>
             <td class="num">${wr}</td>
             <td class="num">${escapeHtml(vol)}</td>
@@ -858,6 +887,71 @@
           '<tr><td colspan="4" class="empty-cell empty-msg">Failed to load.</td></tr>';
       }
     }
+
+    let lastTab = 'smart';
+
+    async function openWallet(address) {
+      lastTab = 'smart';
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('wallet-panel').classList.add('active');
+      document.getElementById('wallet-title').textContent = shortenWallet(address);
+      document.getElementById('wallet-summary').innerHTML = '';
+      document.getElementById('wallet-tbody').innerHTML =
+        '<tr><td colspan="6" class="empty-cell empty-msg">Loading...</td></tr>';
+      try {
+        const res = await fetch('/api/wallet/' + encodeURIComponent(address));
+        const data = await res.json();
+        const s = data.summary || {};
+        const wr = s.win_rate != null ? s.win_rate + '%' : '-';
+        document.getElementById('wallet-summary').innerHTML = [
+          `<div class="stat" style="flex:1;min-width:100px;"><div class="stat-label">Bets</div><div class="stat-value">${Number(s.total_bets)||0}</div></div>`,
+          `<div class="stat" style="flex:1;min-width:100px;"><div class="stat-label">Win Rate</div><div class="stat-value">${wr}</div></div>`,
+          `<div class="stat" style="flex:1;min-width:100px;"><div class="stat-label">Volume</div><div class="stat-value">${formatAmount(Number(s.total_volume)||0)}</div></div>`,
+        ].join('');
+        const trades = data.trades || [];
+        if (trades.length === 0) {
+          document.getElementById('wallet-tbody').innerHTML =
+            '<tr><td colspan="6" class="empty-cell empty-msg">No trades found.</td></tr>';
+          return;
+        }
+        document.getElementById('wallet-tbody').innerHTML = trades.map(t => {
+          const market = (t.market || '').trim();
+          const mTrunc = market.length > 60 ? market.slice(0, 60) + '…' : market;
+          const slug = t.slug || '';
+          const marketHtml = slug
+            ? `<a href="https://polymarket.com/event/${encodeURIComponent(slug)}" target="_blank" rel="noopener" class="market-link">${escapeHtml(mTrunc)}</a>`
+            : escapeHtml(mTrunc);
+          const side = (t.side || '').toUpperCase();
+          const result = t.resolved ? (t.won ? 'Won' : 'Lost') : '-';
+          const resultClass = t.resolved ? (t.won ? 'spike-change up' : 'spike-change down') : '';
+          const ts = t.timestamp != null ? timeAgo(t.timestamp) : '-';
+          return `<tr>
+            <td>${marketHtml}</td>
+            <td class="num"><span class="${badgeClass(side)}">${escapeHtml(side)}</span></td>
+            <td class="num">${formatAmount(Number(t.size)||0)}</td>
+            <td class="num">${(Number(t.price)||0).toFixed(0)}%</td>
+            <td class="num ${resultClass}">${result}</td>
+            <td class="num">${escapeHtml(ts)}</td>
+          </tr>`;
+        }).join('');
+      } catch (e) {
+        document.getElementById('wallet-tbody').innerHTML =
+          '<tr><td colspan="6" class="empty-cell empty-msg">Failed to load.</td></tr>';
+      }
+    }
+
+    document.getElementById('wallet-back').addEventListener('click', () => {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('smart-money-panel').classList.add('active');
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      document.querySelector('[data-tab="smart"]').classList.add('active');
+    });
+
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('.wallet-link');
+      if (link) openWallet(link.dataset.wallet);
+    });
 
     fetchWhales();
     fetchStats();
