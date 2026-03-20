@@ -700,30 +700,32 @@ app.get('/api/smart-money', async (req, res) => {
 
     const orderBy = hasResolved
       ? 'ORDER BY win_rate DESC NULLS LAST, trade_count DESC'
-      : 'ORDER BY total_volume DESC';
+      : 'ORDER BY total_profit DESC, total_volume DESC';
 
     const havingClause = hasResolved
-      ? 'HAVING COUNT(CASE WHEN resolved=TRUE THEN 1 END) >= 3'
+      ? 'HAVING COUNT(CASE WHEN w.resolved=TRUE THEN 1 END) >= 3'
       : '';
 
     const result = await pool.query(`
       SELECT
-        proxy_wallet as address,
+        w.proxy_wallet as address,
         COUNT(*) as trade_count,
-        SUM(size) as total_volume,
-        MAX(size) as biggest_bet,
-        COUNT(CASE WHEN resolved=TRUE THEN 1 END) as resolved_count,
-        SUM(CASE WHEN won=TRUE THEN 1 ELSE 0 END) as wins,
-        CASE WHEN COUNT(CASE WHEN resolved=TRUE THEN 1 END) > 0
+        SUM(w.size) as total_volume,
+        MAX(w.size) as biggest_bet,
+        COUNT(CASE WHEN w.resolved=TRUE THEN 1 END) as resolved_count,
+        SUM(CASE WHEN w.won=TRUE THEN 1 ELSE 0 END) as wins,
+        CASE WHEN COUNT(CASE WHEN w.resolved=TRUE THEN 1 END) > 0
           THEN ROUND(
-            SUM(CASE WHEN won=TRUE THEN 1 ELSE 0 END)::numeric
-            / COUNT(CASE WHEN resolved=TRUE THEN 1 END) * 100
+            SUM(CASE WHEN w.won=TRUE THEN 1 ELSE 0 END)::numeric
+            / COUNT(CASE WHEN w.resolved=TRUE THEN 1 END) * 100
           )
           ELSE NULL
-        END as win_rate
-      FROM whale_trades
-      WHERE proxy_wallet IS NOT NULL
-      GROUP BY proxy_wallet
+        END as win_rate,
+        COALESCE(sp.profit, 0) as total_profit
+      FROM whale_trades w
+      LEFT JOIN smart_profiles sp ON sp.address = w.proxy_wallet
+      WHERE w.proxy_wallet IS NOT NULL
+      GROUP BY w.proxy_wallet, sp.profit
       ${havingClause}
       ${orderBy}
       LIMIT 100
@@ -795,45 +797,127 @@ app.get('/api/odds-spikes', async (req, res) => {
   }
 });
 
+async function backfillWalletActivities(address) {
+  if (!pool) return 0;
+  const apiRes = await fetch(
+    `https://data-api.polymarket.com/activity?user=${encodeURIComponent(address)}&limit=500`
+  );
+  if (!apiRes.ok) throw new Error(`activity API status: ${apiRes.status}`);
+  const activities = await apiRes.json();
+  if (!Array.isArray(activities) || activities.length === 0) return 0;
+
+  let inserted = 0;
+  for (const a of activities) {
+    const tradeId = a.transactionHash || a.id || a.tradeId || null;
+    if (!tradeId) continue;
+    const market = a.title || a.question || a.slug || 'Unknown market';
+    const side = (a.outcome || a.side || a.type || '').toUpperCase();
+    const sideNorm = side === 'BUY' ? 'YES' : side === 'SELL' ? 'NO' : side || '—';
+    const size = parseFloat(a.usdcSize || a.size || a.amount || 0);
+    const price = parseFloat(a.price || 0) * 100;
+    const ts = a.timestamp ? Math.floor(new Date(a.timestamp).getTime() / 1000) : 0;
+    const conditionId = a.conditionId || a.condition_id || null;
+    const slug = a.slug || null;
+
+    const result = await pool.query(
+      `INSERT INTO whale_trades (trade_id, market, side, size, price, timestamp, proxy_wallet, condition_id, slug)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       ON CONFLICT (trade_id) DO NOTHING`,
+      [tradeId, market, sideNorm, size, price, ts, address, conditionId, slug]
+    );
+    if (result.rowCount > 0) inserted++;
+  }
+  return inserted;
+}
+
+async function backfillTopProfiles() {
+  if (!pool) return;
+  console.log('[Backfill] Fetching top profit profiles...');
+  try {
+    const profileRes = await fetch(
+      'https://data-api.polymarket.com/profiles?limit=100&sortBy=profitAndLoss&sortDirection=DESC'
+    );
+    if (!profileRes.ok) throw new Error(`profiles API status: ${profileRes.status}`);
+    const profiles = await profileRes.json();
+    if (!Array.isArray(profiles) || profiles.length === 0) {
+      console.warn('[Backfill] No profiles returned');
+      return;
+    }
+    console.log(`[Backfill] Got ${profiles.length} top profiles`);
+
+    // Upsert profile-level profit data
+    for (const p of profiles) {
+      const addr = p.address || p.proxyWallet || p.user || null;
+      if (!addr) continue;
+      const profit = parseFloat(p.profitAndLoss ?? p.pnl ?? p.profit ?? 0);
+      await pool.query(
+        `INSERT INTO smart_profiles (address, profit, last_synced)
+         VALUES ($1, $2, NOW())
+         ON CONFLICT (address) DO UPDATE SET profit = $2, last_synced = NOW()`,
+        [addr, profit]
+      );
+    }
+
+    // Backfill activities for each profile
+    let totalInserted = 0;
+    for (const p of profiles) {
+      const addr = p.address || p.proxyWallet || p.user || null;
+      if (!addr) continue;
+      try {
+        const n = await backfillWalletActivities(addr);
+        if (n > 0) console.log(`[Backfill] ${addr.slice(0, 8)}...: +${n} trades`);
+        totalInserted += n;
+      } catch (e) {
+        console.error(`[Backfill] ${addr.slice(0, 8)}... error: ${e.message}`);
+      }
+    }
+    console.log(`[Backfill] Done. Total new trades: ${totalInserted}`);
+  } catch (e) {
+    console.error('[Backfill] Top profiles error:', e.message);
+  }
+}
+
 app.get('/api/backfill-wallet', async (req, res) => {
   const address = req.query.address;
   if (!address) return res.status(400).json({ error: 'address required' });
   if (!pool) return res.status(500).json({ error: 'no db' });
   try {
-    const apiRes = await fetch(
-      `https://data-api.polymarket.com/activity?user=${encodeURIComponent(address)}&limit=500`
-    );
-    if (!apiRes.ok) throw new Error(`Polymarket API status: ${apiRes.status}`);
-    const activities = await apiRes.json();
-    if (!Array.isArray(activities) || activities.length === 0) {
-      return res.json({ inserted: 0 });
-    }
-
-    let inserted = 0;
-    for (const a of activities) {
-      const tradeId = a.transactionHash || a.id || a.tradeId || null;
-      if (!tradeId) continue;
-      const market = a.title || a.question || a.slug || 'Unknown market';
-      const side = (a.outcome || a.side || a.type || '').toUpperCase();
-      const sideNorm = side === 'BUY' ? 'YES' : side === 'SELL' ? 'NO' : side || '—';
-      const size = parseFloat(a.usdcSize || a.size || a.amount || 0);
-      const price = parseFloat(a.price || 0) * 100;
-      const ts = a.timestamp ? Math.floor(new Date(a.timestamp).getTime() / 1000) : 0;
-      const conditionId = a.conditionId || a.condition_id || null;
-      const slug = a.slug || null;
-
-      const result = await pool.query(
-        `INSERT INTO whale_trades (trade_id, market, side, size, price, timestamp, proxy_wallet, condition_id, slug)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-         ON CONFLICT (trade_id) DO NOTHING`,
-        [tradeId, market, sideNorm, size, price, ts, address, conditionId, slug]
-      );
-      if (result.rowCount > 0) inserted++;
-    }
-
+    const inserted = await backfillWalletActivities(address);
     res.json({ inserted });
   } catch (e) {
     console.error('[Backfill] Error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/backfill-test', async (req, res) => {
+  try {
+    // Test profiles API
+    const pRes = await fetch(
+      'https://data-api.polymarket.com/profiles?limit=3&sortBy=profitAndLoss&sortDirection=DESC'
+    );
+    const profiles = pRes.ok ? await pRes.json() : null;
+    const profileSample = Array.isArray(profiles) && profiles[0]
+      ? { address: profiles[0].address || profiles[0].proxyWallet, pnl: profiles[0].profitAndLoss, fields: Object.keys(profiles[0]) }
+      : null;
+    console.log('[Backfill-Test] profiles API:', pRes.status, profileSample);
+
+    // Test activity API with first profile
+    let activitySample = null;
+    if (profileSample?.address) {
+      const aRes = await fetch(
+        `https://data-api.polymarket.com/activity?user=${profileSample.address}&limit=3`
+      );
+      const activities = aRes.ok ? await aRes.json() : null;
+      activitySample = Array.isArray(activities) && activities[0]
+        ? { count: activities.length, fields: Object.keys(activities[0]), sample: activities[0] }
+        : null;
+      console.log('[Backfill-Test] activity API:', aRes.status, activitySample?.count, 'items');
+    }
+
+    res.json({ profiles: { status: pRes.status, sample: profileSample }, activity: activitySample });
+  } catch (e) {
+    console.error('[Backfill-Test] Error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
@@ -906,10 +990,22 @@ app.listen(PORT, async () => {
     await pool.query(
       `ALTER TABLE whale_trades ADD COLUMN IF NOT EXISTS final_price NUMERIC;`
     );
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS smart_profiles (
+        address TEXT PRIMARY KEY,
+        profit NUMERIC DEFAULT 0,
+        last_synced TIMESTAMP DEFAULT NOW()
+      )
+    `);
   }
   runWhaleDetection();
   setInterval(runWhaleDetection, POLL_INTERVAL_MS);
   setInterval(runOddsMovementDetection, 5 * 60 * 1000);
+
+  // Backfill top profiles on startup, then every 6 hours
+  setTimeout(backfillTopProfiles, 10000);
+  setInterval(backfillTopProfiles, 6 * 60 * 60 * 1000);
 });
 
 setTimeout(fetchKalshiMarkets, 5000);
