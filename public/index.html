@@ -527,7 +527,7 @@
                     <th>Wallet</th>
                     <th class="num">Trades</th>
                     <th class="num">Win Rate</th>
-                    <th class="num">Profit</th>
+                    <th class="num">ROI</th>
                     <th class="num">Volume</th>
                   </tr>
                 </thead>
@@ -768,9 +768,9 @@
         .map((row) => {
           const count = Number(row.trade_count) || 0;
           const vol = formatVolumeUsd(row.total_volume);
-          const profit = Number(row.total_profit) || 0;
-          const profitStr = (profit >= 0 ? '+' : '') + formatAmount(profit);
-          const profitClass = profit >= 0 ? 'spike-change up' : 'spike-change down';
+          const roi = row.roi != null ? Number(row.roi) : null;
+          const roiStr = roi != null ? (roi >= 0 ? '+' : '') + roi.toFixed(1) + '%' : '-';
+          const roiClass = roi != null ? (roi >= 0 ? 'spike-change up' : 'spike-change down') : '';
           const tradeLabel = count === 1 ? 'trade' : 'trades';
           const wr = row.win_rate != null ? Math.round(Number(row.win_rate)) + '%' : '-';
           const addr = row.address || '';
@@ -778,7 +778,7 @@
             <td class="wallet-cell"><span class="wallet-link" data-wallet="${escapeHtml(addr)}">${shortenWallet(addr)}</span></td>
             <td class="num">${count} ${tradeLabel}</td>
             <td class="num">${wr}</td>
-            <td class="num ${profitClass}">${profitStr}</td>
+            <td class="num ${roiClass}">${roiStr}</td>
             <td class="num">${escapeHtml(vol)}</td>
           </tr>`;
         })

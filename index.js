@@ -738,14 +738,25 @@ app.get('/api/smart-money', async (req, res) => {
           )
           ELSE NULL
         END as win_rate,
-        COALESCE(
+        ROUND(COALESCE(
           SUM(CASE
             WHEN w.won=TRUE AND w.price > 0 THEN w.size * (100.0 / w.price - 1)
             WHEN w.won=FALSE AND w.resolved=TRUE THEN -w.size
             ELSE 0
           END),
           0
-        ) as total_profit,
+        ), 2) as total_profit,
+        CASE WHEN SUM(CASE WHEN w.resolved=TRUE THEN w.size ELSE 0 END) > 0
+          THEN ROUND(
+            SUM(CASE
+              WHEN w.won=TRUE AND w.price > 0 THEN w.size * (100.0 / w.price - 1)
+              WHEN w.won=FALSE AND w.resolved=TRUE THEN -w.size
+              ELSE 0
+            END)::numeric
+            / SUM(CASE WHEN w.resolved=TRUE THEN w.size ELSE 0 END) * 100
+          , 1)
+          ELSE NULL
+        END as roi,
         COALESCE(sp.source, 'other') as source
       FROM whale_trades w
       ${joinType} smart_profiles sp ON LOWER(sp.address) = LOWER(w.proxy_wallet)
