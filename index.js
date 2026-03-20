@@ -736,9 +736,9 @@ app.get('/api/smart-money', async (req, res) => {
       ${sourceFilter}
       ${spamFilter}
       GROUP BY w.proxy_wallet, sp.source
-      HAVING COUNT(*) >= 50
+      HAVING COUNT(*) >= 20
       ORDER BY win_rate DESC NULLS LAST, trade_count DESC
-      LIMIT 100
+      LIMIT 50
     `, params);
     res.json(result.rows);
   } catch (e) {
