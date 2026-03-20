@@ -327,6 +327,7 @@ function detectWhales(trades) {
     const proxyWallet = t.proxyWallet;
 
     const conditionId = t.conditionId || t.condition_id || null;
+    const slug = t.slug || null;
 
     const whale = {
       tradeId,
@@ -337,6 +338,7 @@ function detectWhales(trades) {
       timestamp: Number(t.timestamp) || 0,
       proxyWallet: proxyWallet || null,
       conditionId,
+      slug,
     };
     console.log('[Whale] Detected:', JSON.stringify(whale));
     whaleTrades.push(whale);
@@ -370,8 +372,8 @@ async function storeWhaleTrade(whale) {
   if (!pool) return;
   try {
     await pool.query(
-      `INSERT INTO whale_trades (trade_id, market, side, size, price, timestamp, proxy_wallet, condition_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO whale_trades (trade_id, market, side, size, price, timestamp, proxy_wallet, condition_id, slug)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        ON CONFLICT (trade_id) DO NOTHING`,
       [
         whale.tradeId,
@@ -382,6 +384,7 @@ async function storeWhaleTrade(whale) {
         whale.timestamp,
         whale.proxyWallet,
         whale.conditionId,
+        whale.slug,
       ]
     );
   } catch (err) {
@@ -747,6 +750,9 @@ app.listen(PORT, async () => {
 
     await pool.query(
       `ALTER TABLE whale_trades ADD COLUMN IF NOT EXISTS condition_id TEXT;`
+    );
+    await pool.query(
+      `ALTER TABLE whale_trades ADD COLUMN IF NOT EXISTS slug TEXT;`
     );
     await pool.query(
       `ALTER TABLE whale_trades ADD COLUMN IF NOT EXISTS resolved BOOLEAN DEFAULT FALSE;`

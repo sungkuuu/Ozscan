@@ -227,6 +227,14 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .market-link {
+      color: var(--text);
+      text-decoration: none;
+    }
+    .market-link:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
     .meta {
       margin-top: 4px;
       display: flex;
@@ -653,11 +661,15 @@
                 const price = Number(w.price) || 0;
                 const priceClamped = Math.max(0, Math.min(100, price));
                 const icon = size >= 10000 ? '🐋' : '🐟';
+                const slug = w.slug || '';
+                const titleHtml = slug
+                  ? `<a href="https://polymarket.com/event/${encodeURIComponent(slug)}" target="_blank" rel="noopener" class="market-link">${escapeHtml(marketTrunc)}</a>`
+                  : escapeHtml(marketTrunc);
                 return `
               <li class="whale-row">
                 <div class="icon">${icon}</div>
                 <div class="market">
-                  <div class="market-title">${escapeHtml(marketTrunc)}</div>
+                  <div class="market-title">${titleHtml}</div>
                   <div class="meta">
                     <span class="${badgeClass(side)}">${escapeHtml(side)}</span>
                     <span class="mono" style="color:var(--text3); font-weight:700;">Polymarket</span>
