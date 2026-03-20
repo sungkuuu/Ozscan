@@ -690,12 +690,30 @@ app.get('/api/stats', async (req, res) => {
 app.get('/api/smart-money', async (req, res) => {
   if (!pool) return res.json([]);
   try {
+    // Check if we have enough resolved data to rank by win rate
+    const resolvedCheck = await pool.query(
+      `SELECT COUNT(DISTINCT proxy_wallet) as cnt FROM whale_trades
+       WHERE proxy_wallet IS NOT NULL AND resolved = TRUE
+       GROUP BY proxy_wallet HAVING COUNT(*) >= 3`
+    );
+    const hasResolved = (resolvedCheck.rows?.length || 0) > 0;
+
+    const orderBy = hasResolved
+      ? 'ORDER BY win_rate DESC NULLS LAST, trade_count DESC'
+      : 'ORDER BY total_volume DESC';
+
+    const havingClause = hasResolved
+      ? 'HAVING COUNT(CASE WHEN resolved=TRUE THEN 1 END) >= 3'
+      : '';
+
     const result = await pool.query(`
       SELECT
         proxy_wallet as address,
         COUNT(*) as trade_count,
         SUM(size) as total_volume,
         MAX(size) as biggest_bet,
+        COUNT(CASE WHEN resolved=TRUE THEN 1 END) as resolved_count,
+        SUM(CASE WHEN won=TRUE THEN 1 ELSE 0 END) as wins,
         CASE WHEN COUNT(CASE WHEN resolved=TRUE THEN 1 END) > 0
           THEN ROUND(
             SUM(CASE WHEN won=TRUE THEN 1 ELSE 0 END)::numeric
@@ -706,7 +724,8 @@ app.get('/api/smart-money', async (req, res) => {
       FROM whale_trades
       WHERE proxy_wallet IS NOT NULL
       GROUP BY proxy_wallet
-      ORDER BY total_volume DESC
+      ${havingClause}
+      ${orderBy}
       LIMIT 100
     `);
     res.json(result.rows);
