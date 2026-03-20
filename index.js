@@ -492,27 +492,39 @@ async function checkResolvedTrades() {
       try {
         res = await fetch(url);
       } catch (e) {
-        console.error('[Resolve] Fetch failed:', url, e.message);
+        console.error(`[Resolve] Error for ${conditionId}: ${e.message}`);
         continue;
       }
       if (!res.ok) {
-        console.error('[Resolve] Market fetch status:', res.status, url);
+        console.error(`[Resolve] Error for ${conditionId}: HTTP ${res.status}`);
         continue;
       }
 
-      const body = await res.json();
+      let body;
+      try {
+        body = await res.json();
+      } catch (e) {
+        console.error(`[Resolve] Error for ${conditionId}: ${e.message}`);
+        continue;
+      }
       const data = Array.isArray(body) ? body[0] : body;
-      if (!data) continue;
+      if (!data) {
+        console.log(`[Resolve] Market ${conditionId}: no data returned`);
+        continue;
+      }
 
       const closed = Boolean(
         data.closed === true ||
         data.resolved === true ||
         data.active === false
       );
-      if (!closed) continue;
 
       // Determine winning outcome from gamma API response
       const winningOutcome = (data.winningOutcome ?? data.winning_outcome ?? '').toUpperCase();
+
+      console.log(`[Resolve] Market ${conditionId}: closed=${closed}, winner=${winningOutcome || 'N/A'}`);
+
+      if (!closed) continue;
       const side = String(t.side || '').toUpperCase();
 
       let won = null;
