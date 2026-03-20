@@ -696,6 +696,19 @@ app.get('/api/smart-money', async (req, res) => {
       : '';
     const params = source ? [source] : [];
 
+    // Exclude wallets that spam same market+side 10+ times
+    const spamWallets = await pool.query(`
+      SELECT DISTINCT proxy_wallet FROM whale_trades
+      WHERE proxy_wallet IS NOT NULL
+      GROUP BY proxy_wallet, market, side
+      HAVING COUNT(*) >= 10
+    `);
+    const spamSet = spamWallets.rows.map(r => r.proxy_wallet);
+    const spamFilter = spamSet.length > 0
+      ? `AND w.proxy_wallet != ALL($${params.length + 1}::text[])`
+      : '';
+    if (spamSet.length > 0) params.push(spamSet);
+
     const result = await pool.query(`
       SELECT
         w.proxy_wallet as address,
@@ -721,6 +734,7 @@ app.get('/api/smart-money', async (req, res) => {
       LEFT JOIN smart_profiles sp ON sp.address = w.proxy_wallet
       WHERE w.proxy_wallet IS NOT NULL
       ${sourceFilter}
+      ${spamFilter}
       GROUP BY w.proxy_wallet, sp.source
       HAVING COUNT(*) >= 50
       ORDER BY win_rate DESC NULLS LAST, trade_count DESC
@@ -811,7 +825,11 @@ async function backfillWalletActivities(address) {
     const sideNorm = side === 'BUY' ? 'YES' : side === 'SELL' ? 'NO' : side || '—';
     const size = parseFloat(a.usdcSize || a.size || a.amount || 0);
     const price = parseFloat(a.price || 0) * 100;
-    const ts = a.timestamp ? Math.floor(new Date(a.timestamp).getTime() / 1000) : 0;
+    const rawTs = a.timestamp || 0;
+    // API returns seconds (10 digits) or ms (13 digits) — normalize to seconds
+    const ts = typeof rawTs === 'number'
+      ? (rawTs > 1e12 ? Math.floor(rawTs / 1000) : rawTs)
+      : Math.floor(new Date(rawTs).getTime() / 1000);
     const conditionId = a.conditionId || a.condition_id || null;
     const slug = a.slug || null;
 
