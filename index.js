@@ -830,39 +830,24 @@ async function backfillWalletActivities(address) {
   return inserted;
 }
 
-async function backfillTopProfiles() {
+async function backfillExistingWallets() {
   if (!pool) return;
-  console.log('[Backfill] Fetching top profit profiles...');
+  console.log('[Backfill] Starting backfill for existing wallets...');
   try {
-    const profileRes = await fetch(
-      'https://data-api.polymarket.com/profiles?limit=100&sortBy=profitAndLoss&sortDirection=DESC'
+    const result = await pool.query(
+      `SELECT DISTINCT proxy_wallet FROM whale_trades
+       WHERE proxy_wallet IS NOT NULL
+       ORDER BY proxy_wallet`
     );
-    if (!profileRes.ok) throw new Error(`profiles API status: ${profileRes.status}`);
-    const profiles = await profileRes.json();
-    if (!Array.isArray(profiles) || profiles.length === 0) {
-      console.warn('[Backfill] No profiles returned');
+    const wallets = result.rows.map(r => r.proxy_wallet);
+    if (wallets.length === 0) {
+      console.log('[Backfill] No wallets in DB yet');
       return;
     }
-    console.log(`[Backfill] Got ${profiles.length} top profiles`);
+    console.log(`[Backfill] Found ${wallets.length} wallets to backfill`);
 
-    // Upsert profile-level profit data
-    for (const p of profiles) {
-      const addr = p.address || p.proxyWallet || p.user || null;
-      if (!addr) continue;
-      const profit = parseFloat(p.profitAndLoss ?? p.pnl ?? p.profit ?? 0);
-      await pool.query(
-        `INSERT INTO smart_profiles (address, profit, last_synced)
-         VALUES ($1, $2, NOW())
-         ON CONFLICT (address) DO UPDATE SET profit = $2, last_synced = NOW()`,
-        [addr, profit]
-      );
-    }
-
-    // Backfill activities for each profile
     let totalInserted = 0;
-    for (const p of profiles) {
-      const addr = p.address || p.proxyWallet || p.user || null;
-      if (!addr) continue;
+    for (const addr of wallets) {
       try {
         const n = await backfillWalletActivities(addr);
         if (n > 0) console.log(`[Backfill] ${addr.slice(0, 8)}...: +${n} trades`);
@@ -871,9 +856,9 @@ async function backfillTopProfiles() {
         console.error(`[Backfill] ${addr.slice(0, 8)}... error: ${e.message}`);
       }
     }
-    console.log(`[Backfill] Done. Total new trades: ${totalInserted}`);
+    console.log(`[Backfill] Done. ${wallets.length} wallets, ${totalInserted} new trades`);
   } catch (e) {
-    console.error('[Backfill] Top profiles error:', e.message);
+    console.error('[Backfill] Error:', e.message);
   }
 }
 
@@ -891,31 +876,33 @@ app.get('/api/backfill-wallet', async (req, res) => {
 });
 
 app.get('/api/backfill-test', async (req, res) => {
+  if (!pool) return res.status(500).json({ error: 'no db' });
   try {
-    // Test profiles API
-    const pRes = await fetch(
-      'https://data-api.polymarket.com/profiles?limit=3&sortBy=profitAndLoss&sortDirection=DESC'
+    // Get a wallet from DB to test activity API
+    const walletRow = await pool.query(
+      `SELECT DISTINCT proxy_wallet FROM whale_trades WHERE proxy_wallet IS NOT NULL LIMIT 1`
     );
-    const profiles = pRes.ok ? await pRes.json() : null;
-    const profileSample = Array.isArray(profiles) && profiles[0]
-      ? { address: profiles[0].address || profiles[0].proxyWallet, pnl: profiles[0].profitAndLoss, fields: Object.keys(profiles[0]) }
-      : null;
-    console.log('[Backfill-Test] profiles API:', pRes.status, profileSample);
+    const testAddr = walletRow.rows[0]?.proxy_wallet;
+    if (!testAddr) return res.json({ wallets_in_db: 0, activity: null });
 
-    // Test activity API with first profile
-    let activitySample = null;
-    if (profileSample?.address) {
-      const aRes = await fetch(
-        `https://data-api.polymarket.com/activity?user=${profileSample.address}&limit=3`
-      );
-      const activities = aRes.ok ? await aRes.json() : null;
-      activitySample = Array.isArray(activities) && activities[0]
-        ? { count: activities.length, fields: Object.keys(activities[0]), sample: activities[0] }
-        : null;
-      console.log('[Backfill-Test] activity API:', aRes.status, activitySample?.count, 'items');
-    }
+    const walletCount = await pool.query(
+      `SELECT COUNT(DISTINCT proxy_wallet) as cnt FROM whale_trades WHERE proxy_wallet IS NOT NULL`
+    );
 
-    res.json({ profiles: { status: pRes.status, sample: profileSample }, activity: activitySample });
+    const aRes = await fetch(
+      `https://data-api.polymarket.com/activity?user=${testAddr}&limit=3`
+    );
+    const activities = aRes.ok ? await aRes.json() : null;
+    const activitySample = Array.isArray(activities) && activities[0]
+      ? { status: aRes.status, count: activities.length, fields: Object.keys(activities[0]), sample: activities[0] }
+      : { status: aRes.status, count: 0 };
+    console.log('[Backfill-Test] activity API:', aRes.status, 'for', testAddr.slice(0, 8));
+
+    res.json({
+      wallets_in_db: Number(walletCount.rows[0].cnt),
+      test_wallet: testAddr,
+      activity: activitySample,
+    });
   } catch (e) {
     console.error('[Backfill-Test] Error:', e.message);
     res.status(500).json({ error: e.message });
@@ -1003,9 +990,9 @@ app.listen(PORT, async () => {
   setInterval(runWhaleDetection, POLL_INTERVAL_MS);
   setInterval(runOddsMovementDetection, 5 * 60 * 1000);
 
-  // Backfill top profiles on startup, then every 6 hours
-  setTimeout(backfillTopProfiles, 10000);
-  setInterval(backfillTopProfiles, 6 * 60 * 60 * 1000);
+  // Backfill existing wallets on startup, then every 6 hours
+  setTimeout(backfillExistingWallets, 10000);
+  setInterval(backfillExistingWallets, 6 * 60 * 60 * 1000);
 });
 
 setTimeout(fetchKalshiMarkets, 5000);
