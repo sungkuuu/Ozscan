@@ -637,12 +637,16 @@
     }
 
     function timeAgo(ts) {
-      const sec =
-        typeof ts === 'number'
-          ? ts
-          : /^\d+$/.test(String(ts))
-            ? parseInt(ts, 10)
-            : new Date(ts).getTime() / 1000;
+      let sec;
+      if (typeof ts === 'number') {
+        // If ts > 1e12, it's milliseconds; otherwise seconds
+        sec = ts > 1e12 ? Math.floor(ts / 1000) : ts;
+      } else if (/^\d+$/.test(String(ts))) {
+        const n = parseInt(ts, 10);
+        sec = n > 1e12 ? Math.floor(n / 1000) : n;
+      } else {
+        sec = Math.floor(new Date(ts).getTime() / 1000);
+      }
       const s = Math.floor(Date.now() / 1000 - sec);
       if (s < 60) return s + 's ago';
       const m = Math.floor(s / 60);
@@ -970,6 +974,7 @@
       document.getElementById('smart-money-panel').classList.add('active');
       document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
       document.querySelector('[data-tab="smart"]').classList.add('active');
+      fetchSmartMoney();
     });
 
     document.addEventListener('click', (e) => {
