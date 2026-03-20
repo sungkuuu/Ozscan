@@ -701,7 +701,7 @@ app.get('/api/smart-money', async (req, res) => {
       SELECT DISTINCT proxy_wallet FROM whale_trades
       WHERE proxy_wallet IS NOT NULL
       GROUP BY proxy_wallet, market, side
-      HAVING COUNT(*) >= 10
+      HAVING COUNT(*) >= 30
     `);
     const spamSet = spamWallets.rows.map(r => r.proxy_wallet);
     const spamFilter = spamSet.length > 0
