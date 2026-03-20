@@ -739,8 +739,11 @@ app.get('/api/smart-money', async (req, res) => {
           ELSE NULL
         END as win_rate,
         COALESCE(
-          SUM(CASE WHEN w.won=TRUE THEN w.size ELSE 0 END)
-          - SUM(CASE WHEN w.won=FALSE AND w.resolved=TRUE THEN w.size ELSE 0 END),
+          SUM(CASE
+            WHEN w.won=TRUE AND w.price > 0 THEN w.size * (100.0 / w.price - 1)
+            WHEN w.won=FALSE AND w.resolved=TRUE THEN -w.size
+            ELSE 0
+          END),
           0
         ) as total_profit,
         COALESCE(sp.source, 'other') as source
