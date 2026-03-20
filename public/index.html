@@ -333,43 +333,73 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
-    .sm-table-wrap {
+    /* Smart Money leaderboard (dark-theme match) */
+    .sm-lb-wrap {
       overflow-x: auto;
       border-top: 1px solid var(--border);
+      background: var(--bg2);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
     }
-    .sm-table {
+    [data-theme="dark"] .sm-lb-wrap,
+    [data-dark] .sm-lb-wrap {
+      background: #0f0f0f;
+      border-color: rgba(255, 255, 255, 0.06);
+      border-top-color: rgba(255, 255, 255, 0.06);
+    }
+    .sm-lb-table {
       width: 100%;
       border-collapse: collapse;
       font-family: "IBM Plex Mono", ui-monospace, monospace;
       font-size: 12px;
     }
-    .sm-table thead th {
+    .sm-lb-table thead th {
       text-align: left;
-      padding: 10px 14px;
+      padding: 11px 14px;
       background: var(--bg2);
-      color: var(--text3);
       font-size: 11px;
       font-weight: 700;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      border-bottom: 1px solid var(--border);
-    }
-    .sm-table thead th.num { text-align: right; }
-    .sm-table tbody td {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--border);
-      color: var(--text);
-      vertical-align: middle;
-    }
-    .sm-table tbody tr:last-child td { border-bottom: 0; }
-    .sm-table tbody tr:hover td { background: color-mix(in srgb, var(--bg2) 55%, transparent); }
-    .sm-table .num { text-align: right; font-weight: 600; }
-    .sm-table .wallet-cell { color: var(--text); font-weight: 600; letter-spacing: 0.02em; }
-    .sm-table .empty-cell {
       color: var(--text3);
+      border-bottom: 1px solid var(--border);
+    }
+    [data-theme="dark"] .sm-lb-table thead th,
+    [data-dark] .sm-lb-table thead th {
+      background: #0f0f0f;
+      color: #666;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .sm-lb-table thead th.num { text-align: right; }
+    .sm-lb-table tbody td {
+      padding: 12px 14px;
+      vertical-align: middle;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+    }
+    [data-theme="dark"] .sm-lb-table tbody td,
+    [data-dark] .sm-lb-table tbody td {
+      color: #e2e2e2;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .sm-lb-table tbody tr:last-child td { border-bottom: 0; }
+    .sm-lb-table tbody tr:hover td {
+      background: color-mix(in srgb, var(--accent) 8%, var(--bg2));
+    }
+    [data-theme="dark"] .sm-lb-table tbody tr:hover td,
+    [data-dark] .sm-lb-table tbody tr:hover td {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .sm-lb-table .num { text-align: right; font-weight: 600; }
+    .sm-lb-table .wallet-cell { font-weight: 600; letter-spacing: 0.02em; }
+    .sm-lb-table .empty-cell {
       text-align: center;
       padding: 28px 14px;
+      color: var(--text3);
     }
+    [data-theme="dark"] .sm-lb-table .empty-cell,
+    [data-dark] .sm-lb-table .empty-cell { color: #666; }
     .empty-msg { color: var(--text3); font-family: "IBM Plex Mono", ui-monospace, monospace; }
   </style>
 </head>
@@ -420,14 +450,14 @@
               <div class="feed-title mono">Smart Money</div>
               <div class="mono sm-sub">Top wallets by volume</div>
             </div>
-            <div class="sm-table-wrap">
-              <table class="sm-table" aria-label="Smart money wallets">
+            <div class="sm-lb-wrap">
+              <table class="sm-lb-table" aria-label="Wallet leaderboard">
                 <thead>
                   <tr>
                     <th>Wallet</th>
                     <th class="num">Trades</th>
-                    <th class="num">Volume</th>
-                    <th class="num">Largest</th>
+                    <th class="num">Total volume</th>
+                    <th class="num">Biggest bet</th>
                   </tr>
                 </thead>
                 <tbody id="smart-money-tbody"></tbody>
@@ -604,7 +634,7 @@
       const s = (addr == null ? '' : String(addr)).trim();
       if (!s) return '—';
       if (s.length <= 10) return escapeHtml(s);
-      return escapeHtml(s.slice(0, 6) + '…' + s.slice(-4));
+      return escapeHtml(s.slice(0, 6) + '...' + s.slice(-4));
     }
 
     function formatVolumeUsd(n) {
