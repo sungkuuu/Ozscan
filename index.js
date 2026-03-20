@@ -448,6 +448,92 @@ async function runWhaleDetection() {
   }
 }
 
+function guessConditionIdFromTrade(trade) {
+  // Polymarket trade objects vary; we store `market` as a string derived from API fields.
+  // For resolution we need a conditionId suitable for:
+  //   https://clob.polymarket.com/markets/{conditionId}
+  const side = String(trade?.market || '');
+  const tId = String(trade?.trade_id || '');
+
+  // Condition IDs are typically 0x-prefixed hex.
+  const condFromMarket = side.match(/0x[a-fA-F0-9]{10,}/)?.[0];
+  if (condFromMarket) return condFromMarket;
+
+  // Fallback: sometimes our derived trade_id embeds conditionId as the first segment.
+  const firstSeg = tId.split('-')[0];
+  const condFromTradeId = firstSeg.match(/0x[a-fA-F0-9]{10,}/)?.[0] || firstSeg;
+  if (condFromTradeId && condFromTradeId.length > 10) return condFromTradeId;
+
+  // Last resort: hope `market` already is conditionId.
+  return trade?.market || null;
+}
+
+async function checkResolvedTrades() {
+  if (!pool) return;
+  try {
+    const unresolved = await pool.query(
+      `SELECT * FROM whale_trades WHERE resolved = FALSE OR resolved IS NULL`
+    );
+    const trades = unresolved.rows || [];
+    if (trades.length === 0) return;
+
+    console.log('[Resolve] Checking unresolved trades:', trades.length);
+
+    for (const t of trades) {
+      const conditionId = guessConditionIdFromTrade(t);
+      if (!conditionId) continue;
+
+      const url = `https://clob.polymarket.com/markets/${conditionId}`;
+      let res;
+      try {
+        res = await fetch(url);
+      } catch (e) {
+        console.error('[Resolve] Fetch failed:', url, e.message);
+        continue;
+      }
+      if (!res.ok) {
+        console.error('[Resolve] Market fetch status:', res.status, url);
+        continue;
+      }
+
+      const data = await res.json();
+      const closed = Boolean(data.closed ?? data.isClosed ?? data.active === false);
+      if (!closed) continue;
+
+      const finalPriceRaw =
+        data.tokens?.[0]?.price ??
+        data.outcomePrices?.[0] ??
+        data.outcome_price ??
+        data.price ??
+        null;
+      const finalPrice = parseFloat(finalPriceRaw);
+      if (Number.isNaN(finalPrice)) continue;
+
+      const yesWon = finalPrice > 0.99;
+      const noWon = finalPrice < 0.01;
+
+      const side = String(t.side || '').toUpperCase();
+      let won = null;
+      if (side === 'YES') won = yesWon;
+      else if (side === 'NO') won = noWon;
+
+      // If side is unexpected or price is indeterminate, treat as not won.
+      const wonVal = won === null ? false : Boolean(won);
+
+      await pool.query(
+        `UPDATE whale_trades
+         SET resolved = TRUE,
+             won = $1,
+             final_price = $2
+         WHERE trade_id = $3`,
+        [wonVal, finalPrice, t.trade_id]
+      );
+    }
+  } catch (e) {
+    console.error('[Resolve] Resolved trades check error:', e.message, e.stack);
+  }
+}
+
 // Telegram bot (only if BOT_TOKEN is set)
 let bot = null;
 if (process.env.BOT_TOKEN) {
@@ -521,6 +607,31 @@ app.get('/api/smart-money', async (req, res) => {
   }
 });
 
+app.get('/api/wallet-stats', async (req, res) => {
+  if (!pool) return res.json([]);
+  try {
+    const result = await pool.query(`
+      SELECT 
+        proxy_wallet as address,
+        COUNT(*) as total_bets,
+        SUM(CASE WHEN won=TRUE THEN 1 ELSE 0 END) as wins,
+        ROUND(
+          SUM(CASE WHEN won=TRUE THEN 1 ELSE 0 END)::numeric
+          / NULLIF(COUNT(CASE WHEN resolved=TRUE THEN 1 END), 0) * 100
+        ) as win_rate,
+        SUM(size) as total_volume
+      FROM whale_trades
+      WHERE proxy_wallet IS NOT NULL AND resolved = TRUE
+      GROUP BY proxy_wallet
+      ORDER BY win_rate DESC, total_bets DESC
+      LIMIT 20
+    `);
+    res.json(result.rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'ozscan' });
@@ -548,6 +659,16 @@ app.listen(PORT, async () => {
     await pool.query(
       `ALTER TABLE whale_trades ADD COLUMN IF NOT EXISTS proxy_wallet TEXT;`
     );
+
+    await pool.query(
+      `ALTER TABLE whale_trades ADD COLUMN IF NOT EXISTS resolved BOOLEAN DEFAULT FALSE;`
+    );
+    await pool.query(
+      `ALTER TABLE whale_trades ADD COLUMN IF NOT EXISTS won BOOLEAN;`
+    );
+    await pool.query(
+      `ALTER TABLE whale_trades ADD COLUMN IF NOT EXISTS final_price NUMERIC;`
+    );
   }
   runWhaleDetection();
   setInterval(runWhaleDetection, POLL_INTERVAL_MS);
@@ -555,6 +676,8 @@ app.listen(PORT, async () => {
 });
 
 setTimeout(fetchKalshiMarkets, 5000);
+setTimeout(checkResolvedTrades, 5000);
+setInterval(checkResolvedTrades, 60 * 60 * 1000);
 
 // Arbitrage feature disabled
 // detectArbitrage();
