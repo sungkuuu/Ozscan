@@ -67,68 +67,6 @@ async function ensureSmartMoneyWalletsTable() {
   `);
 }
 
-async function fetchPolymarketLeaderboard() {
-  if (!pool) return;
-  try {
-    console.log('[Leaderboard] Fetching...');
-    const res = await fetch(
-      'https://data-api.polymarket.com/profiles?limit=20&sortBy=profitAndLoss&sortDirection=desc&offset=0',
-      {
-        headers: {
-          Accept: 'application/json',
-          'User-Agent': 'Mozilla/5.0',
-        },
-      }
-    );
-    console.log('[Leaderboard] Response status:', res.status);
-    const text = await res.text();
-    console.log('[Leaderboard] Response:', text.slice(0, 500));
-    if (!res.ok) {
-      console.error('[SmartMoney] Leaderboard fetch status:', res.status);
-      return;
-    }
-    const data = JSON.parse(text);
-    const profiles = data.profiles || data.results || (Array.isArray(data) ? data : []);
-    const top = (Array.isArray(profiles) ? profiles : []).slice(0, 20);
-
-    const rows = top
-      .map((p) => ({
-        address: p.proxyAddress || p.proxyWallet || p.address || p.wallet || null,
-        label: p.name || p.pseudonym || p.username || null,
-        total_profit: p.profitAndLoss ?? p.pnl ?? p.profit ?? 0,
-        win_rate: p.winRate ?? p.win_rate ?? 0,
-        trade_count: p.tradeCount ?? p.trade_count ?? 0,
-      }))
-      .filter((r) => r.address);
-
-    if (rows.length === 0) return;
-
-    const values = [];
-    const params = [];
-    let i = 1;
-    for (const r of rows) {
-      values.push(`($${i++}, $${i++}, $${i++}, $${i++}, $${i++})`);
-      params.push(r.address, r.label, r.total_profit, r.win_rate, r.trade_count);
-    }
-
-    await pool.query(
-      `
-      INSERT INTO smart_money_wallets (address, label, total_profit, win_rate, trade_count)
-      VALUES ${values.join(', ')}
-      ON CONFLICT (address) DO UPDATE SET
-        label = EXCLUDED.label,
-        total_profit = EXCLUDED.total_profit,
-        win_rate = EXCLUDED.win_rate,
-        trade_count = EXCLUDED.trade_count,
-        last_updated = NOW()
-    `,
-      params
-    );
-  } catch (e) {
-    console.error('[SmartMoney] Leaderboard error:', e.message);
-  }
-}
-
 async function fetchKalshiMarkets() {
   try {
     console.log('[Kalshi] Fetching markets...');
@@ -565,37 +503,19 @@ app.get('/api/stats', async (req, res) => {
 app.get('/api/smart-money', async (req, res) => {
   if (!pool) return res.json([]);
   try {
-    const wallets = await pool.query(`
-      SELECT address, label, total_profit, win_rate, trade_count
-      FROM smart_money_wallets
-      ORDER BY total_profit DESC
+    const result = await pool.query(`
+      SELECT
+        proxy_wallet as address,
+        COUNT(*) as trade_count,
+        SUM(size) as total_volume,
+        MAX(size) as biggest_bet
+      FROM whale_trades
+      WHERE proxy_wallet IS NOT NULL
+      GROUP BY proxy_wallet
+      ORDER BY total_volume DESC
       LIMIT 20
     `);
-
-    const out = await Promise.all(
-      (wallets.rows || []).map(async (w) => {
-        const trades = await pool.query(
-          `
-          SELECT *
-          FROM whale_trades
-          WHERE proxy_wallet = $1
-          ORDER BY timestamp DESC
-          LIMIT 20
-        `,
-          [w.address]
-        );
-        return {
-          address: w.address,
-          label: w.label,
-          total_profit: w.total_profit,
-          win_rate: w.win_rate,
-          trade_count: w.trade_count,
-          recent_trades: trades.rows || [],
-        };
-      })
-    );
-
-    res.json(out);
+    res.json(result.rows);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -632,9 +552,6 @@ app.listen(PORT, async () => {
   runWhaleDetection();
   setInterval(runWhaleDetection, POLL_INTERVAL_MS);
   setInterval(runOddsMovementDetection, 5 * 60 * 1000);
-
-  fetchPolymarketLeaderboard();
-  setInterval(fetchPolymarketLeaderboard, 6 * 60 * 60 * 1000);
 });
 
 setTimeout(fetchKalshiMarkets, 5000);
