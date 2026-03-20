@@ -745,7 +745,7 @@ app.get('/api/smart-money', async (req, res) => {
         ) as total_profit,
         COALESCE(sp.source, 'other') as source
       FROM whale_trades w
-      ${joinType} smart_profiles sp ON sp.address = w.proxy_wallet
+      ${joinType} smart_profiles sp ON LOWER(sp.address) = LOWER(w.proxy_wallet)
       WHERE w.proxy_wallet IS NOT NULL
       ${sourceFilter}
       ${spamFilter}
