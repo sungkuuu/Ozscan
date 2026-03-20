@@ -144,22 +144,46 @@ async function fetchPolymarketOdds() {
 }
 
 async function fetchPolymarketTopMarketsForOdds() {
-  const res = await fetch('https://clob.polymarket.com/markets?limit=100');
-  if (!res.ok) {
-    throw new Error(`Polymarket markets error: ${res.status}`);
+  // Try clob API first, fall back to gamma-api
+  let markets = [];
+  try {
+    const res = await fetch('https://clob.polymarket.com/markets?limit=100');
+    if (res.ok) {
+      const data = await res.json();
+      markets = data.data || (Array.isArray(data) ? data : []);
+      console.log('[Odds] clob API returned', markets.length, 'markets');
+    } else {
+      console.warn('[Odds] clob API status:', res.status, '— falling back to gamma-api');
+    }
+  } catch (e) {
+    console.warn('[Odds] clob API failed:', e.message, '— falling back to gamma-api');
   }
-  const data = await res.json();
-  const markets = data.data || (Array.isArray(data) ? data : []);
-  return markets
+
+  if (markets.length === 0) {
+    try {
+      const res = await fetch('https://gamma-api.polymarket.com/markets?limit=100&active=true');
+      if (!res.ok) throw new Error(`gamma-api status: ${res.status}`);
+      const data = await res.json();
+      markets = Array.isArray(data) ? data : [];
+      console.log('[Odds] gamma-api returned', markets.length, 'markets');
+    } catch (e) {
+      console.error('[Odds] gamma-api also failed:', e.message);
+      return [];
+    }
+  }
+
+  const result = markets
     .map((m) => {
-      const price = parseFloat(m.tokens?.[0]?.price ?? 0);
+      const price = parseFloat(m.tokens?.[0]?.price ?? m.outcomePrices?.[0] ?? m.price ?? 0);
       return {
-        market_id: m.condition_id || m.id || m.slug || '',
+        market_id: m.condition_id || m.conditionId || m.id || m.slug || '',
         question: m.question || m.title || '',
         price,
       };
     })
     .filter((m) => m.market_id && m.question && m.price > 0 && m.price < 1);
+  console.log('[Odds] Parsed', result.length, 'valid markets for snapshots');
+  return result;
 }
 
 async function ensureOddsSnapshotsTable() {
@@ -179,7 +203,10 @@ async function runOddsMovementDetection() {
   if (!pool) return;
   try {
     const current = await fetchPolymarketTopMarketsForOdds();
-    if (current.length === 0) return;
+    if (current.length === 0) {
+      console.warn('[Odds] No markets fetched — skipping snapshot');
+      return;
+    }
 
     // Save snapshots
     const values = [];
@@ -193,6 +220,7 @@ async function runOddsMovementDetection() {
       `INSERT INTO odds_snapshots (market_id, question, price) VALUES ${values.join(', ')}`,
       params
     );
+    console.log(`[Odds] Saved ${current.length} snapshots`);
 
     // Fetch previous snapshots ~30 minutes ago (latest snapshot at or before that point)
     const marketIds = current.map((m) => m.market_id);
@@ -751,6 +779,26 @@ app.get('/api/odds-spikes', async (req, res) => {
 app.get('/api/resolve-test', (req, res) => {
   checkResolvedTrades();
   res.json({ status: 'triggered' });
+});
+
+app.get('/api/odds-debug', async (req, res) => {
+  if (!pool) return res.json({ error: 'no db' });
+  try {
+    const total = await pool.query('SELECT COUNT(*) as count FROM odds_snapshots');
+    const recent = await pool.query(
+      `SELECT COUNT(*) as count FROM odds_snapshots WHERE recorded_at > NOW() - INTERVAL '1 hour'`
+    );
+    const latest = await pool.query(
+      'SELECT market_id, question, price, recorded_at FROM odds_snapshots ORDER BY recorded_at DESC LIMIT 5'
+    );
+    res.json({
+      total_snapshots: Number(total.rows[0].count),
+      last_hour: Number(recent.rows[0].count),
+      latest: latest.rows,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // Health check endpoint
