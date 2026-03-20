@@ -663,8 +663,9 @@
           const count = Number(row.trade_count) || 0;
           const vol = formatVolumeUsd(row.total_volume);
           const big = formatBiggestUsd(row.biggest_bet);
+          const summary = `${shortenWallet(row.address)} · ${count} trades · ${vol} volume`;
           return `<tr>
-            <td class="wallet-cell">${shortenWallet(row.address)}</td>
+            <td class="wallet-cell">${summary}</td>
             <td class="num">${count}</td>
             <td class="num">${escapeHtml(vol)}</td>
             <td class="num">${escapeHtml(big)}</td>
@@ -673,14 +674,35 @@
         .join('');
     }
 
+    function renderTopWallets(list) {
+      if (!list || list.length === 0) {
+        walletList.innerHTML =
+          '<li class="wallet-item"><span class="empty-msg">No wallet data yet</span></li>';
+        return;
+      }
+      const top = list.slice(0, 3);
+      walletList.innerHTML = top
+        .map((row) => {
+          const addr = shortenWallet(row.address);
+          const vol = formatVolumeUsd(row.total_volume);
+          const count = Number(row.trade_count) || 0;
+          return `<li class="wallet-item"><div class="wallet-addr">${addr}</div><div class="wallet-meta">${vol} · ${count} trades</div></li>`;
+        })
+        .join('');
+    }
+
     async function fetchSmartMoney() {
       try {
         const res = await fetch('/api/smart-money');
         const list = await res.json();
-        renderSmartMoney(Array.isArray(list) ? list : []);
+        const rows = Array.isArray(list) ? list : [];
+        renderSmartMoney(rows);
+        renderTopWallets(rows);
       } catch (e) {
         document.getElementById('smart-money-tbody').innerHTML =
           '<tr><td colspan="4" class="empty-cell empty-msg">Failed to load.</td></tr>';
+        walletList.innerHTML =
+          '<li class="wallet-item"><span class="empty-msg">Failed to load.</span></li>';
       }
     }
 
