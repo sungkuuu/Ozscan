@@ -899,27 +899,37 @@ const SEED_ALLTIME = [
 ];
 const SEED_WALLETS = [...new Set([...SEED_MONTHLY, ...SEED_ALLTIME])];
 
+async function registerSeedWallets() {
+  if (!pool) return;
+  console.log('[Seed] Registering seed wallets...');
+  let monthly = 0, alltime = 0;
+  for (const addr of SEED_MONTHLY) {
+    const r = await pool.query(
+      `INSERT INTO smart_profiles (address, source) VALUES ($1, 'monthly')
+       ON CONFLICT (address) DO UPDATE SET source =
+         CASE WHEN smart_profiles.source IN ('alltime', 'both') THEN 'both' ELSE 'monthly' END
+       RETURNING source`,
+      [addr]
+    );
+    monthly++;
+  }
+  for (const addr of SEED_ALLTIME) {
+    const r = await pool.query(
+      `INSERT INTO smart_profiles (address, source) VALUES ($1, 'alltime')
+       ON CONFLICT (address) DO UPDATE SET source =
+         CASE WHEN smart_profiles.source IN ('monthly', 'both') THEN 'both' ELSE 'alltime' END
+       RETURNING source`,
+      [addr]
+    );
+    alltime++;
+  }
+  console.log(`[Seed] Registered ${monthly} monthly + ${alltime} alltime wallets`);
+}
+
 async function backfillExistingWallets() {
   if (!pool) return;
   console.log('[Backfill] Starting backfill for seed + existing wallets...');
   try {
-    // Upsert seed wallets into smart_profiles with source
-    for (const addr of SEED_MONTHLY) {
-      await pool.query(
-        `INSERT INTO smart_profiles (address, source) VALUES ($1, 'monthly')
-         ON CONFLICT (address) DO UPDATE SET source =
-           CASE WHEN smart_profiles.source IN ('alltime', 'both') THEN 'both' ELSE 'monthly' END`,
-        [addr]
-      );
-    }
-    for (const addr of SEED_ALLTIME) {
-      await pool.query(
-        `INSERT INTO smart_profiles (address, source) VALUES ($1, 'alltime')
-         ON CONFLICT (address) DO UPDATE SET source =
-           CASE WHEN smart_profiles.source IN ('monthly', 'both') THEN 'both' ELSE 'alltime' END`,
-        [addr]
-      );
-    }
 
     const result = await pool.query(
       `SELECT DISTINCT proxy_wallet FROM whale_trades
@@ -1167,7 +1177,8 @@ app.listen(PORT, async () => {
   setInterval(runWhaleDetection, POLL_INTERVAL_MS);
   setInterval(runOddsMovementDetection, 5 * 60 * 1000);
 
-  // Backfill existing wallets on startup, then every 6 hours
+  // Register seed wallets immediately, then backfill after 10s
+  await registerSeedWallets();
   setTimeout(backfillExistingWallets, 10000);
   setInterval(backfillExistingWallets, 6 * 60 * 60 * 1000);
 
