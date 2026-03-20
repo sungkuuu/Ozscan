@@ -705,6 +705,11 @@ app.get('/api/odds-spikes', async (req, res) => {
   }
 });
 
+app.get('/api/resolve-test', (req, res) => {
+  checkResolvedTrades();
+  res.json({ status: 'triggered' });
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'ozscan' });
