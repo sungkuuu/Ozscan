@@ -630,7 +630,11 @@ if (process.env.BOT_TOKEN) {
 app.get('/api/whales', async (req, res) => {
   if (!pool) return res.json([]);
   try {
-    const result = await pool.query('SELECT * FROM whale_trades ORDER BY timestamp DESC LIMIT 50');
+    const cutoff = Math.floor(Date.now() / 1000) - 24 * 60 * 60;
+    const result = await pool.query(
+      'SELECT * FROM whale_trades WHERE timestamp >= $1 ORDER BY timestamp DESC LIMIT 50',
+      [cutoff]
+    );
     res.json(result.rows);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -895,7 +899,7 @@ async function backfillExistingWallets() {
       await pool.query(
         `INSERT INTO smart_profiles (address, source) VALUES ($1, 'monthly')
          ON CONFLICT (address) DO UPDATE SET source =
-           CASE WHEN smart_profiles.source = 'alltime' THEN 'both' ELSE 'monthly' END`,
+           CASE WHEN smart_profiles.source IN ('alltime', 'both') THEN 'both' ELSE 'monthly' END`,
         [addr]
       );
     }
@@ -903,7 +907,7 @@ async function backfillExistingWallets() {
       await pool.query(
         `INSERT INTO smart_profiles (address, source) VALUES ($1, 'alltime')
          ON CONFLICT (address) DO UPDATE SET source =
-           CASE WHEN smart_profiles.source = 'monthly' THEN 'both' ELSE 'alltime' END`,
+           CASE WHEN smart_profiles.source IN ('monthly', 'both') THEN 'both' ELSE 'alltime' END`,
         [addr]
       );
     }
