@@ -500,6 +500,7 @@
                   <tr>
                     <th>Wallet</th>
                     <th class="num">Trades</th>
+                    <th class="num">Win Rate</th>
                     <th class="num">Total volume</th>
                     <th class="num">Biggest bet</th>
                   </tr>
@@ -699,7 +700,7 @@
       const el = document.getElementById('smart-money-tbody');
       if (!list || list.length === 0) {
         el.innerHTML =
-          '<tr><td colspan="4" class="empty-cell empty-msg">No smart money data yet.</td></tr>';
+          '<tr><td colspan="5" class="empty-cell empty-msg">No smart money data yet.</td></tr>';
         return;
       }
       el.innerHTML = list
@@ -708,9 +709,11 @@
           const vol = formatVolumeUsd(row.total_volume);
           const big = formatBiggestUsd(row.biggest_bet);
           const tradeLabel = count === 1 ? 'trade' : 'trades';
+          const wr = row.win_rate != null ? Math.round(Number(row.win_rate)) + '%' : '-';
           return `<tr>
             <td class="wallet-cell">${shortenWallet(row.address)}</td>
             <td class="num">${count} ${tradeLabel}</td>
+            <td class="num">${wr}</td>
             <td class="num">${escapeHtml(vol)}</td>
             <td class="num">${escapeHtml(big)}</td>
           </tr>`;
@@ -745,7 +748,7 @@
         renderTopWallets(rows);
       } catch (e) {
         document.getElementById('smart-money-tbody').innerHTML =
-          '<tr><td colspan="4" class="empty-cell empty-msg">Failed to load.</td></tr>';
+          '<tr><td colspan="5" class="empty-cell empty-msg">Failed to load.</td></tr>';
         walletList.innerHTML =
           '<li class="wallet-item"><span class="empty-msg">Failed to load.</span></li>';
       }

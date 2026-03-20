@@ -631,7 +631,14 @@ app.get('/api/smart-money', async (req, res) => {
         proxy_wallet as address,
         COUNT(*) as trade_count,
         SUM(size) as total_volume,
-        MAX(size) as biggest_bet
+        MAX(size) as biggest_bet,
+        CASE WHEN COUNT(CASE WHEN resolved=TRUE THEN 1 END) > 0
+          THEN ROUND(
+            SUM(CASE WHEN won=TRUE THEN 1 ELSE 0 END)::numeric
+            / COUNT(CASE WHEN resolved=TRUE THEN 1 END) * 100
+          )
+          ELSE NULL
+        END as win_rate
       FROM whale_trades
       WHERE proxy_wallet IS NOT NULL
       GROUP BY proxy_wallet
