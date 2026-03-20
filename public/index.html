@@ -227,6 +227,9 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .whale-row-link { cursor: pointer; }
+    .whale-row-link:hover { background: color-mix(in srgb, var(--accent) 6%, var(--bg)); }
+
     .market-link, .wallet-link {
       color: var(--text);
       text-decoration: none;
@@ -690,14 +693,14 @@
                 const priceClamped = Math.max(0, Math.min(100, price));
                 const icon = size >= 10000 ? '🐋' : '🐟';
                 const slug = w.slug || '';
-                const titleHtml = slug
-                  ? `<a href="https://polymarket.com/event/${encodeURIComponent(slug)}" target="_blank" rel="noopener" class="market-link">${escapeHtml(marketTrunc)}</a>`
-                  : escapeHtml(marketTrunc);
+                const href = slug
+                  ? `https://polymarket.com/event/${encodeURIComponent(slug)}`
+                  : `https://polymarket.com/markets?q=${encodeURIComponent(market)}`;
                 return `
-              <li class="whale-row">
+              <li class="whale-row whale-row-link" data-href="${escapeHtml(href)}">
                 <div class="icon">${icon}</div>
                 <div class="market">
-                  <div class="market-title">${titleHtml}</div>
+                  <div class="market-title">${escapeHtml(marketTrunc)}</div>
                   <div class="meta">
                     <span class="${badgeClass(side)}">${escapeHtml(side)}</span>
                     <span class="mono" style="color:var(--text3); font-weight:700;">Polymarket</span>
@@ -949,8 +952,10 @@
     });
 
     document.addEventListener('click', (e) => {
-      const link = e.target.closest('.wallet-link');
-      if (link) openWallet(link.dataset.wallet);
+      const walletLink = e.target.closest('.wallet-link');
+      if (walletLink) return openWallet(walletLink.dataset.wallet);
+      const row = e.target.closest('.whale-row-link');
+      if (row && row.dataset.href) window.open(row.dataset.href, '_blank', 'noopener');
     });
 
     fetchWhales();
