@@ -636,6 +636,42 @@ app.get('/api/wallet-stats', async (req, res) => {
   }
 });
 
+app.get('/api/odds-spikes', async (req, res) => {
+  if (!pool) return res.json([]);
+  try {
+    const result = await pool.query(`
+      WITH latest AS (
+        SELECT DISTINCT ON (market_id)
+          market_id, question, price, recorded_at
+        FROM odds_snapshots
+        ORDER BY market_id, recorded_at DESC
+      ),
+      prev AS (
+        SELECT DISTINCT ON (market_id)
+          market_id, price AS prev_price
+        FROM odds_snapshots
+        WHERE recorded_at <= NOW() - INTERVAL '30 minutes'
+        ORDER BY market_id, recorded_at DESC
+      )
+      SELECT
+        l.market_id,
+        l.question,
+        l.price AS current_price,
+        p.prev_price,
+        (l.price - p.prev_price) AS change,
+        EXTRACT(EPOCH FROM (NOW() - l.recorded_at)) AS seconds_ago
+      FROM latest l
+      JOIN prev p ON l.market_id = p.market_id
+      WHERE ABS(l.price - p.prev_price) >= 0.10
+      ORDER BY ABS(l.price - p.prev_price) DESC
+      LIMIT 30
+    `);
+    res.json(result.rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'ozscan' });

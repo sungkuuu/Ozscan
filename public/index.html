@@ -401,6 +401,36 @@
     [data-theme="dark"] .sm-lb-table .empty-cell,
     [data-dark] .sm-lb-table .empty-cell { color: #666; }
     .empty-msg { color: var(--text3); font-family: "IBM Plex Mono", ui-monospace, monospace; }
+
+    /* Odds Spikes */
+    .spikes-section { margin-top: 16px; }
+    .spike-row {
+      display: grid;
+      grid-template-columns: 32px 1fr 140px 72px;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .spike-row:last-child { border-bottom: 0; }
+    .spike-arrow {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      color: var(--text2);
+    }
+    .spike-change {
+      text-align: right;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-weight: 800;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .spike-change.up { color: #22c55e; }
+    .spike-change.down { color: #ef4444; }
+    [data-theme="dark"] .spike-change.up, [data-dark] .spike-change.up { color: #4ade80; }
+    [data-theme="dark"] .spike-change.down, [data-dark] .spike-change.down { color: #f87171; }
   </style>
 </head>
 <body>
@@ -441,6 +471,20 @@
               <div class="right">Amount</div>
             </div>
             <ul class="whale-list" id="whale-list"></ul>
+          </div>
+
+          <div class="card spikes-section">
+            <div class="feed-top">
+              <div class="feed-title mono">⚡ Odds Spikes</div>
+              <div class="mono sm-sub">30min &ge; 10% moves</div>
+            </div>
+            <div class="grid-header" style="grid-template-columns: 32px 1fr 140px 72px;">
+              <div> </div>
+              <div>Market</div>
+              <div class="right">Odds</div>
+              <div class="right">Change</div>
+            </div>
+            <div id="spikes-list"></div>
           </div>
         </section>
 
@@ -749,12 +793,56 @@
       });
     });
 
+    function renderSpikes(spikes) {
+      const el = document.getElementById('spikes-list');
+      if (!spikes || spikes.length === 0) {
+        el.innerHTML = '<div class="spike-row"><div class="icon">—</div><div class="market"><div class="market-title"><span class="empty-msg">No odds spikes detected.</span></div></div><div></div><div></div></div>';
+        return;
+      }
+      el.innerHTML = spikes.map(s => {
+        const prev = (parseFloat(s.prev_price) * 100).toFixed(0);
+        const curr = (parseFloat(s.current_price) * 100).toFixed(0);
+        const change = parseFloat(s.change) * 100;
+        const sign = change >= 0 ? '+' : '';
+        const dir = change >= 0 ? 'up' : 'down';
+        const sec = Math.floor(parseFloat(s.seconds_ago) || 0);
+        const mins = Math.floor(sec / 60);
+        const ago = mins < 1 ? 'just now' : mins < 60 ? mins + 'm ago' : Math.floor(mins / 60) + 'h ago';
+        const q = s.question || '';
+        const qTrunc = q.length > 80 ? q.slice(0, 80) + '…' : q;
+        return `<div class="spike-row">
+          <div class="icon">⚡</div>
+          <div class="market">
+            <div class="market-title">${escapeHtml(qTrunc)}</div>
+            <div class="meta">
+              <span class="mono" style="color:var(--text3);">${escapeHtml(ago)}</span>
+            </div>
+          </div>
+          <div class="spike-arrow">${prev}% → ${curr}%</div>
+          <div class="spike-change ${dir}">${sign}${change.toFixed(0)}%</div>
+        </div>`;
+      }).join('');
+    }
+
+    async function fetchSpikes() {
+      try {
+        const res = await fetch('/api/odds-spikes');
+        const data = await res.json();
+        renderSpikes(Array.isArray(data) ? data : []);
+      } catch (e) {
+        document.getElementById('spikes-list').innerHTML =
+          '<div class="spike-row"><div class="icon">—</div><div class="market"><div class="market-title"><span class="empty-msg">Failed to load.</span></div></div><div></div><div></div></div>';
+      }
+    }
+
     fetchWhales();
     fetchStats();
     fetchSmartMoney();
+    fetchSpikes();
     setInterval(fetchWhales, 30000);
     setInterval(fetchStats, 30000);
     setInterval(fetchSmartMoney, 60000);
+    setInterval(fetchSpikes, 60000);
   </script>
 </body>
 </html>
