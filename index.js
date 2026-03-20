@@ -487,7 +487,7 @@ async function checkResolvedTrades() {
       const conditionId = t.condition_id || guessConditionIdFromTrade(t);
       if (!conditionId) continue;
 
-      const url = `https://clob.polymarket.com/markets/${conditionId}`;
+      const url = `https://gamma-api.polymarket.com/markets?conditionId=${conditionId}`;
       let res;
       try {
         res = await fetch(url);
@@ -500,29 +500,50 @@ async function checkResolvedTrades() {
         continue;
       }
 
-      const data = await res.json();
-      const closed = Boolean(data.closed ?? data.isClosed ?? data.active === false);
+      const body = await res.json();
+      const data = Array.isArray(body) ? body[0] : body;
+      if (!data) continue;
+
+      const closed = Boolean(
+        data.closed === true ||
+        data.resolved === true ||
+        data.active === false
+      );
       if (!closed) continue;
 
-      const finalPriceRaw =
-        data.tokens?.[0]?.price ??
-        data.outcomePrices?.[0] ??
-        data.outcome_price ??
-        data.price ??
-        null;
-      const finalPrice = parseFloat(finalPriceRaw);
-      if (Number.isNaN(finalPrice)) continue;
-
-      const yesWon = finalPrice > 0.99;
-      const noWon = finalPrice < 0.01;
-
+      // Determine winning outcome from gamma API response
+      const winningOutcome = (data.winningOutcome ?? data.winning_outcome ?? '').toUpperCase();
       const side = String(t.side || '').toUpperCase();
-      let won = null;
-      if (side === 'YES') won = yesWon;
-      else if (side === 'NO') won = noWon;
 
-      // If side is unexpected or price is indeterminate, treat as not won.
+      let won = null;
+      if (winningOutcome) {
+        // Direct match: gamma API tells us which outcome won (e.g. "Yes", "No")
+        won = side === winningOutcome;
+      } else {
+        // Fallback: derive from final price (YES token price)
+        const finalPriceRaw =
+          data.outcomePrices
+            ? (Array.isArray(data.outcomePrices) ? data.outcomePrices[0] : JSON.parse(data.outcomePrices)[0])
+            : data.tokens?.[0]?.price ?? data.price ?? null;
+        const fp = parseFloat(finalPriceRaw);
+        if (!Number.isNaN(fp)) {
+          const yesWon = fp > 0.99;
+          const noWon = fp < 0.01;
+          if (side === 'YES') won = yesWon;
+          else if (side === 'NO') won = noWon;
+        }
+      }
+
       const wonVal = won === null ? false : Boolean(won);
+
+      // Extract final price for record
+      let finalPrice = null;
+      try {
+        const prices = data.outcomePrices
+          ? (Array.isArray(data.outcomePrices) ? data.outcomePrices : JSON.parse(data.outcomePrices))
+          : null;
+        finalPrice = prices ? parseFloat(prices[0]) : parseFloat(data.tokens?.[0]?.price ?? data.price);
+      } catch (_) {}
 
       await pool.query(
         `UPDATE whale_trades
@@ -530,7 +551,7 @@ async function checkResolvedTrades() {
              won = $1,
              final_price = $2
          WHERE trade_id = $3`,
-        [wonVal, finalPrice, t.trade_id]
+        [wonVal, Number.isNaN(finalPrice) ? null : finalPrice, t.trade_id]
       );
     }
   } catch (e) {
