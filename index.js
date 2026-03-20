@@ -932,6 +932,66 @@ async function backfillExistingWallets() {
   }
 }
 
+async function scrapeLeaderboardWallets() {
+  console.log('[Leaderboard] Scraping polymarket.com/leaderboard...');
+  try {
+    const res = await fetch('https://polymarket.com/leaderboard', {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; OzScan/1.0)' },
+    });
+    if (!res.ok) {
+      console.error('[Leaderboard] HTTP status:', res.status);
+      return;
+    }
+    const html = await res.text();
+
+    // Extract /profile/0x... addresses
+    const matches = html.matchAll(/\/profile\/(0x[a-fA-F0-9]{40})/g);
+    const addresses = [...new Set([...matches].map(m => m[1].toLowerCase()))];
+    console.log(`[Leaderboard] Found ${addresses.length} wallet addresses`);
+    if (addresses.length === 0) return;
+
+    // Upsert into smart_profiles
+    let newCount = 0;
+    for (const addr of addresses) {
+      if (!pool) continue;
+      const result = await pool.query(
+        `INSERT INTO smart_profiles (address, source) VALUES ($1, 'leaderboard')
+         ON CONFLICT (address) DO NOTHING`,
+        [addr]
+      );
+      if (result.rowCount > 0) newCount++;
+    }
+    console.log(`[Leaderboard] ${newCount} new wallets added to smart_profiles`);
+
+    // Backfill new wallets
+    let totalInserted = 0;
+    for (const addr of addresses) {
+      try {
+        const n = await backfillWalletActivities(addr);
+        if (n > 0) console.log(`[Leaderboard] ${addr.slice(0, 8)}...: +${n} trades`);
+        totalInserted += n;
+      } catch (e) {
+        console.error(`[Leaderboard] ${addr.slice(0, 8)}... error: ${e.message}`);
+      }
+    }
+    console.log(`[Leaderboard] Done. ${totalInserted} new trades from ${addresses.length} wallets`);
+  } catch (e) {
+    console.error('[Leaderboard] Scrape error:', e.message);
+  }
+}
+
+function scheduleWeeklyLeaderboard() {
+  const check = () => {
+    const now = new Date();
+    // Monday = 1, check if it's Monday 00:00–00:05 UTC
+    if (now.getUTCDay() === 1 && now.getUTCHours() === 0 && now.getUTCMinutes() < 5) {
+      scrapeLeaderboardWallets();
+    }
+  };
+  // Check every 5 minutes
+  setInterval(check, 5 * 60 * 1000);
+}
+
 app.get('/api/backfill-wallet', async (req, res) => {
   const address = req.query.address;
   if (!address) return res.status(400).json({ error: 'address required' });
@@ -981,6 +1041,11 @@ app.get('/api/backfill-test', async (req, res) => {
 
 app.get('/api/resolve-test', (req, res) => {
   checkResolvedTrades();
+  res.json({ status: 'triggered' });
+});
+
+app.get('/api/scrape-leaderboard', (req, res) => {
+  scrapeLeaderboardWallets();
   res.json({ status: 'triggered' });
 });
 
@@ -1067,6 +1132,9 @@ app.listen(PORT, async () => {
   // Backfill existing wallets on startup, then every 6 hours
   setTimeout(backfillExistingWallets, 10000);
   setInterval(backfillExistingWallets, 6 * 60 * 60 * 1000);
+
+  // Weekly leaderboard scrape (Monday 00:00 UTC)
+  scheduleWeeklyLeaderboard();
 });
 
 setTimeout(fetchKalshiMarkets, 5000);
