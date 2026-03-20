@@ -707,10 +707,10 @@
           const count = Number(row.trade_count) || 0;
           const vol = formatVolumeUsd(row.total_volume);
           const big = formatBiggestUsd(row.biggest_bet);
-          const summary = `${shortenWallet(row.address)} · ${count} trades · ${vol} volume`;
+          const tradeLabel = count === 1 ? 'trade' : 'trades';
           return `<tr>
-            <td class="wallet-cell">${summary}</td>
-            <td class="num">${count}</td>
+            <td class="wallet-cell">${shortenWallet(row.address)}</td>
+            <td class="num">${count} ${tradeLabel}</td>
             <td class="num">${escapeHtml(vol)}</td>
             <td class="num">${escapeHtml(big)}</td>
           </tr>`;
@@ -730,7 +730,8 @@
           const addr = shortenWallet(row.address);
           const vol = formatVolumeUsd(row.total_volume);
           const count = Number(row.trade_count) || 0;
-          return `<li class="wallet-item"><div class="wallet-addr">${addr}</div><div class="wallet-meta">${vol} · ${count} trades</div></li>`;
+          const tradeLabel = count === 1 ? 'trade' : 'trades';
+          return `<li class="wallet-item"><div class="wallet-addr">${addr}</div><div class="wallet-meta">${vol} · ${count} ${tradeLabel}</div></li>`;
         })
         .join('');
     }
