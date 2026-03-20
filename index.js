@@ -830,24 +830,61 @@ async function backfillWalletActivities(address) {
   return inserted;
 }
 
+const SEED_WALLETS = [
+  // Monthly top
+  '0x02227b8f5a9636e895607edd3185ed6ee5598ff7',
+  '0xefbc5fec8d7b0acdc8911bdd9a98d6964308f9a2',
+  '0xc2e7800b5af46e6093872b177b7a5e7f0563be51',
+  '0x2a2c53bd278c04da9962fcf96490e17f3dfb9bc1',
+  '0x019782cab5d844f02bafb71f512758be78579f3c',
+  '0xdc876e6873772d38716fda7f2452a78d426d7ab6',
+  '0x93abbc022ce98d6f45d4444b594791cc4b7a9723',
+  '0xf195721ad850377c96cd634457c70cd9e8308057',
+  '0x37c1874a60d348903594a96703e0507c518fc53a',
+  '0xbddf61af533ff524d27154e589d2d7a81510c684',
+  '0xee613b3fc183ee44f9da9c05f53e2da107e3debf',
+  '0x204f72f35326db932158cba6adff0b9a1da95e14',
+  '0xf19d7d88cf362110027dcd64750fdd209a04276f',
+  '0xe90bec87d9ef430f27f9dcfe72c34b76967d5da2',
+  '0xb90494d9a5d8f71f1930b2aa4b599f95c344c255',
+  '0x0b9cae2b0dfe7a71c413e0604eaac1c352f87e44',
+  '0x916f7165c2c836aba22edb6453cdbb5f3ea253ba',
+  '0x96489abcb9f583d6835c8ef95ffc923d05a86825',
+  '0x6ac5bb06a9eb05641fd5e82640268b92f3ab4b6e',
+  '0x507e52ef684ca2dd91f90a9d26d149dd3288beae',
+  // All time top
+  '0x56687bf447db6ffa42ffe2204a05edaa20f55839',
+  '0x1f2dd6d473f3e824cd2f8a89d9c69fb96f6ad0cf',
+  '0x6a72f61820b26b1fe4d956e17b6dc2a1ea3033ee',
+  '0x78b9ac44a6d7d7a076c14e0ad518b301b63c6b76',
+  '0xd235973291b2b75ff4070e9c0b01728c520b0f29',
+  '0x863134d00841b2e200492805a01e1e2f5defaa53',
+  '0x8119010a6e589062aa03583bb3f39ca632d9f887',
+  '0xe9ad918c7678cd38b12603a762e638a5d1ee7091',
+  '0x2005d16a84ceefa912d4e380cd32e7ff827875ea',
+  '0x94f199fb7789f1aef7fff6b758d6b375100f4c7a',
+  '0x885783760858e1bd5dd09a3c3f916cfa251ac270',
+  '0x23786fdad0073692157c6d7dc81f281843a35fcb',
+  '0xd0c042c08f755ff940249f62745e82d356345565',
+  '0x006cc834cc092684f1b56626e23bedb3835c16ea',
+  '0xdb27bf2ac5d428a9c63dbc914611036855a6c56e',
+  '0x16f91db2592924cfed6e03b7e5cb5bb1e32299e3',
+];
+
 async function backfillExistingWallets() {
   if (!pool) return;
-  console.log('[Backfill] Starting backfill for existing wallets...');
+  console.log('[Backfill] Starting backfill for seed + existing wallets...');
   try {
     const result = await pool.query(
       `SELECT DISTINCT proxy_wallet FROM whale_trades
-       WHERE proxy_wallet IS NOT NULL
-       ORDER BY proxy_wallet`
+       WHERE proxy_wallet IS NOT NULL`
     );
-    const wallets = result.rows.map(r => r.proxy_wallet);
-    if (wallets.length === 0) {
-      console.log('[Backfill] No wallets in DB yet');
-      return;
-    }
-    console.log(`[Backfill] Found ${wallets.length} wallets to backfill`);
+    const dbWallets = result.rows.map(r => r.proxy_wallet);
+    const allWallets = [...new Set([...SEED_WALLETS, ...dbWallets])];
+    console.log(`[Backfill] ${SEED_WALLETS.length} seed + ${dbWallets.length} DB = ${allWallets.length} unique wallets`);
 
     let totalInserted = 0;
-    for (const addr of wallets) {
+    for (const addr of allWallets) {
       try {
         const n = await backfillWalletActivities(addr);
         if (n > 0) console.log(`[Backfill] ${addr.slice(0, 8)}...: +${n} trades`);
@@ -856,7 +893,7 @@ async function backfillExistingWallets() {
         console.error(`[Backfill] ${addr.slice(0, 8)}... error: ${e.message}`);
       }
     }
-    console.log(`[Backfill] Done. ${wallets.length} wallets, ${totalInserted} new trades`);
+    console.log(`[Backfill] Done. ${allWallets.length} wallets, ${totalInserted} new trades`);
   } catch (e) {
     console.error('[Backfill] Error:', e.message);
   }
