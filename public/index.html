@@ -514,7 +514,11 @@
           <div class="card">
             <div class="feed-top">
               <div class="feed-title mono">Smart Money</div>
-              <div class="mono sm-sub">Top wallets by profit</div>
+              <div class="chips" id="source-chips">
+                <button type="button" class="chip active" data-source="">All</button>
+                <button type="button" class="chip" data-source="monthly">Monthly</button>
+                <button type="button" class="chip" data-source="alltime">All Time</button>
+              </div>
             </div>
             <div class="sm-lb-wrap">
               <table class="sm-lb-table" aria-label="Wallet leaderboard">
@@ -795,9 +799,14 @@
         .join('');
     }
 
+    let smartMoneySource = '';
+
     async function fetchSmartMoney() {
       try {
-        const res = await fetch('/api/smart-money');
+        const url = smartMoneySource
+          ? '/api/smart-money?source=' + encodeURIComponent(smartMoneySource)
+          : '/api/smart-money';
+        const res = await fetch(url);
         const list = await res.json();
         const rows = Array.isArray(list) ? list : [];
         renderSmartMoney(rows);
@@ -822,14 +831,24 @@
       }
     }
 
-    document.querySelectorAll('.chips button').forEach((btn) => {
+    document.querySelectorAll('#whale-feed-panel .chips button').forEach((btn) => {
       btn.addEventListener('click', () => {
         document
-          .querySelectorAll('.chips button')
+          .querySelectorAll('#whale-feed-panel .chips button')
           .forEach((b) => b.classList.remove('active'));
         btn.classList.add('active');
         minAmount = Number(btn.dataset.min) || 0;
         render();
+      });
+    });
+
+    document.querySelectorAll('#source-chips button').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#source-chips button')
+          .forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        smartMoneySource = btn.dataset.source || '';
+        fetchSmartMoney();
       });
     });
 

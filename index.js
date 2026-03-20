@@ -690,21 +690,11 @@ app.get('/api/stats', async (req, res) => {
 app.get('/api/smart-money', async (req, res) => {
   if (!pool) return res.json([]);
   try {
-    // Check if we have enough resolved data to rank by win rate
-    const resolvedCheck = await pool.query(
-      `SELECT COUNT(DISTINCT proxy_wallet) as cnt FROM whale_trades
-       WHERE proxy_wallet IS NOT NULL AND resolved = TRUE
-       GROUP BY proxy_wallet HAVING COUNT(*) >= 3`
-    );
-    const hasResolved = (resolvedCheck.rows?.length || 0) > 0;
-
-    const orderBy = hasResolved
-      ? 'ORDER BY win_rate DESC NULLS LAST, trade_count DESC'
-      : 'ORDER BY total_profit DESC, total_volume DESC';
-
-    const havingClause = hasResolved
-      ? 'HAVING COUNT(CASE WHEN w.resolved=TRUE THEN 1 END) >= 3'
+    const source = req.query.source; // 'monthly', 'alltime', or undefined for all
+    const sourceFilter = source
+      ? `AND sp.source IN ($1, 'both')`
       : '';
+    const params = source ? [source] : [];
 
     const result = await pool.query(`
       SELECT
@@ -721,15 +711,21 @@ app.get('/api/smart-money', async (req, res) => {
           )
           ELSE NULL
         END as win_rate,
-        COALESCE(sp.profit, 0) as total_profit
+        COALESCE(
+          SUM(CASE WHEN w.won=TRUE THEN w.size ELSE 0 END)
+          - SUM(CASE WHEN w.won=FALSE AND w.resolved=TRUE THEN w.size ELSE 0 END),
+          0
+        ) as total_profit,
+        COALESCE(sp.source, 'other') as source
       FROM whale_trades w
       LEFT JOIN smart_profiles sp ON sp.address = w.proxy_wallet
       WHERE w.proxy_wallet IS NOT NULL
-      GROUP BY w.proxy_wallet, sp.profit
-      ${havingClause}
-      ${orderBy}
+      ${sourceFilter}
+      GROUP BY w.proxy_wallet, sp.source
+      HAVING COUNT(*) >= 50
+      ORDER BY win_rate DESC NULLS LAST, trade_count DESC
       LIMIT 100
-    `);
+    `, params);
     res.json(result.rows);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -830,8 +826,7 @@ async function backfillWalletActivities(address) {
   return inserted;
 }
 
-const SEED_WALLETS = [
-  // Monthly top
+const SEED_MONTHLY = [
   '0x02227b8f5a9636e895607edd3185ed6ee5598ff7',
   '0xefbc5fec8d7b0acdc8911bdd9a98d6964308f9a2',
   '0xc2e7800b5af46e6093872b177b7a5e7f0563be51',
@@ -852,7 +847,8 @@ const SEED_WALLETS = [
   '0x96489abcb9f583d6835c8ef95ffc923d05a86825',
   '0x6ac5bb06a9eb05641fd5e82640268b92f3ab4b6e',
   '0x507e52ef684ca2dd91f90a9d26d149dd3288beae',
-  // All time top
+];
+const SEED_ALLTIME = [
   '0x56687bf447db6ffa42ffe2204a05edaa20f55839',
   '0x1f2dd6d473f3e824cd2f8a89d9c69fb96f6ad0cf',
   '0x6a72f61820b26b1fe4d956e17b6dc2a1ea3033ee',
@@ -870,11 +866,30 @@ const SEED_WALLETS = [
   '0xdb27bf2ac5d428a9c63dbc914611036855a6c56e',
   '0x16f91db2592924cfed6e03b7e5cb5bb1e32299e3',
 ];
+const SEED_WALLETS = [...new Set([...SEED_MONTHLY, ...SEED_ALLTIME])];
 
 async function backfillExistingWallets() {
   if (!pool) return;
   console.log('[Backfill] Starting backfill for seed + existing wallets...');
   try {
+    // Upsert seed wallets into smart_profiles with source
+    for (const addr of SEED_MONTHLY) {
+      await pool.query(
+        `INSERT INTO smart_profiles (address, source) VALUES ($1, 'monthly')
+         ON CONFLICT (address) DO UPDATE SET source =
+           CASE WHEN smart_profiles.source = 'alltime' THEN 'both' ELSE 'monthly' END`,
+        [addr]
+      );
+    }
+    for (const addr of SEED_ALLTIME) {
+      await pool.query(
+        `INSERT INTO smart_profiles (address, source) VALUES ($1, 'alltime')
+         ON CONFLICT (address) DO UPDATE SET source =
+           CASE WHEN smart_profiles.source = 'monthly' THEN 'both' ELSE 'alltime' END`,
+        [addr]
+      );
+    }
+
     const result = await pool.query(
       `SELECT DISTINCT proxy_wallet FROM whale_trades
        WHERE proxy_wallet IS NOT NULL`
@@ -1019,9 +1034,13 @@ app.listen(PORT, async () => {
       CREATE TABLE IF NOT EXISTS smart_profiles (
         address TEXT PRIMARY KEY,
         profit NUMERIC DEFAULT 0,
+        source TEXT DEFAULT 'other',
         last_synced TIMESTAMP DEFAULT NOW()
       )
     `);
+    await pool.query(
+      `ALTER TABLE smart_profiles ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'other';`
+    );
   }
   runWhaleDetection();
   setInterval(runWhaleDetection, POLL_INTERVAL_MS);
