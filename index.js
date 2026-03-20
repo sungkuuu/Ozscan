@@ -795,6 +795,49 @@ app.get('/api/odds-spikes', async (req, res) => {
   }
 });
 
+app.get('/api/backfill-wallet', async (req, res) => {
+  const address = req.query.address;
+  if (!address) return res.status(400).json({ error: 'address required' });
+  if (!pool) return res.status(500).json({ error: 'no db' });
+  try {
+    const apiRes = await fetch(
+      `https://data-api.polymarket.com/activity?user=${encodeURIComponent(address)}&limit=500`
+    );
+    if (!apiRes.ok) throw new Error(`Polymarket API status: ${apiRes.status}`);
+    const activities = await apiRes.json();
+    if (!Array.isArray(activities) || activities.length === 0) {
+      return res.json({ inserted: 0 });
+    }
+
+    let inserted = 0;
+    for (const a of activities) {
+      const tradeId = a.transactionHash || a.id || a.tradeId || null;
+      if (!tradeId) continue;
+      const market = a.title || a.question || a.slug || 'Unknown market';
+      const side = (a.outcome || a.side || a.type || '').toUpperCase();
+      const sideNorm = side === 'BUY' ? 'YES' : side === 'SELL' ? 'NO' : side || '—';
+      const size = parseFloat(a.usdcSize || a.size || a.amount || 0);
+      const price = parseFloat(a.price || 0) * 100;
+      const ts = a.timestamp ? Math.floor(new Date(a.timestamp).getTime() / 1000) : 0;
+      const conditionId = a.conditionId || a.condition_id || null;
+      const slug = a.slug || null;
+
+      const result = await pool.query(
+        `INSERT INTO whale_trades (trade_id, market, side, size, price, timestamp, proxy_wallet, condition_id, slug)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         ON CONFLICT (trade_id) DO NOTHING`,
+        [tradeId, market, sideNorm, size, price, ts, address, conditionId, slug]
+      );
+      if (result.rowCount > 0) inserted++;
+    }
+
+    res.json({ inserted });
+  } catch (e) {
+    console.error('[Backfill] Error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.get('/api/resolve-test', (req, res) => {
   checkResolvedTrades();
   res.json({ status: 'triggered' });
