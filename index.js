@@ -917,14 +917,17 @@ async function backfillExistingWallets() {
     console.log(`[Backfill] ${SEED_WALLETS.length} seed + ${dbWallets.length} DB = ${allWallets.length} unique wallets`);
 
     let totalInserted = 0;
-    for (const addr of allWallets) {
+    for (let i = 0; i < allWallets.length; i++) {
+      const addr = allWallets[i];
       try {
         const n = await backfillWalletActivities(addr);
-        if (n > 0) console.log(`[Backfill] ${addr.slice(0, 8)}...: +${n} trades`);
+        if (n > 0) console.log(`[Backfill] [${i + 1}/${allWallets.length}] ${addr.slice(0, 8)}...: +${n} trades`);
         totalInserted += n;
       } catch (e) {
         console.error(`[Backfill] ${addr.slice(0, 8)}... error: ${e.message}`);
       }
+      // Rate limit: wait 2s between wallets
+      if (i < allWallets.length - 1) await new Promise(r => setTimeout(r, 2000));
     }
     console.log(`[Backfill] Done. ${allWallets.length} wallets, ${totalInserted} new trades`);
   } catch (e) {
@@ -963,16 +966,18 @@ async function scrapeLeaderboardWallets() {
     }
     console.log(`[Leaderboard] ${newCount} new wallets added to smart_profiles`);
 
-    // Backfill new wallets
+    // Backfill new wallets with 2s delay
     let totalInserted = 0;
-    for (const addr of addresses) {
+    for (let i = 0; i < addresses.length; i++) {
+      const addr = addresses[i];
       try {
         const n = await backfillWalletActivities(addr);
-        if (n > 0) console.log(`[Leaderboard] ${addr.slice(0, 8)}...: +${n} trades`);
+        if (n > 0) console.log(`[Leaderboard] [${i + 1}/${addresses.length}] ${addr.slice(0, 8)}...: +${n} trades`);
         totalInserted += n;
       } catch (e) {
         console.error(`[Leaderboard] ${addr.slice(0, 8)}... error: ${e.message}`);
       }
+      if (i < addresses.length - 1) await new Promise(r => setTimeout(r, 2000));
     }
     console.log(`[Leaderboard] Done. ${totalInserted} new trades from ${addresses.length} wallets`);
   } catch (e) {
