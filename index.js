@@ -707,7 +707,7 @@ app.get('/api/smart-money', async (req, res) => {
       WHERE proxy_wallet IS NOT NULL
       GROUP BY proxy_wallet
       ORDER BY total_volume DESC
-      LIMIT 20
+      LIMIT 100
     `);
     res.json(result.rows);
   } catch (e) {
