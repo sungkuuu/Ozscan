@@ -326,6 +326,8 @@ function detectWhales(trades) {
     const side = (t.outcome || t.side || '').toUpperCase();
     const proxyWallet = t.proxyWallet;
 
+    const conditionId = t.conditionId || t.condition_id || null;
+
     const whale = {
       tradeId,
       market: String(market),
@@ -334,6 +336,7 @@ function detectWhales(trades) {
       price: price * 100,
       timestamp: Number(t.timestamp) || 0,
       proxyWallet: proxyWallet || null,
+      conditionId,
     };
     console.log('[Whale] Detected:', JSON.stringify(whale));
     whaleTrades.push(whale);
@@ -367,8 +370,8 @@ async function storeWhaleTrade(whale) {
   if (!pool) return;
   try {
     await pool.query(
-      `INSERT INTO whale_trades (trade_id, market, side, size, price, timestamp, proxy_wallet)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO whale_trades (trade_id, market, side, size, price, timestamp, proxy_wallet, condition_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        ON CONFLICT (trade_id) DO NOTHING`,
       [
         whale.tradeId,
@@ -378,6 +381,7 @@ async function storeWhaleTrade(whale) {
         whale.price,
         whale.timestamp,
         whale.proxyWallet,
+        whale.conditionId,
       ]
     );
   } catch (err) {
@@ -480,7 +484,7 @@ async function checkResolvedTrades() {
     console.log('[Resolve] Checking unresolved trades:', trades.length);
 
     for (const t of trades) {
-      const conditionId = guessConditionIdFromTrade(t);
+      const conditionId = t.condition_id || guessConditionIdFromTrade(t);
       if (!conditionId) continue;
 
       const url = `https://clob.polymarket.com/markets/${conditionId}`;
@@ -660,6 +664,9 @@ app.listen(PORT, async () => {
       `ALTER TABLE whale_trades ADD COLUMN IF NOT EXISTS proxy_wallet TEXT;`
     );
 
+    await pool.query(
+      `ALTER TABLE whale_trades ADD COLUMN IF NOT EXISTS condition_id TEXT;`
+    );
     await pool.query(
       `ALTER TABLE whale_trades ADD COLUMN IF NOT EXISTS resolved BOOLEAN DEFAULT FALSE;`
     );
