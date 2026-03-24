@@ -741,19 +741,19 @@ app.get('/api/smart-money', async (req, res) => {
         ROUND(COALESCE(
           SUM(CASE
             WHEN w.won=TRUE AND w.price > 0 THEN w.size * (100.0 / w.price - 1)
-            WHEN w.won=FALSE AND w.resolved=TRUE THEN -w.size
+            WHEN w.won=FALSE AND w.resolved=TRUE AND w.price > 0 THEN -w.size
             ELSE 0
           END),
           0
         ), 2) as total_profit,
-        CASE WHEN SUM(CASE WHEN w.resolved=TRUE THEN w.size ELSE 0 END) > 0
+        CASE WHEN SUM(CASE WHEN w.resolved=TRUE AND w.price > 0 THEN w.size ELSE 0 END) > 0
           THEN ROUND(
             SUM(CASE
               WHEN w.won=TRUE AND w.price > 0 THEN w.size * (100.0 / w.price - 1)
-              WHEN w.won=FALSE AND w.resolved=TRUE THEN -w.size
+              WHEN w.won=FALSE AND w.resolved=TRUE AND w.price > 0 THEN -w.size
               ELSE 0
             END)::numeric
-            / SUM(CASE WHEN w.resolved=TRUE THEN w.size ELSE 0 END) * 100
+            / SUM(CASE WHEN w.resolved=TRUE AND w.price > 0 THEN w.size ELSE 0 END) * 100
           , 1)
           ELSE NULL
         END as roi,
@@ -761,10 +761,17 @@ app.get('/api/smart-money', async (req, res) => {
       FROM whale_trades w
       ${joinType} smart_profiles sp ON LOWER(sp.address) = LOWER(w.proxy_wallet)
       WHERE w.proxy_wallet IS NOT NULL
+        AND w.side NOT IN ('REWARD', 'REDEEM', 'MERGE', 'SPLIT')
+        AND w.price > 0
       ${sourceFilter}
       ${spamFilter}
       GROUP BY w.proxy_wallet, sp.source
-      HAVING COUNT(*) >= 20
+      HAVING COUNT(*) >= 50
+        AND COUNT(CASE WHEN w.resolved=TRUE THEN 1 END) >= 10
+        AND ROUND(
+          SUM(CASE WHEN w.won=TRUE THEN 1 ELSE 0 END)::numeric
+          / NULLIF(COUNT(CASE WHEN w.resolved=TRUE THEN 1 END), 0) * 100
+        ) >= 55
       ORDER BY win_rate DESC NULLS LAST, trade_count DESC
       LIMIT 50
     `, params);
@@ -848,6 +855,9 @@ async function backfillWalletActivities(address) {
   for (const a of activities) {
     const tradeId = a.transactionHash || a.id || a.tradeId || null;
     if (!tradeId) continue;
+    // Skip non-trade activity types
+    const actType = (a.type || '').toUpperCase();
+    if (['REWARD', 'REDEEM', 'MERGE', 'SPLIT'].includes(actType)) continue;
     const market = a.title || a.question || a.slug || 'Unknown market';
     const side = (a.outcome || a.side || a.type || '').toUpperCase();
     const sideNorm = side === 'BUY' ? 'YES' : side === 'SELL' ? 'NO' : side || '—';
