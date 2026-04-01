@@ -414,6 +414,71 @@
     [data-dark] .sm-lb-table .empty-cell { color: #666; }
     .empty-msg { color: var(--text3); font-family: "IBM Plex Mono", ui-monospace, monospace; }
 
+    /* Smart Alerts feed */
+    .smart-alerts-card {
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg2);
+    }
+    [data-theme="dark"] .smart-alerts-card,
+    [data-dark] .smart-alerts-card {
+      background: #0f0f0f;
+      border-color: rgba(255, 255, 255, 0.06);
+    }
+    .smart-alerts-card .feed-top {
+      padding: 14px 16px 10px;
+    }
+    .sa-row {
+      display: grid;
+      grid-template-columns: 1fr 120px 60px 80px 70px;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 16px;
+      border-top: 1px solid var(--border);
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 12px;
+    }
+    [data-theme="dark"] .sa-row,
+    [data-dark] .sa-row {
+      border-top-color: rgba(255, 255, 255, 0.06);
+    }
+    .sa-row:hover {
+      background: color-mix(in srgb, var(--accent) 8%, var(--bg2));
+    }
+    [data-theme="dark"] .sa-row:hover,
+    [data-dark] .sa-row:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .sa-wallet {
+      font-weight: 700;
+      color: #a78bfa;
+    }
+    .sa-source {
+      font-size: 10px;
+      color: var(--text3);
+      margin-left: 4px;
+    }
+    .sa-market {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text);
+    }
+    .sa-market a { color: inherit; text-decoration: none; }
+    .sa-market a:hover { text-decoration: underline; }
+    .sa-side { text-align: center; }
+    .sa-amount { text-align: right; font-weight: 600; }
+    .sa-time { text-align: right; color: var(--text3); }
+    @media (max-width: 640px) {
+      .sa-row {
+        grid-template-columns: 1fr 60px 70px;
+        font-size: 11px;
+      }
+      .sa-row .sa-wallet-col,
+      .sa-row .sa-time { display: none; }
+    }
+
     /* Odds Spikes */
     .spikes-section { margin-top: 16px; }
     .spike-row {
@@ -511,6 +576,18 @@
         </section>
 
         <section id="smart-money-panel" class="panel">
+          <!-- Smart Alerts Feed -->
+          <div class="smart-alerts-card">
+            <div class="feed-top">
+              <div class="feed-title mono">🧠 Smart Alerts</div>
+              <div class="mono sm-sub">Last 24h</div>
+            </div>
+            <div id="smart-alerts-feed">
+              <div style="padding:20px 16px;text-align:center;" class="empty-msg">Loading alerts...</div>
+            </div>
+          </div>
+
+          <!-- Leaderboard -->
           <div class="card">
             <div class="feed-top">
               <div class="feed-title mono">Smart Money</div>
@@ -803,6 +880,45 @@
         .join('');
     }
 
+    function renderSmartAlerts(alerts) {
+      const el = document.getElementById('smart-alerts-feed');
+      if (!alerts || alerts.length === 0) {
+        el.innerHTML = '<div style="padding:20px 16px;text-align:center;" class="empty-msg">No smart money alerts in the last 24 hours</div>';
+        return;
+      }
+      el.innerHTML = alerts.map(a => {
+        const addr = a.address || '';
+        const source = a.source || 'other';
+        const market = (a.market || '').trim();
+        const mTrunc = market.length > 60 ? market.slice(0, 60) + '…' : market;
+        const slug = a.event_slug || a.slug || '';
+        const href = slug
+          ? `https://polymarket.com/event/${encodeURIComponent(slug)}`
+          : `https://polymarket.com/markets?q=${encodeURIComponent(market)}`;
+        const side = (a.side || '').toUpperCase();
+        const size = Number(a.size) || 0;
+        const ts = a.timestamp != null ? timeAgo(a.timestamp) : '—';
+        return `<div class="sa-row">
+          <div class="sa-market"><a href="${escapeHtml(href)}" target="_blank" rel="noopener">${escapeHtml(mTrunc)}</a></div>
+          <div class="sa-wallet-col"><span class="sa-wallet wallet-link" data-wallet="${escapeHtml(addr)}">${shortenWallet(addr)}</span><span class="sa-source">${escapeHtml(source)}</span></div>
+          <div class="sa-side"><span class="${badgeClass(side)}">${escapeHtml(side)}</span></div>
+          <div class="sa-amount">${formatAmount(size)}</div>
+          <div class="sa-time">${escapeHtml(ts)}</div>
+        </div>`;
+      }).join('');
+    }
+
+    async function fetchSmartAlerts() {
+      try {
+        const res = await fetch('/api/smart-alerts');
+        const data = await res.json();
+        renderSmartAlerts(Array.isArray(data) ? data : []);
+      } catch (e) {
+        document.getElementById('smart-alerts-feed').innerHTML =
+          '<div style="padding:20px 16px;text-align:center;" class="empty-msg">Failed to load alerts.</div>';
+      }
+    }
+
     let smartMoneySource = '';
 
     async function fetchSmartMoney() {
@@ -875,6 +991,7 @@
         } else {
           document.getElementById('smart-money-panel').classList.add('active');
           fetchSmartMoney();
+          fetchSmartAlerts();
         }
       });
     });
@@ -988,10 +1105,12 @@
     fetchStats();
     fetchSmartMoney();
     fetchSpikes();
+    fetchSmartAlerts();
     setInterval(fetchWhales, 30000);
     setInterval(fetchStats, 30000);
     setInterval(fetchSmartMoney, 60000);
     setInterval(fetchSpikes, 60000);
+    setInterval(fetchSmartAlerts, 30000);
   </script>
 </body>
 </html>

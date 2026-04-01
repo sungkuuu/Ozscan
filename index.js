@@ -22,6 +22,9 @@ const pool = process.env.DATABASE_URL
 // Trade IDs we've already sent an alert for (avoid duplicates)
 const alertedTradeIds = new Set();
 
+// Smart Money alert: last-seen timestamp per wallet (hydrated from DB on startup)
+const smartAlertLastSeen = new Map();
+
 setInterval(() => {
   alertedTradeIds.clear();
   console.log('[Whale] Cleared alerted trade IDs cache');
@@ -781,6 +784,23 @@ app.get('/api/smart-money', async (req, res) => {
   }
 });
 
+app.get('/api/smart-alerts', async (req, res) => {
+  if (!pool) return res.json([]);
+  try {
+    const result = await pool.query(`
+      SELECT sa.*, COALESCE(sp.source, 'other') as source
+      FROM smart_alerts sa
+      LEFT JOIN smart_profiles sp ON LOWER(sp.address) = LOWER(sa.address)
+      WHERE sa.created_at > NOW() - INTERVAL '24 hours'
+      ORDER BY sa.timestamp DESC
+      LIMIT 50
+    `);
+    res.json(result.rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.get('/api/wallet-stats', async (req, res) => {
   if (!pool) return res.json([]);
   try {
@@ -1037,6 +1057,153 @@ async function scrapeLeaderboardWallets() {
   }
 }
 
+async function pollSmartMoneyTrades() {
+  if (!pool) return;
+  try {
+    const walletsResult = await pool.query('SELECT DISTINCT address FROM smart_profiles');
+    const wallets = walletsResult.rows.map(r => r.address);
+    if (wallets.length === 0) {
+      console.log('[SmartAlert] No wallets in smart_profiles');
+      return;
+    }
+
+    let totalNew = 0;
+    let alertsSent = 0;
+    const MAX_ALERTS_PER_CYCLE = 10;
+    const overflowAlerts = [];
+
+    for (let i = 0; i < wallets.length; i++) {
+      const addr = wallets[i];
+      if (i > 0) await new Promise(r => setTimeout(r, 1500));
+
+      let activities;
+      try {
+        const apiRes = await fetch(
+          `https://data-api.polymarket.com/activity?user=${encodeURIComponent(addr)}&limit=20`
+        );
+        if (!apiRes.ok) {
+          console.error(`[SmartAlert] API error for ${addr.slice(0, 8)}...: ${apiRes.status}`);
+          continue;
+        }
+        activities = await apiRes.json();
+      } catch (e) {
+        console.error(`[SmartAlert] Fetch error for ${addr.slice(0, 8)}...: ${e.message}`);
+        continue;
+      }
+
+      if (!Array.isArray(activities) || activities.length === 0) continue;
+
+      const lastSeen = smartAlertLastSeen.get(addr) || 0;
+      let maxTs = lastSeen;
+
+      for (const a of activities) {
+        const actType = (a.type || '').toUpperCase();
+        if (['REWARD', 'REDEEM', 'MERGE', 'SPLIT'].includes(actType)) continue;
+
+        const rawTs = a.timestamp || 0;
+        const ts = typeof rawTs === 'number'
+          ? (rawTs > 1e12 ? Math.floor(rawTs / 1000) : rawTs)
+          : Math.floor(new Date(rawTs).getTime() / 1000);
+
+        if (ts <= lastSeen) continue;
+        if (ts > maxTs) maxTs = ts;
+
+        const tradeId = a.transactionHash || a.id || a.tradeId || null;
+        if (!tradeId) continue;
+
+        const market = a.title || a.question || a.slug || 'Unknown market';
+        const side = (a.outcome || a.side || a.type || '').toUpperCase();
+        const sideNorm = side === 'BUY' ? 'YES' : side === 'SELL' ? 'NO' : side || '—';
+        const size = parseFloat(a.usdcSize || a.size || a.amount || 0);
+        const price = parseFloat(a.price || 0);
+        const priceDb = price * 100;
+        const conditionId = a.conditionId || a.condition_id || null;
+        const slug = a.slug || null;
+        const eventSlug = a.eventSlug || a.event_slug || null;
+
+        // Insert into smart_alerts
+        try {
+          const r = await pool.query(
+            `INSERT INTO smart_alerts (trade_id, address, market, side, size, price, condition_id, slug, event_slug, timestamp)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+             ON CONFLICT (trade_id) DO NOTHING`,
+            [tradeId, addr, market, sideNorm, size, priceDb, conditionId, slug, eventSlug, ts]
+          );
+          if (r.rowCount === 0) continue; // Already existed
+        } catch (e) {
+          console.error(`[SmartAlert] Insert alert error: ${e.message}`);
+          continue;
+        }
+
+        // Also upsert into whale_trades
+        try {
+          await pool.query(
+            `INSERT INTO whale_trades (trade_id, market, side, size, price, timestamp, proxy_wallet, condition_id, slug)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             ON CONFLICT (trade_id) DO NOTHING`,
+            [tradeId, market, sideNorm, size, priceDb, ts, addr, conditionId, slug]
+          );
+        } catch (e) {
+          // Non-critical
+        }
+
+        totalNew++;
+
+        // Send Telegram alert (capped)
+        if (bot && process.env.ADMIN_CHAT_ID) {
+          // Look up source
+          let source = 'other';
+          try {
+            const sp = await pool.query('SELECT source FROM smart_profiles WHERE LOWER(address) = LOWER($1)', [addr]);
+            if (sp.rows[0]) source = sp.rows[0].source;
+          } catch (_) {}
+
+          if (alertsSent < MAX_ALERTS_PER_CYCLE) {
+            const oddsStr = price > 0 ? `${(price * 100).toFixed(0)}%` : '—';
+            const msg = [
+              '🧠 SMART MONEY BET',
+              '',
+              `Wallet: ${addr.slice(0, 6)}...${addr.slice(-2)} (${source})`,
+              `Market: ${market.length > 80 ? market.slice(0, 80) + '…' : market}`,
+              `Side: ${sideNorm}`,
+              `Amount: $${size >= 1000 ? (size / 1000).toFixed(1) + 'K' : Math.round(size).toLocaleString()}`,
+              `Odds: ${oddsStr}`,
+              '',
+              'ozscan.xyz',
+            ].join('\n');
+            try {
+              await bot.sendMessage(process.env.ADMIN_CHAT_ID, msg);
+              alertsSent++;
+            } catch (e) {
+              console.error('[SmartAlert] Telegram send failed:', e.message);
+            }
+          } else {
+            overflowAlerts.push({ addr, market, sideNorm, size });
+          }
+        }
+      }
+
+      if (maxTs > lastSeen) {
+        smartAlertLastSeen.set(addr, maxTs);
+      }
+    }
+
+    // Send overflow summary
+    if (overflowAlerts.length > 0 && bot && process.env.ADMIN_CHAT_ID) {
+      const summary = `🧠 +${overflowAlerts.length} more smart money trades this cycle. Check ozscan.xyz`;
+      try {
+        await bot.sendMessage(process.env.ADMIN_CHAT_ID, summary);
+      } catch (e) {
+        console.error('[SmartAlert] Telegram overflow send failed:', e.message);
+      }
+    }
+
+    console.log(`[SmartAlert] Checked ${wallets.length} wallets, ${totalNew} new trades`);
+  } catch (e) {
+    console.error('[SmartAlert] Poll error:', e.message);
+  }
+}
+
 function scheduleWeeklyLeaderboard() {
   const check = () => {
     const now = new Date();
@@ -1201,6 +1368,24 @@ app.listen(PORT, async () => {
     await pool.query(
       `ALTER TABLE smart_profiles ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'other';`
     );
+
+    // Smart Alerts table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS smart_alerts (
+        id SERIAL PRIMARY KEY,
+        trade_id TEXT UNIQUE,
+        address TEXT NOT NULL,
+        market TEXT NOT NULL,
+        side TEXT NOT NULL,
+        size NUMERIC NOT NULL,
+        price NUMERIC NOT NULL,
+        condition_id TEXT,
+        slug TEXT,
+        event_slug TEXT,
+        timestamp BIGINT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
   }
   runWhaleDetection();
   setInterval(runWhaleDetection, POLL_INTERVAL_MS);
@@ -1210,6 +1395,17 @@ app.listen(PORT, async () => {
   await registerSeedWallets();
   setTimeout(backfillExistingWallets, 10000);
   setInterval(backfillExistingWallets, 6 * 60 * 60 * 1000);
+
+  // Hydrate smart alert lastSeen from DB, then start polling
+  try {
+    const lsRows = await pool.query('SELECT address, MAX(timestamp) as ts FROM smart_alerts GROUP BY address');
+    lsRows.rows.forEach(r => smartAlertLastSeen.set(r.address, Number(r.ts)));
+    console.log(`[SmartAlert] Hydrated lastSeen for ${lsRows.rows.length} wallets`);
+  } catch (e) {
+    console.log('[SmartAlert] No smart_alerts table yet, starting fresh');
+  }
+  setTimeout(pollSmartMoneyTrades, 20000);
+  setInterval(pollSmartMoneyTrades, 3 * 60 * 1000);
 
   // Weekly leaderboard scrape (Monday 00:00 UTC)
   scheduleWeeklyLeaderboard();
