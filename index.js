@@ -671,7 +671,7 @@ app.get('/api/wallet/:address', async (req, res) => {
            THEN ROUND(
              SUM(CASE WHEN won=TRUE THEN 1 ELSE 0 END)::numeric
              / COUNT(CASE WHEN resolved=TRUE THEN 1 END) * 100
-           ) ELSE NULL END as win_rate
+           , 1) ELSE NULL END as win_rate
        FROM whale_trades
        WHERE proxy_wallet = $1`,
       [addr]
@@ -738,7 +738,7 @@ app.get('/api/smart-money', async (req, res) => {
           THEN ROUND(
             SUM(CASE WHEN w.won=TRUE THEN 1 ELSE 0 END)::numeric
             / COUNT(CASE WHEN w.resolved=TRUE THEN 1 END) * 100
-          )
+          , 1)
           ELSE NULL
         END as win_rate,
         ROUND(COALESCE(
@@ -788,7 +788,16 @@ app.get('/api/smart-alerts', async (req, res) => {
   if (!pool) return res.json([]);
   try {
     const result = await pool.query(`
-      SELECT sa.*, COALESCE(sp.source, 'other') as source
+      SELECT sa.*, COALESCE(sp.source, 'other') as source,
+        (SELECT ROUND(
+          SUM(CASE WHEN w.won=TRUE THEN 1 ELSE 0 END)::numeric
+          / NULLIF(COUNT(CASE WHEN w.resolved=TRUE THEN 1 END), 0) * 100
+        , 1)
+        FROM whale_trades w
+        WHERE LOWER(w.proxy_wallet) = LOWER(sa.address)
+          AND w.side NOT IN ('REWARD','REDEEM','MERGE','SPLIT')
+          AND w.price > 0
+        ) as win_rate
       FROM smart_alerts sa
       LEFT JOIN smart_profiles sp ON LOWER(sp.address) = LOWER(sa.address)
       WHERE sa.created_at > NOW() - INTERVAL '24 hours'
@@ -812,7 +821,7 @@ app.get('/api/wallet-stats', async (req, res) => {
         ROUND(
           SUM(CASE WHEN won=TRUE THEN 1 ELSE 0 END)::numeric
           / NULLIF(COUNT(CASE WHEN resolved=TRUE THEN 1 END), 0) * 100
-        ) as win_rate,
+        , 1) as win_rate,
         SUM(size) as total_volume
       FROM whale_trades
       WHERE proxy_wallet IS NOT NULL AND resolved = TRUE
