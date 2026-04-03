@@ -12,6 +12,12 @@ const POLL_INTERVAL_MS = 60 * 1000;
 
 const app = express();
 
+// Landing page at root
+app.get('/', (req, res) => res.sendFile(__dirname + '/public/landing.html'));
+
+// Dashboard at /app
+app.get('/app', (req, res) => res.sendFile(__dirname + '/public/index.html'));
+
 app.use(express.static('public'));
 
 // PostgreSQL connection
