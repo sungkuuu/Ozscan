@@ -25,6 +25,10 @@ const alertedTradeIds = new Set();
 // Smart Money alert: last-seen timestamp per wallet (hydrated from DB on startup)
 const smartAlertLastSeen = new Map();
 
+// Smart Money alert dedup: key = `${wallet}:${market}`, value = last-alerted timestamp (ms)
+const smartAlertDedup = new Map();
+const SMART_ALERT_DEDUP_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
 setInterval(() => {
   alertedTradeIds.clear();
   console.log('[Whale] Cleared alerted trade IDs cache');
@@ -1158,6 +1162,15 @@ async function pollSmartMoneyTrades() {
 
         totalNew++;
 
+        // Skip tiny trades
+        if (!size || size < 10) continue;
+
+        // Skip if same wallet + market was already alerted within the dedup window
+        const dedupKey = `${addr.toLowerCase()}:${market}`;
+        const lastAlertedAt = smartAlertDedup.get(dedupKey) || 0;
+        const nowMs = Date.now();
+        if (nowMs - lastAlertedAt < SMART_ALERT_DEDUP_WINDOW_MS) continue;
+
         // Send Telegram alert (capped)
         if (bot && process.env.ADMIN_CHAT_ID) {
           // Look up source
@@ -1183,11 +1196,13 @@ async function pollSmartMoneyTrades() {
             try {
               await bot.sendMessage(process.env.ADMIN_CHAT_ID, msg);
               alertsSent++;
+              smartAlertDedup.set(dedupKey, nowMs);
             } catch (e) {
               console.error('[SmartAlert] Telegram send failed:', e.message);
             }
           } else {
             overflowAlerts.push({ addr, market, sideNorm, size });
+            smartAlertDedup.set(dedupKey, nowMs);
           }
         }
       }
