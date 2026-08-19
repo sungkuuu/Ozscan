@@ -1,0 +1,33 @@
+name: data-freshness
+
+# Watchdog for the collection gap problem (2026-04-19 → 08-19: worker died
+# silently for 4 months). Probes the public odds-debug endpoint every 6 hours;
+# odds_snapshots is written unconditionally every 5 minutes, so last_hour == 0
+# means collection is down. A failing run makes GitHub email the repo owner.
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check ozscan.xyz data freshness
+        run: |
+          for i in 1 2 3; do
+            body=$(curl -s -m 30 https://ozscan.xyz/api/odds-debug) && \
+              last_hour=$(echo "$body" | python3 -c 'import json,sys; print(json.load(sys.stdin)["last_hour"])' 2>/dev/null) && \
+              [ -n "$last_hour" ] && break
+            echo "attempt $i failed, retrying in 20s"; sleep 20
+          done
+          echo "odds_snapshots rows in last hour: ${last_hour:-unreachable}"
+          if [ -z "$last_hour" ]; then
+            echo "::error::ozscan.xyz unreachable or endpoint broken — collection may be down"
+            exit 1
+          fi
+          if [ "$last_hour" -eq 0 ]; then
+            echo "::error::No odds_snapshots rows in the last hour — collector is not writing"
+            exit 1
+          fi
