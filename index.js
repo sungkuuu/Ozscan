@@ -1142,10 +1142,10 @@ async function pollSmartMoneyTrades() {
         // Insert into smart_alerts
         try {
           const r = await pool.query(
-            `INSERT INTO smart_alerts (trade_id, address, market, side, size, price, condition_id, slug, event_slug, timestamp, action, outcome, asset_id)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+            `INSERT INTO smart_alerts (trade_id, address, market, side, size, price, condition_id, slug, event_slug, timestamp, action, outcome, asset_id, raw, collector_version)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
              ON CONFLICT (trade_id) DO NOTHING`,
-            [tradeId, addr, market, sideNorm, size, priceDb, conditionId, slug, eventSlug, ts, action, outcome, assetId]
+            [tradeId, addr, market, sideNorm, size, priceDb, conditionId, slug, eventSlug, ts, action, outcome, assetId, JSON.stringify(a), 'sa-v2-20260819']
           );
           if (r.rowCount === 0) continue; // Already existed
         } catch (e) {
@@ -1421,7 +1421,9 @@ app.listen(PORT, async () => {
       `ALTER TABLE smart_alerts
          ADD COLUMN IF NOT EXISTS action TEXT,
          ADD COLUMN IF NOT EXISTS outcome TEXT,
-         ADD COLUMN IF NOT EXISTS asset_id TEXT;`
+         ADD COLUMN IF NOT EXISTS asset_id TEXT,
+         ADD COLUMN IF NOT EXISTS raw JSONB,
+         ADD COLUMN IF NOT EXISTS collector_version TEXT;`
     );
   }
   runWhaleDetection();
