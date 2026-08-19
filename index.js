@@ -1128,6 +1128,10 @@ async function pollSmartMoneyTrades() {
         const market = a.title || a.question || a.slug || 'Unknown market';
         const side = (a.outcome || a.side || a.type || '').toUpperCase();
         const sideNorm = side === 'BUY' ? 'YES' : side === 'SELL' ? 'NO' : side || '—';
+        // Clean fields, stored raw without the legacy mixing above
+        const action = a.side ? String(a.side).toUpperCase() : null;   // BUY / SELL
+        const outcome = a.outcome != null ? String(a.outcome) : null;  // token label (Yes/No/team)
+        const assetId = a.asset || a.assetId || null;
         const size = parseFloat(a.usdcSize || a.size || a.amount || 0);
         const price = parseFloat(a.price || 0);
         const priceDb = price * 100;
@@ -1138,10 +1142,10 @@ async function pollSmartMoneyTrades() {
         // Insert into smart_alerts
         try {
           const r = await pool.query(
-            `INSERT INTO smart_alerts (trade_id, address, market, side, size, price, condition_id, slug, event_slug, timestamp)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            `INSERT INTO smart_alerts (trade_id, address, market, side, size, price, condition_id, slug, event_slug, timestamp, action, outcome, asset_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
              ON CONFLICT (trade_id) DO NOTHING`,
-            [tradeId, addr, market, sideNorm, size, priceDb, conditionId, slug, eventSlug, ts]
+            [tradeId, addr, market, sideNorm, size, priceDb, conditionId, slug, eventSlug, ts, action, outcome, assetId]
           );
           if (r.rowCount === 0) continue; // Already existed
         } catch (e) {
@@ -1411,6 +1415,14 @@ app.listen(PORT, async () => {
         created_at TIMESTAMPTZ DEFAULT NOW()
       )
     `);
+    // Clean direction fields: `side` is a legacy mix of outcome/action —
+    // store the API's raw BUY/SELL, outcome label, and token id separately.
+    await pool.query(
+      `ALTER TABLE smart_alerts
+         ADD COLUMN IF NOT EXISTS action TEXT,
+         ADD COLUMN IF NOT EXISTS outcome TEXT,
+         ADD COLUMN IF NOT EXISTS asset_id TEXT;`
+    );
   }
   runWhaleDetection();
   setInterval(runWhaleDetection, POLL_INTERVAL_MS);
