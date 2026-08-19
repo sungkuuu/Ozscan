@@ -25,6 +25,10 @@ const alertedTradeIds = new Set();
 // Smart Money alert: last-seen timestamp per wallet (hydrated from DB on startup)
 const smartAlertLastSeen = new Map();
 
+// Provenance tags stored on every new smart_alerts row (never backfilled onto old rows)
+const COLLECTOR_VERSION = process.env.RAILWAY_GIT_COMMIT_SHA || 'sa-v2-local';
+const PARSER_VERSION = 'p1';
+
 // Smart Money alert dedup: key = `${wallet}:${market}`, value = last-alerted timestamp (ms)
 const smartAlertDedup = new Map();
 const SMART_ALERT_DEDUP_WINDOW_MS = 60 * 60 * 1000; // 1 hour
@@ -1122,16 +1126,20 @@ async function pollSmartMoneyTrades() {
         if (ts <= lastSeen) continue;
         if (ts > maxTs) maxTs = ts;
 
-        const tradeId = a.transactionHash || a.id || a.tradeId || null;
+        const txHash = a.transactionHash || null;
+        // One tx can carry multiple fills; the activity API exposes no fill id,
+        // so dedup on tx + the strongest discriminators it does return.
+        const assetId = a.asset || a.assetId || null;
+        const action = a.side ? String(a.side).toUpperCase() : null;   // BUY / SELL
+        const tradeId = txHash
+          ? [txHash, assetId || '', action || '', a.price ?? '', a.size ?? ''].join(':')
+          : (a.id || a.tradeId || null);
         if (!tradeId) continue;
 
         const market = a.title || a.question || a.slug || 'Unknown market';
         const side = (a.outcome || a.side || a.type || '').toUpperCase();
         const sideNorm = side === 'BUY' ? 'YES' : side === 'SELL' ? 'NO' : side || '—';
-        // Clean fields, stored raw without the legacy mixing above
-        const action = a.side ? String(a.side).toUpperCase() : null;   // BUY / SELL
         const outcome = a.outcome != null ? String(a.outcome) : null;  // token label (Yes/No/team)
-        const assetId = a.asset || a.assetId || null;
         const size = parseFloat(a.usdcSize || a.size || a.amount || 0);
         const price = parseFloat(a.price || 0);
         const priceDb = price * 100;
@@ -1142,10 +1150,10 @@ async function pollSmartMoneyTrades() {
         // Insert into smart_alerts
         try {
           const r = await pool.query(
-            `INSERT INTO smart_alerts (trade_id, address, market, side, size, price, condition_id, slug, event_slug, timestamp, action, outcome, asset_id, raw, collector_version)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            `INSERT INTO smart_alerts (trade_id, address, market, side, size, price, condition_id, slug, event_slug, timestamp, action, outcome, asset_id, raw, collector_version, transaction_hash, parser_version)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
              ON CONFLICT (trade_id) DO NOTHING`,
-            [tradeId, addr, market, sideNorm, size, priceDb, conditionId, slug, eventSlug, ts, action, outcome, assetId, JSON.stringify(a), 'sa-v2-20260819']
+            [tradeId, addr, market, sideNorm, size, priceDb, conditionId, slug, eventSlug, ts, action, outcome, assetId, JSON.stringify(a), COLLECTOR_VERSION, txHash, PARSER_VERSION]
           );
           if (r.rowCount === 0) continue; // Already existed
         } catch (e) {
@@ -1423,7 +1431,9 @@ app.listen(PORT, async () => {
          ADD COLUMN IF NOT EXISTS outcome TEXT,
          ADD COLUMN IF NOT EXISTS asset_id TEXT,
          ADD COLUMN IF NOT EXISTS raw JSONB,
-         ADD COLUMN IF NOT EXISTS collector_version TEXT;`
+         ADD COLUMN IF NOT EXISTS collector_version TEXT,
+         ADD COLUMN IF NOT EXISTS transaction_hash TEXT,
+         ADD COLUMN IF NOT EXISTS parser_version TEXT;`
     );
   }
   runWhaleDetection();
