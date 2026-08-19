@@ -513,15 +513,16 @@ function guessConditionIdFromTrade(trade) {
 async function checkResolvedTrades() {
   if (!pool) return;
   try {
+    // LIMIT in SQL: the unresolved set is millions of rows — loading it all
+    // into memory OOM-kills the container. We only process 50 per cycle anyway.
     const unresolved = await pool.query(
-      `SELECT * FROM whale_trades WHERE resolved = FALSE OR resolved IS NULL`
+      `SELECT * FROM whale_trades WHERE resolved = FALSE OR resolved IS NULL ORDER BY id LIMIT 50`
     );
     const trades = unresolved.rows || [];
     if (trades.length === 0) return;
 
-    // Process max 50 per cycle to avoid rate limits
-    const batch = trades.slice(0, 50);
-    console.log(`[Resolve] Checking ${batch.length} of ${trades.length} unresolved trades`);
+    const batch = trades;
+    console.log(`[Resolve] Checking ${batch.length} unresolved trades`);
 
     for (let i = 0; i < batch.length; i++) {
       const t = batch[i];
