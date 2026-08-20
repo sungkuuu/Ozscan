@@ -91,6 +91,16 @@ WHERE a.usd >= ${MIN_EPISODE_USD}
   )
 ORDER BY a.asset_id, a.first_ts
 `;
+// Guard: don't compute on a half-finished restore — episodes marked done on
+// partial data would never be recomputed. Proceed only once restore inserts
+// have been quiet for 30 minutes.
+const { rows: [g] } = await pool.query(
+  `SELECT count(*) AS n, EXTRACT(EPOCH FROM (NOW() - MAX(created_at))) AS quiet_s
+   FROM smart_alerts WHERE collector_version = $1`, [RESTORE_TAG]
+);
+if (Number(g.n) === 0) { console.log('Restore data not present yet — exiting.'); process.exit(0); }
+if (Number(g.quiet_s) < 1800) { console.log(`Restore still inserting (quiet ${Math.round(g.quiet_s)}s < 1800s) — exiting.`); process.exit(0); }
+
 const { rows: episodes } = await pool.query(epSql, [RESTORE_TAG]);
 console.log(`Signal episodes: ${episodes.length} across ${new Set(episodes.map(e => e.asset_id)).size} assets, ${new Set(episodes.map(e => e.address)).size} wallets`);
 if (episodes.length === 0) { console.log('Nothing to do'); process.exit(0); }
