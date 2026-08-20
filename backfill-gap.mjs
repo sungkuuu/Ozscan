@@ -7,10 +7,12 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { Pool } from 'pg';
 
-const DB_URL = readFileSync(`${process.env.HOME}/OzScan/backups/.db_url`, 'utf8').trim();
+const DB_URL = process.env.DATABASE_URL
+  || readFileSync(`${process.env.HOME}/OzScan/backups/.db_url`, 'utf8').trim();
 const START = 1776556800; // 2026-04-19 00:00 UTC (slight overlap with old data; dedup via ON CONFLICT)
 const END = Math.floor(Date.now() / 1000);
-const STATE_FILE = `${process.env.HOME}/OzScan/Ozscan/backfill-state.json`;
+const STATE_FILE = process.env.STATE_FILE
+  || `${process.env.HOME}/OzScan/Ozscan/backfill-state.json`;
 const SKIP_TYPES = new Set(['REWARD', 'REDEEM', 'MERGE', 'SPLIT']);
 const VERSION = 'backfill-gap-20260819';
 
