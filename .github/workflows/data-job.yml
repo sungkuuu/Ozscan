@@ -1,0 +1,45 @@
+name: data-job
+
+# Generic runner for OzScan data scripts (backfill-gap / resolution-backfill /
+# clv-pilot). Runs from a clean runner IP with polite pacing; all scripts are
+# resumable, so re-dispatching after a timeout or block simply continues.
+
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: Script to run
+        required: true
+        type: choice
+        options: [backfill-gap.mjs, resolution-backfill.mjs, clv-pilot.mjs]
+      start_ts:
+        description: START_TS override (epoch s, backfill-gap only)
+        required: false
+        type: string
+      end_ts:
+        description: END_TS override (epoch s, backfill-gap only)
+        required: false
+        type: string
+      version:
+        description: VERSION tag override (backfill-gap only)
+        required: false
+        type: string
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --omit=dev
+      - name: Run ${{ inputs.script }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          STATE_FILE: ./state-runner.json
+          START_TS: ${{ inputs.start_ts }}
+          END_TS: ${{ inputs.end_ts }}
+          VERSION: ${{ inputs.version }}
+        run: node ${{ inputs.script }}

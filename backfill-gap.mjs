@@ -9,12 +9,15 @@ import { Pool } from 'pg';
 
 const DB_URL = process.env.DATABASE_URL
   || readFileSync(`${process.env.HOME}/OzScan/backups/.db_url`, 'utf8').trim();
-const START = 1776556800; // 2026-04-19 00:00 UTC (slight overlap with old data; dedup via ON CONFLICT)
-const END = Math.floor(Date.now() / 1000);
+// Defaults cover the 4/19→now gap; override via env to re-fetch other ranges
+// (e.g. START_TS=1775088000 END_TS=1776643200 VERSION=restore-rt-20260820
+//  re-fetches the 4/2–4/19 real-time window with clean direction fields).
+const START = Number(process.env.START_TS) || 1776556800; // 2026-04-19 00:00 UTC
+const END = Number(process.env.END_TS) || Math.floor(Date.now() / 1000);
 const STATE_FILE = process.env.STATE_FILE
   || `${process.env.HOME}/OzScan/Ozscan/backfill-state.json`;
 const SKIP_TYPES = new Set(['REWARD', 'REDEEM', 'MERGE', 'SPLIT']);
-const VERSION = 'backfill-gap-20260819';
+const VERSION = process.env.VERSION || 'backfill-gap-20260819';
 
 const pool = new Pool({ connectionString: DB_URL, ssl: { rejectUnauthorized: false } });
 const state = existsSync(STATE_FILE) ? JSON.parse(readFileSync(STATE_FILE, 'utf8')) : { done: [] };
