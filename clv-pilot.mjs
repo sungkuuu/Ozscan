@@ -129,21 +129,50 @@ const priceAt = (hist, t, tolAfter) => {
   return ans && ans.t - t <= tolAfter ? ans.p : null;
 };
 
-let blockStreak = 0, processedAssets = 0, written = 0, noSeries = 0;
-for (const asset of assets) {
-  const url = `https://clob.polymarket.com/prices-history?market=${asset}&startTs=${WIN_START}&endTs=${WIN_END + 90000}&fidelity=1`;
-  let hist;
-  try {
-    const res = await fetch(url);
+// prices-history rejected an 18-day span at fidelity=1 (HTTP 400), and the
+// local IP is banned so variants can't be probed from here: try them in order
+// on the first asset and lock onto whichever returns a usable series.
+const VARIANTS = [
+  (a, s, e) => `https://clob.polymarket.com/prices-history?market=${a}&startTs=${s}&endTs=${e}&fidelity=1`,
+  (a, s, e) => `https://clob.polymarket.com/prices-history?market=${a}&startTs=${s}&endTs=${e}`,
+  (a, s, e) => `https://clob.polymarket.com/prices-history?market=${a}&startTs=${s}&endTs=${e}&fidelity=10`,
+  (a) => `https://clob.polymarket.com/prices-history?market=${a}&interval=max&fidelity=1`,
+];
+let lockedVariant = null;
+
+async function fetchSeries(asset, startTs, endTs) {
+  const order = lockedVariant ? [lockedVariant] : VARIANTS;
+  for (const v of order) {
+    let res;
+    try { res = await fetch(v(asset, startTs, endTs)); }
+    catch (e) { console.log(`fetch err ${e.message}, retry 10s`); await sleep(10_000); return undefined; }
+    if (res.status === 400 || res.status === 404) continue;   // wrong shape / no data
     if (!res.ok) {
       blockStreak++;
       if (blockStreak >= 5) { console.log(`HTTP ${res.status} x5 — exiting, resume later`); process.exit(2); }
-      console.log(`HTTP ${res.status}, backoff ${60 * blockStreak}s`); await sleep(60_000 * blockStreak); continue;
+      console.log(`HTTP ${res.status}, backoff ${60 * blockStreak}s`); await sleep(60_000 * blockStreak);
+      return undefined;
     }
     blockStreak = 0;
-    const body = await res.json();
-    hist = (body.history || []).map(x => ({ t: Number(x.t), p: Number(x.p) })).sort((a, b) => a.t - b.t);
-  } catch (e) { console.log(`fetch err ${e.message}, retry 10s`); await sleep(10_000); continue; }
+    let body; try { body = await res.json(); } catch { continue; }
+    const h = (body?.history || []).map(x => ({ t: Number(x.t), p: Number(x.p) })).sort((a, b) => a.t - b.t);
+    if (h.length >= 5) {
+      if (!lockedVariant) { lockedVariant = v; console.log(`Price variant locked: ${v(asset, startTs, endTs).replace(asset, 'ASSET')}`); }
+      return h;
+    }
+  }
+  return [];   // genuinely no series
+}
+
+let blockStreak = 0, processedAssets = 0, written = 0, noSeries = 0;
+for (const asset of assets) {
+  // Per-asset window bounded by that asset's own episodes (+12h before for
+  // controls, +25h after for the 24h markout) instead of the full 18 days.
+  const epTs = byAsset.get(asset).map(e => Number(e.first_ts));
+  const wStart = Math.max(WIN_START - 43200, Math.min(...epTs) - 43200);
+  const wEnd = Math.max(...epTs) + 90000;
+  let hist = await fetchSeries(asset, wStart, wEnd);
+  if (hist === undefined) continue;   // retry/backoff already handled
 
   const eps = byAsset.get(asset);
   if (hist.length < 5) {
