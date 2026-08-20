@@ -21,6 +21,12 @@ const MIN_EPISODE_USD = 100;
 const HORIZONS = { m5: 300, m30: 1800, h1: 3600, h24: 86400 };
 const TOL = { m5: 1800, m30: 1800, h1: 1800, h24: 10800 };
 
+// Single-writer lock: the 6-hourly pipeline-tick can overlap a running
+// dispatch, and two writers would double-count episodes into the stats.
+const lockConn = await pool.connect();
+const { rows: [lk] } = await lockConn.query('SELECT pg_try_advisory_lock(918273645) AS ok');
+if (!lk.ok) { console.log('Another clv-pilot holds the lock — exiting.'); process.exit(0); }
+
 await pool.query(`
   CREATE TABLE IF NOT EXISTS clv_pilot_episodes (
     id SERIAL PRIMARY KEY,
