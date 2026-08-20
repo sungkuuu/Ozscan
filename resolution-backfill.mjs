@@ -28,7 +28,7 @@ await pool.query(`
 
 const { rows } = await pool.query(`
   SELECT DISTINCT condition_id FROM smart_alerts
-  WHERE condition_id IS NOT NULL AND condition_id LIKE '0x%'
+  WHERE condition_id IS NOT NULL AND condition_id ~ '^0x[0-9a-fA-F]{64}$'
     AND condition_id NOT IN (SELECT condition_id FROM market_resolutions)
 `);
 const ids = rows.map((r) => r.condition_id);
@@ -38,6 +38,9 @@ let blockStreak = 0;
 
 async function get(url) {
   const res = await fetch(url);
+  // 404 is a genuine "no such market" (our data holds a few truncated
+  // condition_ids) — not a block. Don't count it toward the block streak.
+  if (res.status === 404) return null;
   if (!res.ok) {
     blockStreak++;
     if (blockStreak >= 6) { console.log(`HTTP ${res.status} x6 — exiting, resume later`); process.exit(2); }
