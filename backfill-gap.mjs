@@ -61,6 +61,8 @@ async function insertBatch(rows) {
   return res.rowCount;
 }
 
+let blockStreak = 0;
+
 async function backfillWallet(addr) {
   let end = END;
   let lastMin = Infinity;
@@ -70,9 +72,22 @@ async function backfillWallet(addr) {
     let acts;
     try {
       const res = await fetch(url);
-      if (!res.ok) { console.log(`  HTTP ${res.status}, retrying in 5s`); await sleep(5000); continue; }
+      if (!res.ok) {
+        // 451/403 with Cloudflare error 1026 = IP ban from crawling too fast.
+        // Back off hard and give up after a few tries — hammering extends the ban.
+        blockStreak++;
+        if (blockStreak >= 5) {
+          console.log(`  HTTP ${res.status} x${blockStreak} — likely IP ban, exiting gracefully. Resume later.`);
+          process.exit(2);
+        }
+        const wait = 60_000 * blockStreak;
+        console.log(`  HTTP ${res.status}, backing off ${wait / 1000}s (${blockStreak}/5)`);
+        await sleep(wait);
+        continue;
+      }
+      blockStreak = 0;
       acts = await res.json();
-    } catch (e) { console.log(`  fetch error ${e.message}, retrying in 5s`); await sleep(5000); continue; }
+    } catch (e) { console.log(`  fetch error ${e.message}, retrying in 10s`); await sleep(10_000); continue; }
     if (!Array.isArray(acts) || acts.length === 0) break;
     pages++;
     fetched += acts.length;
@@ -91,7 +106,7 @@ async function backfillWallet(addr) {
     if (minTs === Infinity || minTs <= START) break;
     end = minTs >= lastMin ? minTs - 1 : minTs; // avoid same-second infinite loop
     lastMin = minTs;
-    await sleep(350);
+    await sleep(1500); // polite pace — 350ms earned an IP ban on 2026-08-20
   }
   return { fetched, inserted, pages };
 }
