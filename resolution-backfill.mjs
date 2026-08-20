@@ -11,7 +11,6 @@ const DB_URL = process.env.DATABASE_URL
   || readFileSync(`${process.env.HOME}/OzScan/backups/.db_url`, 'utf8').trim();
 const pool = new Pool({ connectionString: DB_URL, ssl: { rejectUnauthorized: false } });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const BATCH = 10;
 
 await pool.query(`
   CREATE TABLE IF NOT EXISTS market_resolutions (
@@ -36,32 +35,31 @@ console.log(`Resolutions to fetch: ${ids.length}`);
 let blockStreak = 0;
 let done = 0, found = 0;
 
-async function fetchBatch(batch) {
-  const qs = batch.map((id) => `condition_ids=${id}`).join('&');
-  const res = await fetch(`https://gamma-api.polymarket.com/markets?${qs}`);
-  if (!res.ok) {
-    blockStreak++;
-    if (blockStreak >= 5) { console.log(`HTTP ${res.status} x5 — exiting, resume later`); process.exit(2); }
-    console.log(`HTTP ${res.status}, backoff ${60 * blockStreak}s`);
-    await sleep(60_000 * blockStreak);
-    return null;
+// gamma ignores the plural condition_ids param (verified 8/20 — batch lookups
+// matched almost nothing); the singular conditionId param is proven by the
+// worker's resolve loop. One call per market it is.
+async function fetchOne(id) {
+  while (true) {
+    let res;
+    try {
+      res = await fetch(`https://gamma-api.polymarket.com/markets?conditionId=${id}`);
+    } catch (e) { console.log(`fetch err ${e.message}, retry 10s`); await sleep(10_000); continue; }
+    if (!res.ok) {
+      blockStreak++;
+      if (blockStreak >= 5) { console.log(`HTTP ${res.status} x5 — exiting, resume later`); process.exit(2); }
+      console.log(`HTTP ${res.status}, backoff ${60 * blockStreak}s`);
+      await sleep(60_000 * blockStreak);
+      continue;
+    }
+    blockStreak = 0;
+    const body = await res.json();
+    return Array.isArray(body) ? body[0] : body;
   }
-  blockStreak = 0;
-  return res.json();
 }
 
-for (let i = 0; i < ids.length; i += BATCH) {
-  const batch = ids.slice(i, i + BATCH);
-  let markets = await fetchBatch(batch);
-  if (markets === null) { i -= BATCH; continue; }
-  if (!Array.isArray(markets)) markets = [];
-  const byId = new Map();
-  for (const m of markets) {
-    const cid = m.conditionId || m.condition_id;
-    if (cid) byId.set(cid.toLowerCase(), m);
-  }
-  for (const id of batch) {
-    const m = byId.get(id.toLowerCase());
+for (const id of ids) {
+  {
+    const m = await fetchOne(id);
     done++;
     if (!m) {
       // Not in gamma (old/removed market) — record as unknown so we don't refetch
@@ -93,8 +91,8 @@ for (let i = 0; i < ids.length; i += BATCH) {
       [id, m.question || null, closed, winning, prices, m.endDate || m.end_date_iso || null]
     );
   }
-  if (done % 500 < BATCH) console.log(`${done}/${ids.length} processed (${found} found)`);
-  await sleep(1200);
+  if (done % 500 === 0) console.log(`${done}/${ids.length} processed (${found} found)`);
+  await sleep(450);
 }
 console.log(`DONE — ${done} processed, ${found} found in gamma`);
 await pool.end();
