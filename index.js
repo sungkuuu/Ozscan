@@ -38,6 +38,22 @@ setInterval(() => {
   console.log('[Whale] Cleared alerted trade IDs cache');
 }, 60 * 60 * 1000);
 
+// Raw payload rolling retention: keep the full API object 30 days for audit,
+// then drop it (parsed columns stay forever). Prevents the volume-full crash
+// of 2026-08-20 from recurring (~38MB/day of raw at live pace).
+setInterval(async () => {
+  if (!pool) return;
+  try {
+    const r = await pool.query(
+      `UPDATE smart_alerts SET raw = NULL
+       WHERE raw IS NOT NULL AND created_at < NOW() - INTERVAL '30 days'`
+    );
+    if (r.rowCount > 0) console.log(`[Retention] Cleared raw payload on ${r.rowCount} rows older than 30d`);
+  } catch (e) {
+    console.error('[Retention] raw cleanup error:', e.message);
+  }
+}, 24 * 60 * 60 * 1000);
+
 /**
  * Fetch recent trades from Polymarket CLOB.
  * @returns {Promise<Array>} Array of recent trades

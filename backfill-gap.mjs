@@ -40,7 +40,9 @@ function mapRow(a, addr) {
     action: a.side ? String(a.side).toUpperCase() : null,
     outcome: a.outcome != null ? String(a.outcome) : null,
     assetId: a.asset || null,
-    raw: JSON.stringify(a),
+    // raw payload intentionally NOT stored for backfill rows: the 5GB Hobby
+    // volume hit 95% (2026-08-20) and backfill rows are re-fetchable anyway.
+    raw: null,
   };
 }
 
@@ -54,14 +56,8 @@ async function insertBatch(rows) {
      VALUES ${values.join(',')} ON CONFLICT (trade_id) DO NOTHING`,
     params
   );
-  const wcols = 9;
-  const wvalues = rows.map((_, i) => `(${Array.from({ length: wcols }, (_, j) => `$${i * wcols + j + 1}`).join(',')})`);
-  const wparams = rows.flatMap((r) => [r.tradeId, r.market, r.sideNorm, r.size, r.priceDb, r.ts, r.addr, r.conditionId, r.slug]);
-  await pool.query(
-    `INSERT INTO whale_trades (trade_id, market, side, size, price, timestamp, proxy_wallet, condition_id, slug)
-     VALUES ${wvalues.join(',')} ON CONFLICT (trade_id) DO NOTHING`,
-    wparams
-  );
+  // whale_trades duplication skipped for backfill: redundant copy of the same
+  // fills, and the volume has no room for it. smart_alerts is the analysis source.
   return res.rowCount;
 }
 
