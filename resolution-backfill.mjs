@@ -1,8 +1,10 @@
 // Backfill market resolutions for every condition_id seen in smart_alerts.
-// Writes market_resolutions(condition_id, closed, winning_outcome, ...) so
-// win rates and resolution P&L become computable. Resumable: already-fetched
-// condition_ids are skipped. Run: node resolution-backfill.mjs
-// (DATABASE_URL env or ~/OzScan/backups/.db_url)
+// Writes market_resolutions(condition_id, closed, winning_outcome, ...).
+// Self-validating: gamma has silently changed/ignored its filter params
+// (2026-08-20: both conditionId= and condition_ids= returned an unrelated
+// default listing), so every response is checked against the requested id
+// and we lock onto the first endpoint that actually works.
+// Resumable. Run: node resolution-backfill.mjs
 
 import { readFileSync } from 'fs';
 import { Pool } from 'pg';
@@ -33,66 +35,107 @@ const ids = rows.map((r) => r.condition_id);
 console.log(`Resolutions to fetch: ${ids.length}`);
 
 let blockStreak = 0;
-let done = 0, found = 0;
 
-// gamma ignores the plural condition_ids param (verified 8/20 — batch lookups
-// matched almost nothing); the singular conditionId param is proven by the
-// worker's resolve loop. One call per market it is.
-async function fetchOne(id) {
-  while (true) {
-    let res;
-    try {
-      res = await fetch(`https://gamma-api.polymarket.com/markets?conditionId=${id}`);
-    } catch (e) { console.log(`fetch err ${e.message}, retry 10s`); await sleep(10_000); continue; }
-    if (!res.ok) {
-      blockStreak++;
-      if (blockStreak >= 5) { console.log(`HTTP ${res.status} x5 — exiting, resume later`); process.exit(2); }
-      console.log(`HTTP ${res.status}, backoff ${60 * blockStreak}s`);
-      await sleep(60_000 * blockStreak);
-      continue;
-    }
-    blockStreak = 0;
-    const body = await res.json();
-    return Array.isArray(body) ? body[0] : body;
+async function get(url) {
+  const res = await fetch(url);
+  if (!res.ok) {
+    blockStreak++;
+    if (blockStreak >= 6) { console.log(`HTTP ${res.status} x6 — exiting, resume later`); process.exit(2); }
+    console.log(`HTTP ${res.status} on ${url.slice(0, 60)}, backoff ${30 * blockStreak}s`);
+    await sleep(30_000 * blockStreak);
+    return undefined; // caller retries
   }
+  blockStreak = 0;
+  try { return await res.json(); } catch { return null; }
 }
+
+// Normalizers return {question, closed, winning, prices, endDate} ONLY when
+// the response is verifiably the requested market; else null.
+const eq = (a, b) => a && b && a.toLowerCase() === b.toLowerCase();
+
+const ENDPOINTS = [
+  {
+    name: 'clob-single',
+    fetch: async (id) => {
+      const m = await get(`https://clob.polymarket.com/markets/${id}`);
+      if (m === undefined) return undefined;
+      if (!m || !eq(m.condition_id, id)) return null;
+      const winTok = (m.tokens || []).find((t) => t.winner === true);
+      return {
+        question: m.question || null,
+        closed: m.closed === true || m.archived === true,
+        winning: winTok ? String(winTok.outcome) : null,
+        prices: m.tokens ? JSON.stringify(m.tokens.map((t) => t.price)) : null,
+        endDate: m.end_date_iso || null,
+      };
+    },
+  },
+  {
+    name: 'gamma-condition_ids',
+    fetch: async (id) => {
+      const body = await get(`https://gamma-api.polymarket.com/markets?condition_ids=${id}`);
+      if (body === undefined) return undefined;
+      const m = (Array.isArray(body) ? body : []).find((x) => eq(x.conditionId || x.condition_id, id));
+      if (!m) return null;
+      let winning = m.winningOutcome ?? m.winning_outcome ?? null;
+      let prices = null;
+      try {
+        const p = m.outcomePrices ? (Array.isArray(m.outcomePrices) ? m.outcomePrices : JSON.parse(m.outcomePrices)) : null;
+        prices = p ? JSON.stringify(p) : null;
+        if (!winning && p && m.outcomes) {
+          const outs = Array.isArray(m.outcomes) ? m.outcomes : JSON.parse(m.outcomes);
+          const idx = p.findIndex((x) => parseFloat(x) > 0.99);
+          if (idx >= 0 && outs[idx]) winning = String(outs[idx]);
+        }
+      } catch (_) {}
+      return {
+        question: m.question || null,
+        closed: m.closed === true || m.resolved === true || m.active === false,
+        winning, prices,
+        endDate: m.endDate || m.end_date_iso || null,
+      };
+    },
+  },
+];
+
+let locked = null;         // endpoint proven to work
+let probeFails = 0, done = 0, found = 0, notFound = 0;
 
 for (const id of ids) {
-  {
-    const m = await fetchOne(id);
-    done++;
-    if (!m) {
-      // Not in gamma (old/removed market) — record as unknown so we don't refetch
-      await pool.query(
-        `INSERT INTO market_resolutions (condition_id, closed) VALUES ($1, NULL) ON CONFLICT DO NOTHING`,
-        [id]
-      );
-      continue;
-    }
-    found++;
-    const closed = m.closed === true || m.resolved === true || m.active === false;
-    let winning = m.winningOutcome ?? m.winning_outcome ?? null;
-    let prices = null;
-    try {
-      const p = m.outcomePrices ? (Array.isArray(m.outcomePrices) ? m.outcomePrices : JSON.parse(m.outcomePrices)) : null;
-      prices = p ? JSON.stringify(p) : null;
-      // Derive winner from final prices when gamma doesn't name it
-      if (!winning && closed && p && m.outcomes) {
-        const outs = Array.isArray(m.outcomes) ? m.outcomes : JSON.parse(m.outcomes);
-        const idx = p.findIndex((x) => parseFloat(x) > 0.99);
-        if (idx >= 0 && outs[idx]) winning = String(outs[idx]);
-      }
-    } catch (_) {}
+  let result = null, matchedBy = null;
+  const order = locked ? [locked] : ENDPOINTS;
+  for (const ep of order) {
+    let r;
+    do { r = await ep.fetch(id); } while (r === undefined); // undefined = retry after backoff
+    if (r) { result = r; matchedBy = ep; break; }
+    await sleep(300);
+  }
+  done++;
+  if (result) {
+    if (!locked) { locked = matchedBy; console.log(`Endpoint locked: ${matchedBy.name}`); }
+    probeFails = 0; found++;
     await pool.query(
       `INSERT INTO market_resolutions (condition_id, question, closed, winning_outcome, outcome_prices, end_date)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       ON CONFLICT (condition_id) DO UPDATE SET closed = EXCLUDED.closed,
-         winning_outcome = EXCLUDED.winning_outcome, outcome_prices = EXCLUDED.outcome_prices, fetched_at = NOW()`,
-      [id, m.question || null, closed, winning, prices, m.endDate || m.end_date_iso || null]
+       VALUES ($1,$2,$3,$4,$5,$6)
+       ON CONFLICT (condition_id) DO UPDATE SET closed=EXCLUDED.closed,
+         winning_outcome=EXCLUDED.winning_outcome, outcome_prices=EXCLUDED.outcome_prices, fetched_at=NOW()`,
+      [id, result.question, result.closed, result.winning, result.prices, result.endDate]
     );
+  } else {
+    notFound++;
+    if (!locked && ++probeFails >= 30) {
+      console.log('FATAL: 30 markets in a row matched by NO endpoint — API shapes changed again. Not marking anything.');
+      process.exit(3);
+    }
+    if (locked) {
+      // genuine not-found on a proven endpoint — mark so we don't refetch
+      await pool.query(
+        `INSERT INTO market_resolutions (condition_id, closed) VALUES ($1, NULL) ON CONFLICT DO NOTHING`, [id]
+      );
+    }
   }
-  if (done % 500 === 0) console.log(`${done}/${ids.length} processed (${found} found)`);
+  if (done % 500 === 0) console.log(`${done}/${ids.length} (found ${found}, notFound ${notFound})`);
   await sleep(450);
 }
-console.log(`DONE — ${done} processed, ${found} found in gamma`);
+console.log(`DONE — ${done} processed, ${found} found, ${notFound} not found`);
 await pool.end();
