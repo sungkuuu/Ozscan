@@ -118,8 +118,10 @@ if (twoSided.length) {
 
 md.push(`\n_Grades measure copyability, not skill. A wallet can be highly profitable and still ungradeable — see the ratings report._`);
 
-writeFileSync(`${process.env.HOME}/OzScan/Ozscan/feed.md`, md.join('\n'));
-writeFileSync(`${process.env.HOME}/OzScan/Ozscan/feed.json`, JSON.stringify({ stamp, settled, open, board }, null, 2));
+// write beside the repo, not a hardcoded home path — CI runs elsewhere
+const OUT = process.env.OUT_DIR || process.cwd();
+writeFileSync(`${OUT}/feed.md`, md.join('\n'));
+writeFileSync(`${OUT}/feed.json`, JSON.stringify({ stamp, settled, open, board }, null, 2));
 console.log(md.join('\n'));
 console.log(`\n--- settled:${settled.length} open:${open.length} board:${board.length}`);
 await pool.end();
