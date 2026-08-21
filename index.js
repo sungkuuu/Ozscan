@@ -271,7 +271,7 @@ async function runOddsMovementDetection() {
       const move = m.price - prev;
       if (Math.abs(move) < 0.10) continue;
 
-      if (bot && process.env.ADMIN_CHAT_ID) {
+      if (canAlert()) {
         const sign = move >= 0 ? '+' : '-';
         const msg = [
           '⚡ ODDS SPIKE',
@@ -470,7 +470,7 @@ async function runWhaleDetection() {
       const uniqueMarkets = new Set(data.markets).size;
       if (data.count >= 3 && data.totalUsdc >= 500 && uniqueMarkets <= 5) {
         console.log('[SmartMoney] Detected:', wallet, data.count, data.totalUsdc);
-        if (bot && process.env.ADMIN_CHAT_ID) {
+        if (canAlert()) {
           const msg = `🧠 SMART MONEY — Polymarket\n\nWallet: ${wallet.slice(0,8)}... (${data.pseudonym})\nBets: ${data.count} trades\nTotal: $${data.totalUsdc.toFixed(0)} USDC\nMarkets: ${[...new Set(data.markets)].slice(0,3).join(', ')}\n\nozscan.xyz`;
           try {
             await bot.sendMessage(process.env.ADMIN_CHAT_ID, msg);
@@ -487,7 +487,7 @@ async function runWhaleDetection() {
 
       await storeWhaleTrade(w);
 
-      if (bot && process.env.ADMIN_CHAT_ID) {
+      if (canAlert()) {
         const text = [
           '🐋 WHALE ALERT — Polymarket',
           '',
@@ -659,6 +659,13 @@ if (process.env.BOT_TOKEN) {
     }
   }, 3000);
 }
+
+// Alert switch. The 2026-08 CLV study measured no transferable edge in these
+// signals, so pushing ~68 of them an hour is noise, not information. Collection
+// continues either way; set ALERTS_ENABLED=true to turn messaging back on.
+const ALERTS_ENABLED = process.env.ALERTS_ENABLED === 'true';
+const canAlert = () => ALERTS_ENABLED && bot && process.env.ADMIN_CHAT_ID;
+
 
 app.get('/api/whales', async (req, res) => {
   if (!pool) return res.json([]);
@@ -1201,7 +1208,7 @@ async function pollSmartMoneyTrades() {
         if (nowMs - lastAlertedAt < SMART_ALERT_DEDUP_WINDOW_MS) continue;
 
         // Send Telegram alert (capped)
-        if (bot && process.env.ADMIN_CHAT_ID) {
+        if (canAlert()) {
           // Look up source
           let source = 'other';
           try {
@@ -1242,7 +1249,7 @@ async function pollSmartMoneyTrades() {
     }
 
     // Send overflow summary
-    if (overflowAlerts.length > 0 && bot && process.env.ADMIN_CHAT_ID) {
+    if (overflowAlerts.length > 0 && canAlert()) {
       const summary = `🧠 +${overflowAlerts.length} more smart money trades this cycle. Check ozscan.xyz`;
       try {
         await bot.sendMessage(process.env.ADMIN_CHAT_ID, summary);
