@@ -4,3 +4,6 @@ feed.md
 feed.json
 backfill-state*.json
 state-runner.json
+.DS_Store
+*.log
+index.copy.js
