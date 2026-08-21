@@ -1,0 +1,16 @@
+# Static site for assayscore.com — the public ratings report.
+# Assets-only Worker: no server code, custom domains bound declaratively so a
+# deploy never depends on dashboard clicks.
+name = "assayscore"
+compatibility_date = "2026-08-21"
+
+[assets]
+directory = "./public"
+
+[[routes]]
+pattern = "assayscore.com"
+custom_domain = true
+
+[[routes]]
+pattern = "www.assayscore.com"
+custom_domain = true
