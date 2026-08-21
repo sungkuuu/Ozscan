@@ -1,2 +1,6 @@
 node_modules
 .env
+feed.md
+feed.json
+backfill-state*.json
+state-runner.json
