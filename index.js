@@ -1476,6 +1476,62 @@ app.listen(PORT, async () => {
   scheduleWeeklyLeaderboard();
 });
 
+// Resolution filler — fills market_resolutions in the background so win rates
+// and grades are computed on settled outcomes rather than a 30% sample.
+// Deliberately slow and bounded: this file has twice taken the worker down
+// (an unbounded SELECT, then unbounded payload writes), so it reads one id at
+// a time, writes one small row, and never accumulates in memory.
+const RESOLUTION_FILL_MS = 2000;
+let resolutionFillerBusy = false;
+
+async function fillOneResolution() {
+  if (!pool || resolutionFillerBusy) return;
+  resolutionFillerBusy = true;
+  try {
+    const { rows } = await pool.query(
+      `SELECT s.condition_id FROM smart_alerts s
+       WHERE s.condition_id ~ '^0x[0-9a-fA-F]{64}$'
+         AND NOT EXISTS (SELECT 1 FROM market_resolutions m WHERE m.condition_id = s.condition_id)
+       LIMIT 1`
+    );
+    if (rows.length === 0) return;
+    const id = rows[0].condition_id;
+
+    let m = null;
+    try {
+      const res = await fetch(`https://clob.polymarket.com/markets/${id}`);
+      if (res.status === 404) {
+        await pool.query(
+          `INSERT INTO market_resolutions (condition_id, closed) VALUES ($1, NULL) ON CONFLICT DO NOTHING`, [id]
+        );
+        return;
+      }
+      if (!res.ok) return;                       // transient: retry next tick
+      const body = await res.json();
+      if (body && String(body.condition_id || '').toLowerCase() === id.toLowerCase()) m = body;
+    } catch (_) { return; }
+    if (!m) return;
+
+    const winTok = (m.tokens || []).find((t) => t.winner === true);
+    await pool.query(
+      `INSERT INTO market_resolutions (condition_id, question, closed, winning_outcome, outcome_prices, end_date)
+       VALUES ($1,$2,$3,$4,$5,$6)
+       ON CONFLICT (condition_id) DO UPDATE SET closed = EXCLUDED.closed,
+         winning_outcome = EXCLUDED.winning_outcome, outcome_prices = EXCLUDED.outcome_prices, fetched_at = NOW()`,
+      [id, m.question || null, m.closed === true || m.archived === true,
+       winTok ? String(winTok.outcome) : null,
+       m.tokens ? JSON.stringify(m.tokens.map((t) => t.price)) : null,
+       m.end_date_iso || null]
+    );
+  } catch (e) {
+    console.error('[Resolution] fill error:', e.message);
+  } finally {
+    resolutionFillerBusy = false;
+  }
+}
+
+setTimeout(() => setInterval(fillOneResolution, RESOLUTION_FILL_MS), 60000);
+
 setTimeout(fetchKalshiMarkets, 5000);
 setTimeout(checkResolvedTrades, 5000);
 setInterval(checkResolvedTrades, 60 * 60 * 1000);
