@@ -6,9 +6,8 @@ name: data-freshness
 # means collection is down. A failing run makes GitHub email the repo owner.
 
 on:
-  # schedule:
-  #   - cron: '17 */6 * * *'
-  # ^ disabled 2026-08-21: monthly Actions allowance exhausted; runs now bill.
+  schedule:
+    - cron: '17 */6 * * *'
   workflow_dispatch:
 
 jobs:

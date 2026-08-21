@@ -5,9 +5,8 @@ name: daily-feed
 # so the record of what was said — and when — is auditable after the fact.
 
 on:
-  # schedule:
-  #   - cron: '41 22 * * *'   # 07:41 KST
-  # ^ disabled 2026-08-21: monthly Actions allowance exhausted; runs now bill.
+  schedule:
+    - cron: '41 22 * * *'   # 07:41 KST
   workflow_dispatch:
 
 permissions:
