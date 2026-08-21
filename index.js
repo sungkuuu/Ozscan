@@ -1481,7 +1481,7 @@ app.listen(PORT, async () => {
 // Deliberately slow and bounded: this file has twice taken the worker down
 // (an unbounded SELECT, then unbounded payload writes), so it reads one id at
 // a time, writes one small row, and never accumulates in memory.
-const RESOLUTION_FILL_MS = 2000;
+const RESOLUTION_FILL_MS = 1500;
 let resolutionFillerBusy = false;
 
 async function fillOneResolution() {
