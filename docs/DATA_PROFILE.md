@@ -1,7 +1,7 @@
 # OzScan 데이터 프로파일 (2026-08-19 실측)
 
 > 외부 AI/어드바이저 공유용. Railway Postgres 실측 쿼리 결과이며, 전체 백업은
-> `~/OzScan/backups/ozscan_full_20260819.dump` (282MB, pg_dump -Fc)로 로컬 보존됨.
+> 전체 백업은 리포 밖에 보관(pg_dump 아카이브, 282MB).
 > 용도: "실행비용 보정 CLV 엣지가 존재하는가" 백테스트의 원료 평가.
 
 ## 총괄

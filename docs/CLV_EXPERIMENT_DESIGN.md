@@ -1,8 +1,7 @@
 # OzScan CLV 엣지 검증 설계 (2026-08-19 확정, 외부 AI 설계 + 실측 보정)
 
-> 집행 시점: 9/2 ABtest 결산 이후. 이 문서만으로 새 세션이 실험을 시작할 수 있어야 함.
-> 데이터 현황은 `DATA_PROFILE.md`, DB 접속은 `backups/.db_url`, 백업 `backups/ozscan_full_20260819.dump`
-> (sha256: 4ad8aa9b4895591ea3d0115b737a2a9b041d51f8708bd3961da94e9dfd59b23c, 사본: ~/Desktop/OzScan-backup/).
+> 이 문서만으로 새 세션이 실험을 처음부터 집행할 수 있어야 한다.
+> 데이터 현황은 `DATA_PROFILE.md` 참조. DB 접속 정보와 백업은 리포 밖에서 관리한다.
 
 ## 0. 실측으로 이미 확인된 것 (8/19)
 
