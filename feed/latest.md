@@ -7,40 +7,39 @@ What tracked wallets bet, and how it actually turned out.
 
 Largest settled positions, capped at three per wallet.
 
-- **0x204f…5e14** · Cincinnati Open: Christopher O'Connell vs Kamil Majchrzak
-  · bet **$6K** on _Christopher OConnell_ at 66¢, held 6.2d → ❌ LOST **-$6K** (entered 2026-08-14 → settled 2026-08-21 as Christopher O'Connell)
-- **0x2005…75ea** · National Bank Open: Ben Shelton vs Brandon Nakashima
-  · bet **$4K** on _Brandon Nakashima_ at 29¢, held 7.5d → ❌ LOST **-$4K** (entered 2026-08-13 → settled 2026-08-21 as Ben Shelton)
-- **0x2005…75ea** · Astana: Jie Cui vs Aziz Dougaz
-  · bet **$4K** on _Jie Cui_ at 79¢, held 6.6d → ❌ LOST **-$4K** (entered 2026-08-14 → settled 2026-08-21 as Aziz Dougaz)
-- **0x2005…75ea** · Astana: Jie Cui vs Aziz Dougaz
-  · bet **$1K** on _Aziz Dougaz_ at 28¢, held 6.6d → ✅ WON **$4K** (entered 2026-08-14 → settled 2026-08-21 as Aziz Dougaz)
-- **0x204f…5e14** · Cincinnati Open: J.J. Wolf vs James Duckworth
-  · bet **$2K** on _J.J. Wolf_ at 49¢, held 6.2d → ❌ LOST **-$2K** (entered 2026-08-14 → settled 2026-08-21 as James Duckworth)
-- **0x204f…5e14** · Hamburg: Saba Purtseladze vs Matej Dodig
-  · bet **$11K** on _Matej Dodig_ at 84¢, held 6.4d → ✅ WON **$2K** (entered 2026-08-14 → settled 2026-08-21 as Matej Dodig)
+- **0x2005…75ea** · Cincinnati Open: Mananchaya Sawangkaew vs Anna Blinkova
+  · bet **$8K** on _Mananchaya Sawangkaew_ at 37¢, held 6.3d → ❌ LOST **-$8K** (entered 2026-08-14 → settled 2026-08-21 as Anna Blinkova)
+- **0x2005…75ea** · Miami Marlins vs. Cincinnati Reds
+  · bet **$7K** on _Cincinnati Reds_ at 54¢, held 6.1d → ✅ WON **$6K** (entered 2026-08-14 → settled 2026-08-21 as Cincinnati Reds)
+- **0x2005…75ea** · Cincinnati Open: Mananchaya Sawangkaew vs Anna Blinkova
+  · bet **$9K** on _Anna Blinkova_ at 61¢, held 6.3d → ✅ WON **$6K** (entered 2026-08-14 → settled 2026-08-21 as Anna Blinkova)
+- **0x204f…5e14** · Cincinnati Open: Titouan Droguet vs Matteo Berrettini
+  · bet **$2K** on _Matteo Berrettini_ at 21¢, held 6.3d → ✅ WON **$6K** (entered 2026-08-14 → settled 2026-08-21 as Matteo Berrettini)
+- **0x204f…5e14** · Will Real Betis Balompié win on 2026-08-21?
+  · bet **$4K** on _No_ at 56¢ → ❌ LOST **-$4K** (entered 2026-08-21 → settled 2026-08-21 as Yes)
 
 ## Open exposure now
 
-- **0xc2e7…be51** · $166K on _Yes_ at 57¢ — Will Los Angeles Galaxy win on 2026-08-19? (resolves —)
 - **0x6ac5…4b6e** · $90K on _FURIA_ at 55¢ — Counter-Strike: G2 vs FURIA (BO3) - Esports World Cup Playoffs (resolves —)
-- **0xc2e7…be51** · $85K on _Yes_ at 57¢ — Will Los Angeles Galaxy win on 2026-08-19? (resolves —)
-- **0x204f…5e14** · $60K on _Elina Svitolina_ at 89¢ — Cincinnati Open: Tereza Valentova vs Elina Svitolina (resolves —)
-- **0xc2e7…be51** · $57K on _Yes_ at 57¢ — Will Los Angeles Galaxy win on 2026-08-19? (resolves —)
-- **0x204f…5e14** · $55K on _Alexander Zverev_ at 95¢ — Cincinnati Open: Alexander Zverev vs Terence Atmane (resolves —)
-- **0xc2e7…be51** · $51K on _Yes_ at 47¢ — Will Colorado Rapids SC win on 2026-08-19? (resolves —)
 - **0x6ac5…4b6e** · $50K on _Iron Wing_ at 42¢ — Dota 2: Iron Wing vs BoomBoys (BO3) - The International Playoffs (resolves —)
 - **0x6ac5…4b6e** · $46K on _Iron Wing_ at 42¢ — Dota 2: Iron Wing vs BoomBoys (BO3) - The International Playoffs (resolves —)
-- **0xc2e7…be51** · $43K on _Yes_ at 57¢ — Will Los Angeles Galaxy win on 2026-08-19? (resolves —)
+- **0x6ac5…4b6e** · $29K on _Team Falcons_ at 73¢ — Counter-Strike: Legacy vs Team Falcons (BO3) - Esports World Cup Pl… (resolves —)
+- **0xc807…c12b** · $24K on _Under_ at 50¢ — New York Yankees vs. Baltimore Orioles: O/U 7.5 (resolves —)
+- **0xc807…c12b** · $24K on _Baltimore Orioles_ at 49¢ — New York Yankees vs. Baltimore Orioles (resolves —)
+- **0x204f…5e14** · $23K on _No_ at 94¢ — Exact Score: Paris Saint-Germain 0 - 0 Aston Villa? (resolves —)
+- **0x9d84…1344** · $21K on _No_ at 70¢ — Will the Fed increase interest rates by 25 bps after the September … (resolves 2026-09-16)
+- **0x9d84…1344** · $21K on _Yes_ at 70¢ — Will there be no change in Fed interest rates after the September 2… (resolves 2026-09-16)
+- **0xc807…c12b** · $19K on _Under_ at 51¢ — Athletics vs. Kansas City Royals: O/U 8.5 (resolves —)
 
 ## Running record — followable wallets only
 
 | Grade | Wallet | Settled bets | Win | ROI | Net P&L |
 |---|---|---:|---:|---:|---:|
-| A | `0x36a3…fafb` | 737 | 99.1% | 61.2% | $1.74M |
-| A | `0x07bd…e993` | 153 | 64.1% | 104.7% | $1.27M |
-| B | `0xb904…c255` | 664 | 91.6% | 31.7% | $181K |
-| B | `0xc807…c12b` | 4,203 | 79.8% | 47.8% | $1.09M |
+| B | `0x61ef…5a75` | 215 | 64.7% | 89.9% | $335K |
+| A | `0x777d…5143` | 2,733 | 51.7% | 21.1% | $728K |
+| A | `0x36a3…fafb` | 1,651 | 83.1% | 11.3% | $1.06M |
+| B | `0xb904…c255` | 971 | 93.6% | 22.7% | $204K |
+| B | `0x4924…3782` | 1,490 | 54.8% | 16.2% | $1.96M |
 
 ## Two-sided activity
 
