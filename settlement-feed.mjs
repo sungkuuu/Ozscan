@@ -31,8 +31,8 @@ const day = (d) => (d ? new Date(d).toISOString().slice(0, 10) : '—');
 const { rows: settled } = await pool.query(`
   SELECT s.address, s.market, s.outcome, s.size, s.price, s.timestamp,
          r.winning_outcome, r.end_date,
-         (LOWER(s.outcome) = LOWER(r.winning_outcome)) AS won,
-         CASE WHEN LOWER(s.outcome) = LOWER(r.winning_outcome)
+         (LOWER(regexp_replace(s.outcome,'[^a-z0-9]','','gi')) = LOWER(regexp_replace(r.winning_outcome,'[^a-z0-9]','','gi'))) AS won,
+         CASE WHEN LOWER(regexp_replace(s.outcome,'[^a-z0-9]','','gi')) = LOWER(regexp_replace(r.winning_outcome,'[^a-z0-9]','','gi'))
               THEN s.size * (100 - s.price) / s.price ELSE -s.size END AS pnl,
          to_timestamp(s.timestamp)::date AS entry_date, r.end_date::timestamptz::date AS resolve_date,
          ROUND(EXTRACT(EPOCH FROM (r.end_date::timestamptz - to_timestamp(s.timestamp))) / 86400.0, 1) AS held_days
@@ -43,7 +43,7 @@ const { rows: settled } = await pool.query(`
     AND r.closed IS TRUE AND r.winning_outcome IS NOT NULL AND r.end_date IS NOT NULL
     AND r.end_date::timestamptz > NOW() - ($2 || ' days')::interval
     AND r.end_date::timestamptz <= NOW()
-  ORDER BY ABS(CASE WHEN LOWER(s.outcome) = LOWER(r.winning_outcome)
+  ORDER BY ABS(CASE WHEN LOWER(regexp_replace(s.outcome,'[^a-z0-9]','','gi')) = LOWER(regexp_replace(r.winning_outcome,'[^a-z0-9]','','gi'))
                     THEN s.size * (100 - s.price) / s.price ELSE -s.size END) DESC
   LIMIT 25`, [MIN_USD, DAYS]);
 

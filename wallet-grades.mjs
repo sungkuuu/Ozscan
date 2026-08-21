@@ -35,8 +35,8 @@ await pool.query(`
 const sql = `
 WITH bets AS (
   SELECT s.address, s.size, s.price, s.market, s.timestamp,
-         (LOWER(s.outcome) = LOWER(r.winning_outcome)) AS won,
-         CASE WHEN LOWER(s.outcome) = LOWER(r.winning_outcome)
+         (LOWER(regexp_replace(s.outcome,'[^a-z0-9]','','gi')) = LOWER(regexp_replace(r.winning_outcome,'[^a-z0-9]','','gi'))) AS won,
+         CASE WHEN LOWER(regexp_replace(s.outcome,'[^a-z0-9]','','gi')) = LOWER(regexp_replace(r.winning_outcome,'[^a-z0-9]','','gi'))
               THEN s.size * (100 - s.price) / s.price ELSE -s.size END AS pnl
   FROM smart_alerts s
   JOIN market_resolutions r ON r.condition_id = s.condition_id
