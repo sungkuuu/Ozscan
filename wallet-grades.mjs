@@ -16,12 +16,13 @@ const DB_URL = process.env.DATABASE_URL
 const pool = new Pool({ connectionString: DB_URL, ssl: { rejectUnauthorized: false } });
 
 const MIN_RESOLVED = Number(process.env.MIN_RESOLVED || 50);
+const MIN_MARKETS = Number(process.env.MIN_MARKETS || 20); // one sliced longshot != a record
 
 await pool.query(`
   CREATE TABLE IF NOT EXISTS wallet_grades (
     address TEXT PRIMARY KEY,
     grade TEXT, score NUMERIC,
-    resolved_bets INT, win_pct NUMERIC, roi_staked_pct NUMERIC, roi_equal_pct NUMERIC,
+    resolved_bets INT, resolved_markets INT, win_pct NUMERIC, roi_staked_pct NUMERIC, roi_equal_pct NUMERIC,
     pnl_usd NUMERIC, staked_usd NUMERIC,
     top1_pnl_share_pct NUMERIC, bets_per_active_day NUMERIC, median_bet_usd NUMERIC,
     avg_entry_cents NUMERIC, sports_share_pct NUMERIC,
@@ -34,7 +35,7 @@ await pool.query(`
 // --- per-wallet metrics -----------------------------------------------------
 const sql = `
 WITH bets AS (
-  SELECT s.address, s.size, s.price, s.market, s.timestamp,
+  SELECT s.address, s.condition_id, s.size, s.price, s.market, s.timestamp,
          (LOWER(regexp_replace(s.outcome,'[^a-z0-9]','','gi')) = LOWER(regexp_replace(r.winning_outcome,'[^a-z0-9]','','gi'))) AS won,
          CASE WHEN LOWER(regexp_replace(s.outcome,'[^a-z0-9]','','gi')) = LOWER(regexp_replace(r.winning_outcome,'[^a-z0-9]','','gi'))
               THEN s.size * (100 - s.price) / s.price ELSE -s.size END AS pnl
@@ -47,6 +48,7 @@ WITH bets AS (
 per AS (
   SELECT address,
     count(*) AS resolved_bets,
+    count(DISTINCT condition_id) AS resolved_markets,
     ROUND(100.0 * count(*) FILTER (WHERE won) / count(*), 1) AS win_pct,
     ROUND(SUM(pnl)) AS pnl_usd,
     ROUND(SUM(size)) AS staked_usd,
@@ -72,7 +74,7 @@ clv AS (
 SELECT p.*, COALESCE(pc.bets_per_active_day, 0) AS bets_per_active_day,
        c.clv_1h_cents, COALESCE(c.clv_episodes, 0) AS clv_episodes
 FROM per p LEFT JOIN pace pc ON pc.address = p.address LEFT JOIN clv c ON c.address = p.address
-WHERE p.resolved_bets >= ${MIN_RESOLVED}
+WHERE p.resolved_bets >= ${MIN_RESOLVED} AND p.resolved_markets >= ${MIN_MARKETS}
 ORDER BY p.roi_staked_pct DESC NULLS LAST
 `;
 const { rows } = await pool.query(sql);
@@ -118,19 +120,19 @@ function grade(w) {
 for (const w of rows) {
   const { g, score, top1, flags } = grade(w);
   await pool.query(
-    `INSERT INTO wallet_grades (address, grade, score, resolved_bets, win_pct, roi_staked_pct, roi_equal_pct,
+    `INSERT INTO wallet_grades (address, grade, score, resolved_bets, resolved_markets, win_pct, roi_staked_pct, roi_equal_pct,
        pnl_usd, staked_usd, top1_pnl_share_pct, bets_per_active_day, median_bet_usd, avg_entry_cents,
        sports_share_pct, clv_1h_cents, clv_episodes, first_bet, last_bet, active_days, flags, computed_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,NOW())
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,NOW())
      ON CONFLICT (address) DO UPDATE SET grade=EXCLUDED.grade, score=EXCLUDED.score,
-       resolved_bets=EXCLUDED.resolved_bets, win_pct=EXCLUDED.win_pct, roi_staked_pct=EXCLUDED.roi_staked_pct,
+       resolved_bets=EXCLUDED.resolved_bets, resolved_markets=EXCLUDED.resolved_markets, win_pct=EXCLUDED.win_pct, roi_staked_pct=EXCLUDED.roi_staked_pct,
        roi_equal_pct=EXCLUDED.roi_equal_pct, pnl_usd=EXCLUDED.pnl_usd, staked_usd=EXCLUDED.staked_usd,
        top1_pnl_share_pct=EXCLUDED.top1_pnl_share_pct, bets_per_active_day=EXCLUDED.bets_per_active_day,
        median_bet_usd=EXCLUDED.median_bet_usd, avg_entry_cents=EXCLUDED.avg_entry_cents,
        sports_share_pct=EXCLUDED.sports_share_pct, clv_1h_cents=EXCLUDED.clv_1h_cents,
        clv_episodes=EXCLUDED.clv_episodes, first_bet=EXCLUDED.first_bet, last_bet=EXCLUDED.last_bet,
        active_days=EXCLUDED.active_days, flags=EXCLUDED.flags, computed_at=NOW()`,
-    [w.address, g, score, w.resolved_bets, w.win_pct, w.roi_staked_pct, w.roi_equal_pct, w.pnl_usd,
+    [w.address, g, score, w.resolved_bets, w.resolved_markets, w.win_pct, w.roi_staked_pct, w.roi_equal_pct, w.pnl_usd,
      w.staked_usd, top1, w.bets_per_active_day, w.median_bet_usd, w.avg_entry_cents, w.sports_share_pct,
      w.clv_1h_cents, w.clv_episodes, w.first_bet, w.last_bet, w.active_days, flags]
   );
