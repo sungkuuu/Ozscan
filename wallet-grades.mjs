@@ -98,6 +98,8 @@ function grade(w) {
   if (Math.sign(roiS) !== Math.sign(roiE) && roiS !== 0 && roiE !== 0) flags.push('weighting-flip');
   if (Number(w.avg_entry_cents) > 80) flags.push('favorite-heavy');
   if (Number(w.resolved_bets) < 100) flags.push('thin-sample');
+  const daysSinceLast = (Date.now() / 86400000) - (new Date(w.last_bet).getTime() / 86400000);
+  if (daysSinceLast > 30) flags.push('dormant');
   if (clv !== null && clv < 0) flags.push('negative-clv');
 
   // score: robust ROI (min of the two weightings) minus penalties
@@ -108,6 +110,7 @@ function grade(w) {
   if (flags.includes('thin-sample')) score -= 10;
   if (clv !== null) score += Math.max(-10, Math.min(10, clv * 5));
 
+  if (flags.includes('dormant')) score = Math.min(score, 5);   // can't follow what no longer trades
   let g;
   if (score >= 20 && flags.length === 0) g = 'A';
   else if (score >= 10) g = 'B';
