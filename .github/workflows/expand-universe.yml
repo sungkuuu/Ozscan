@@ -7,8 +7,13 @@ name: expand-universe
 
 on:
   schedule:
-    - cron: '23 * * * *'   # hourly; 45-min runs cannot overlap
+    - cron: '23 * * * *'   # hourly; 45-min runs cannot overlap on time alone,
+                           # but GitHub fires ticks late, so guard with concurrency
   workflow_dispatch:
+
+concurrency:
+  group: expand-universe
+  cancel-in-progress: false
 
 jobs:
   expand:
