@@ -55,23 +55,27 @@ if (Number(seeded) === 0) {
 const { rows: [{ count: lbCount }] } = await pool.query(
   `SELECT count(*) FROM grade_universe WHERE source = 'leaderboard'`);
 if (Number(lbCount) === 0) {
+  // data-api.polymarket.com/v1/leaderboard superseded the old lb-api host;
+  // limit caps at 50, so page with offset to reach the top 100 per board.
   let added = 0;
-  for (const rankType of ['profit', 'volume']) {
-    for (const window of ['30d', '7d']) {
-      try {
-        const res = await fetch(`https://lb-api.polymarket.com/leaderboard?window=${window}&rankType=${rankType}&limit=100`);
-        if (!res.ok) { console.log(`leaderboard ${rankType}/${window}: HTTP ${res.status}`); continue; }
-        const body = await res.json();
-        const list = Array.isArray(body) ? body : (body?.leaderboard || body?.data || []);
-        for (const e of list) {
-          const addr = String(e.proxyWallet || e.wallet || e.address || '').toLowerCase();
-          if (!/^0x[0-9a-f]{40}$/.test(addr)) continue;
-          const r = await pool.query(
-            `INSERT INTO grade_universe (address, source) VALUES ($1, 'leaderboard') ON CONFLICT DO NOTHING`, [addr]);
-          added += r.rowCount;
-        }
-      } catch (e) { console.log(`leaderboard ${rankType}/${window}: ${e.message}`); }
-      await sleep(1000);
+  for (const orderBy of ['PNL', 'VOL']) {
+    for (const timePeriod of ['MONTH', 'WEEK']) {
+      for (const offset of [0, 50]) {
+        try {
+          const res = await fetch(`https://data-api.polymarket.com/v1/leaderboard?category=OVERALL&timePeriod=${timePeriod}&orderBy=${orderBy}&limit=50&offset=${offset}`);
+          if (!res.ok) { console.log(`leaderboard ${orderBy}/${timePeriod}/${offset}: HTTP ${res.status}`); continue; }
+          const body = await res.json();
+          const list = Array.isArray(body) ? body : (body?.leaderboard || body?.data || []);
+          for (const e of list) {
+            const addr = String(e.proxyWallet || e.wallet || e.address || '').toLowerCase();
+            if (!/^0x[0-9a-f]{40}$/.test(addr)) continue;
+            const r = await pool.query(
+              `INSERT INTO grade_universe (address, source) VALUES ($1, 'leaderboard') ON CONFLICT DO NOTHING`, [addr]);
+            added += r.rowCount;
+          }
+        } catch (e) { console.log(`leaderboard ${orderBy}/${timePeriod}/${offset}: ${e.message}`); }
+        await sleep(1000);
+      }
     }
   }
   console.log(`Leaderboard cohort: +${added} wallets`);
