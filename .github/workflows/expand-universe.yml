@@ -15,6 +15,10 @@ concurrency:
   group: expand-universe
   cancel-in-progress: false
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   expand:
     runs-on: ubuntu-latest
@@ -42,4 +46,20 @@ jobs:
             node wallet-grades.mjs
           else
             echo "universe not complete yet — skipping regrade"
+          fi
+      # One-time completion notice: creating an issue triggers GitHub's email
+      # notification to the repo owner. Skipped once the marker issue exists.
+      - name: Notify on first completion
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if grep -q "UNIVERSE COMPLETE" expand.log 2>/dev/null; then
+            if [ "$(gh issue list --repo ${{ github.repository }} --state all --search 'Universe backfill complete in:title' --json number --jq 'length')" = "0" ]; then
+              gh issue create --repo ${{ github.repository }} \
+                --title "Universe backfill complete — regrade is live" \
+                --body "expand-universe drained the backfill queue and wallet-grades has run. Grades now refresh hourly as settlement labels land. Next: check label coverage, rebuild the report, then remove this workflow's schedule."
+            else
+              echo "completion issue already exists — skipping"
+            fi
           fi
