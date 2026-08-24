@@ -1,0 +1,27 @@
+name: expand-universe
+
+# Grades ~1,200 wallets instead of the stale April 64. Progress lives in the
+# grade_universe table, so these 45-minute runs converge on completion and
+# no-op once done. Free on a public repo. DELETE the schedule after the
+# universe completes.
+
+on:
+  schedule:
+    - cron: '23 */2 * * *'
+  workflow_dispatch:
+
+jobs:
+  expand:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --omit=dev
+      - name: Expand grading universe
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          TIME_BUDGET_MIN: '40'
+        run: node expand-universe.mjs
