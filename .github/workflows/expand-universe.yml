@@ -7,7 +7,7 @@ name: expand-universe
 
 on:
   schedule:
-    - cron: '23 */2 * * *'
+    - cron: '23 * * * *'   # hourly; 45-min runs cannot overlap
   workflow_dispatch:
 
 jobs:
