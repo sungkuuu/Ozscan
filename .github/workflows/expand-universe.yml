@@ -18,7 +18,7 @@ concurrency:
 jobs:
   expand:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,4 +29,17 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           TIME_BUDGET_MIN: '40'
-        run: node expand-universe.mjs
+        run: |
+          set -o pipefail
+          node expand-universe.mjs | tee expand.log
+      # Once the universe is complete this fires every run, which is deliberate:
+      # grades keep refreshing as outcome labels land, until the schedule is removed.
+      - name: Regrade on completion
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if grep -q "UNIVERSE COMPLETE" expand.log; then
+            node wallet-grades.mjs
+          else
+            echo "universe not complete yet — skipping regrade"
+          fi
