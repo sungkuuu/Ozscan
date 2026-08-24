@@ -70,9 +70,9 @@ p strong{color:var(--ink);font-weight:600}
 
 /* distribution */
 .dist{display:flex;height:46px;border:1px solid var(--rule);overflow:hidden;margin-bottom:10px}
-.dist span{display:flex;align-items:center;justify-content:center;font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;color:#fff;border-right:1px solid var(--paper)}
+.dist span{display:flex;align-items:center;justify-content:center;font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;color:#fff;border-right:1px solid var(--paper);min-width:3.2em}
 .dist span:last-child{border-right:none}
-.d-a{background:var(--pass)}.d-b{background:#4C7F6B}.d-d{background:var(--caution)}.d-f{background:var(--fail)}
+.d-a{background:var(--pass)}.d-b{background:#4C7F6B}.d-c{background:#7E7A52}.d-d{background:var(--caution)}.d-f{background:var(--fail)}
 .dist-key{display:flex;flex-wrap:wrap;gap:18px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-3)}
 
 /* table */
@@ -124,7 +124,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <div class="wrap">
 
 <header class="masthead">
-  <div class="eyebrow">Report 001 · Data through 2026-08-23</div>
+  <div class="eyebrow">Report 001 · Data through 2026-08-24</div>
   <h1>Polymarket Copyability Ratings</h1>
   <p class="standfirst">26 tracked wallets, graded on one question: could a follower have captured what this wallet did? Profit alone does not answer it.</p>
 
@@ -132,7 +132,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
     <div class="spec"><dt>Wallets graded</dt><dd>26<small>≥50 settled bets</small></dd></div>
     <div class="spec"><dt>Settled bets</dt><dd>5,811,052<small>BUY, 5–95¢</small></dd></div>
     <div class="spec"><dt>Capital staked</dt><dd>$1134.39M<small>net P&amp;L $25.47M</small></dd></div>
-    <div class="spec"><dt>Markets resolved</dt><dd>134,567<small>97% of universe</small></dd></div>
+    <div class="spec"><dt>Markets resolved</dt><dd>135,553<small>79% of universe</small></dd></div>
     <div class="spec"><dt>Copy episodes</dt><dd>13,842<small>priced at detection</small></dd></div>
   </dl>
 </header>
@@ -141,12 +141,12 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
   <h2>Grade distribution</h2>
   <p class="sec-note">Grades run A (followable and profitable) to F (not followable, whatever the profit).</p>
   <div class="dist">
-    <span class="d-c" style="width:7.69%">C 2</span>
-    <span class="d-d" style="width:7.69%">D 2</span>
-    <span class="d-f" style="width:84.62%">F 22</span>
+    <span class="d-c" style="flex:2 1 0%">C 2</span>
+    <span class="d-d" style="flex:2 1 0%">D 2</span>
+    <span class="d-f" style="flex:22 1 0%">F 22</span>
   </div>
   <div class="dist-key">
-    <span>A · clean on every check</span><span>B · minor flag</span><span>D · profitable but compromised</span><span>F · not copyable</span>
+    <span>A · clean on every check</span><span>B · minor flag</span><span>C · marginal, no demonstrated edge</span><span>D · profitable but compromised</span><span>F · not copyable</span>
   </div>
 </section>
 
@@ -155,7 +155,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
   <div class="callout">
     <div class="eyebrow">Headline result</div>
     <h3>The most profitable wallet on this list earns an F.</h3>
-    <p>Wallet <code>0x204f72f3…5e14</code> made <strong>$15.32M</strong> across 2,442,183 settled bets — and averages <strong>21,996 fills per active day</strong>. No human follows that, and by the time a follower sees the fill, the price that produced the edge is gone.</p>
+    <p>Wallet <code>0x204f72f3…5e14</code> made <strong>$15.32M</strong> across 2,442,183 settled bets — and averages <strong>22,034 fills per active day</strong>. No human follows that, and by the time a follower sees the fill, the price that produced the edge is gone.</p>
     <p>Across all 13,842 copy episodes measured at detection price, the one-hour markout was <strong>-0.12¢ in the held-out validation window</strong> — statistically indistinguishable from buying the same markets at random times. Profit is concentrated in wallets whose edge is execution speed, and execution speed does not transfer to a follower.</p>
   </div>
 </section>
@@ -174,19 +174,6 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <tr>
 <td class="num idx">01</td>
 <td class="grade-cell"><span class="stamp g-c">C</span></td>
-<td class="addr" title="0x777d9f00c2b4f7b829c9de0049ca3e707db05143">0x777d9f00…5143</td>
-<td class="num">2,733</td>
-<td class="num">51.7%</td>
-<td class="num pos">+21.1%</td>
-<td class="num pos">+19.7%</td>
-<td class="num pos">$728K</td>
-<td class="num">376</td>
-<td class="num pos">+1.06¢</td>
-<td class="flags"><span class="flag">dormant</span></td>
-</tr>
-<tr>
-<td class="num idx">02</td>
-<td class="grade-cell"><span class="stamp g-c">C</span></td>
 <td class="addr" title="0x492442eab586f242b53bda933fd5de859c8a3782">0x492442ea…3782</td>
 <td class="num">1,490</td>
 <td class="num">54.8%</td>
@@ -198,6 +185,19 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="flags"><span class="flag">dormant</span></td>
 </tr>
 <tr>
+<td class="num idx">02</td>
+<td class="grade-cell"><span class="stamp g-c">C</span></td>
+<td class="addr" title="0x777d9f00c2b4f7b829c9de0049ca3e707db05143">0x777d9f00…5143</td>
+<td class="num">2,733</td>
+<td class="num">51.7%</td>
+<td class="num pos">+21.1%</td>
+<td class="num pos">+19.7%</td>
+<td class="num pos">$728K</td>
+<td class="num">376</td>
+<td class="num pos">+1.06¢</td>
+<td class="flags"><span class="flag">dormant</span></td>
+</tr>
+<tr>
 <td class="num idx">03</td>
 <td class="grade-cell"><span class="stamp g-d">D</span></td>
 <td class="addr" title="0xc8075693f48668a264b9fa313b47f52712fcc12b">0xc8075693…c12b</td>
@@ -206,7 +206,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num pos">+20.0%</td>
 <td class="num pos">+28.2%</td>
 <td class="num pos">$1.47M</td>
-<td class="num">535</td>
+<td class="num">536</td>
 <td class="num pos">+0.14¢</td>
 <td class="flags"><span class="flag">bot pace</span></td>
 </tr>
@@ -245,7 +245,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num pos">+9.9%</td>
 <td class="num pos">+28.4%</td>
 <td class="num pos">$393K</td>
-<td class="num">726</td>
+<td class="num">744</td>
 <td class="num neg">-0.27¢</td>
 <td class="flags"><span class="flag">bot pace</span><span class="flag">negative CLV</span></td>
 </tr>
@@ -284,7 +284,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num pos">+2.9%</td>
 <td class="num pos">+2.8%</td>
 <td class="num pos">$15.32M</td>
-<td class="num">21,996</td>
+<td class="num">22,034</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag">bot pace</span></td>
 </tr>
@@ -310,7 +310,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num pos">+1.7%</td>
 <td class="num pos">+1.4%</td>
 <td class="num pos">$5.66M</td>
-<td class="num">18,566</td>
+<td class="num">18,598</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag">bot pace</span></td>
 </tr>
@@ -530,13 +530,13 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <section class="prose">
   <h2>What this report does not claim</h2>
   <p>Detection latency here is one to five minutes. A faster observer might measure different short-horizon values, and nothing in this data speaks to sub-minute copying.</p>
-  <p>Outcome labels currently cover 134,567 of 138,054 markets these wallets traded (97%) and continue to accumulate; grades are recomputed as they land.</p>
+  <p>Outcome labels currently cover 135,553 of 171,469 markets these wallets traded (79%) and continue to accumulate; grades are recomputed as they land.</p>
   <p>A grade of F is not a verdict on a trader. It says the wallet's edge is not transferable to someone watching from outside — which is a statement about copyability, not about skill.</p>
 </section>
 
 <footer>
   <span>Method and grade inputs published in full · addresses are public onchain identifiers</span>
-  <span>Report 001 · rebuilt 2026-08-23</span>
+  <span>Report 001 · rebuilt 2026-08-24</span>
 </footer>
 
 </div>
