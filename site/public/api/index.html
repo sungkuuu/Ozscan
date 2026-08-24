@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Thirty-two Polymarket wallets graded on whether a follower could actually have captured their edge.">
+<meta property="og:title" content="Polymarket Copyability Ratings">
+<meta property="og:description" content="The most profitable wallet on the list scores an F. It trades 22,208 times a day.">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>">
+<title>Polymarket Copyability Ratings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#E9EBEE; --surface:#F7F8FA; --surface-2:#FFFFFF;
+  --ink:#0E1116; --ink-2:#3D4652; --ink-3:#6B7482;
+  --rule:#C7CCD4; --rule-soft:#DEE2E8;
+  --accent:#22386B;
+  --pass:#2C6350; --caution:#856019; --fail:#8A3733;
+  --stamp-bg:#DFE3E9;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D1014; --surface:#141821; --surface-2:#1A1F29;
+    --ink:#E6E9EE; --ink-2:#AEB6C2; --ink-3:#7B848F;
+    --rule:#2A313B; --rule-soft:#212832;
+    --accent:#8FA9DC;
+    --pass:#63B394; --caution:#D2A44B; --fail:#DE7B72;
+    --stamp-bg:#232A35;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D1014; --surface:#141821; --surface-2:#1A1F29;
+  --ink:#E6E9EE; --ink-2:#AEB6C2; --ink-3:#7B848F;
+  --rule:#2A313B; --rule-soft:#212832;
+  --accent:#8FA9DC;
+  --pass:#63B394; --caution:#D2A44B; --fail:#DE7B72;
+  --stamp-bg:#232A35;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Archivo","Helvetica Neue",Arial,sans-serif;
+  font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:clamp(24px,5vw,64px) clamp(16px,4vw,40px) 96px}
+.prose{max-width:66ch}
+h1,h2,h3{font-family:"Newsreader",Georgia,serif;font-weight:500;text-wrap:balance;margin:0}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+
+/* masthead */
+.masthead{border-top:2px solid var(--ink);padding-top:18px}
+.masthead h1{font-size:clamp(34px,5.2vw,56px);line-height:1.04;letter-spacing:-.015em;margin:14px 0 10px}
+.standfirst{font-size:clamp(16px,1.6vw,19px);color:var(--ink-2);max-width:60ch}
+.specimen{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0;margin-top:34px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.spec{padding:14px 16px 14px 0;border-right:1px solid var(--rule-soft)}
+.spec:last-child{border-right:none}
+.spec dt{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0 0 6px}
+.spec dd{margin:0;font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:500;font-variant-numeric:tabular-nums}
+.spec dd small{font-size:12px;color:var(--ink-3);font-weight:400;display:block;margin-top:2px;letter-spacing:0}
+
+section{margin-top:56px}
+h2{font-size:clamp(23px,2.6vw,30px);letter-spacing:-.01em;margin-bottom:6px}
+.sec-note{color:var(--ink-3);font-size:14px;margin:0 0 22px}
+p{margin:0 0 16px;color:var(--ink-2)}
+p strong{color:var(--ink);font-weight:600}
+
+/* distribution */
+.dist{display:flex;height:46px;border:1px solid var(--rule);overflow:hidden;margin-bottom:10px}
+.dist span{display:flex;align-items:center;justify-content:center;font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;color:#fff;border-right:1px solid var(--paper);min-width:3.2em}
+.dist span:last-child{border-right:none}
+.d-a{background:var(--pass)}.d-b{background:#4C7F6B}.d-c{background:#7E7A52}.d-d{background:var(--caution)}.d-f{background:var(--fail)}
+.dist-key{display:flex;flex-wrap:wrap;gap:18px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-3)}
+
+/* table */
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:940px}
+thead th{
+  font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:500;text-align:right;padding:12px 12px;border-bottom:1px solid var(--rule);
+  background:var(--surface-2);position:sticky;top:0;white-space:nowrap
+}
+thead th.l{text-align:left}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--rule-soft);font-size:14px;text-align:right;white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surface-2)}
+.num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.idx{color:var(--ink-3);font-size:12px}
+.addr{font-family:"IBM Plex Mono",monospace;font-size:13px;text-align:left;color:var(--ink)}
+.pos{color:var(--pass)}.neg{color:var(--fail)}
+.grade-cell{text-align:center;padding-left:4px;padding-right:4px}
+.stamp{
+  display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;
+  font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:13px;color:#fff;
+  border-radius:2px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)
+}
+.g-a{background:var(--pass)}.g-b{background:#4C7F6B}.g-c{background:#6F7A85}.g-d{background:var(--caution)}.g-f{background:var(--fail)}
+.flags{text-align:left;white-space:normal;min-width:210px}
+.flag{
+  display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.04em;
+  padding:2px 6px;margin:2px 4px 2px 0;border:1px solid var(--rule);color:var(--ink-3);border-radius:2px
+}
+.flag.none{opacity:.45}
+
+/* callout */
+.callout{border-left:3px solid var(--accent);background:var(--surface);padding:22px 24px;margin:26px 0}
+.callout .eyebrow{color:var(--accent)}
+.callout h3{font-size:20px;margin:8px 0 10px}
+.callout p:last-child{margin-bottom:0}
+
+.method{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:var(--rule-soft);border:1px solid var(--rule)}
+.method > div{background:var(--surface);padding:18px 20px}
+.method h4{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 8px;font-weight:500}
+.method p{font-size:14px;margin:0;color:var(--ink-2)}
+
+footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3);display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between}
+@media (max-width:620px){ .spec{border-right:none;border-bottom:1px solid var(--rule-soft)} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="masthead">
+  <div class="eyebrow">Assay Score · Grade API v0</div>
+  <h1>Grade lookup API</h1>
+  <p class="standfirst">Read-only. Static snapshots regenerated with every regrade — currently 26 wallets, 50% outcome-label coverage. No key, no rate card, CORS open.</p>
+</header>
+
+<section>
+  <h2>Endpoints</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th class="l">Path</th><th class="l">Returns</th></tr></thead>
+    <tbody>
+      <tr><td class="l"><code>/api/v0/grades.json</code></td><td class="l">Every graded wallet with full metrics</td></tr>
+      <tr><td class="l"><code>/api/v0/wallet/&lt;address&gt;.json</code></td><td class="l">One wallet (lowercase 0x address). 404 = not graded yet</td></tr>
+      <tr><td class="l"><code>/api/v0/badge/&lt;address&gt;.svg</code></td><td class="l">Grade badge — embed with a single <code>&lt;img&gt;</code> tag</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>Example</h2>
+  <p><code>curl https://assayscore.com/api/v0/wallet/0x492442eab586f242b53bda933fd5de859c8a3782.json</code></p>
+  <p>Badge: <img src="/api/v0/badge/0x492442eab586f242b53bda933fd5de859c8a3782.svg" alt="assay grade badge" style="vertical-align:middle"> — <code>&lt;img src="https://assayscore.com/api/v0/badge/&lt;address&gt;.svg"&gt;</code></p>
+</section>
+
+<section class="prose">
+  <h2>Grades</h2>
+  <p>A · clean on every check — B · minor flag — C · marginal, no demonstrated edge — D · profitable but compromised — F · not copyable. Method and inputs are published in full on the <a href="/">report page</a>.</p>
+  <p>Every input is recomputed from settled outcomes and public order history; nothing is self-reported. This is a copyability assessment, not financial advice, and a grade is not a verdict on a trader's skill.</p>
+</section>
+
+<footer>
+  <span>Contact: contact@assayscore.com</span>
+  <span>v0 · rebuilt 2026-08-24</span>
+</footer>
+</div>
+</body>
+</html>
