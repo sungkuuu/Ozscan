@@ -9,7 +9,7 @@
 // until the time budget expires, then exits cleanly.
 //
 // Guards: window bounded to 2026-04-02+ (keeps the label universe bounded),
-// per-wallet page cap (mega-bots can't eat the run), DB size ceiling 27GB.
+// per-wallet page cap (mega-bots can't eat the run), DB size ceiling 36GB.
 
 import { readFileSync } from 'fs';
 import { Pool } from 'pg';
@@ -23,7 +23,7 @@ const START = 1775088000;                       // 2026-04-02 00:00 UTC
 const END = Math.floor(Date.now() / 1000);
 const TIME_BUDGET_MS = Number(process.env.TIME_BUDGET_MIN || 40) * 60_000;
 const MAX_PAGES = Number(process.env.MAX_PAGES || 300);   // 150K fills cap per wallet
-const DB_CEILING = 27 * 1024 ** 3;   // volume grown to 30GB on 8/24; keep 3GB headroom
+const DB_CEILING = 36 * 1024 ** 3;   // volume grown to 40GB on 8/25; keep 4GB headroom
 const VERSION = 'universe-20260824';
 const t0 = Date.now();
 
@@ -140,7 +140,7 @@ async function backfillWallet(addr) {
 let done = 0;
 while (Date.now() - t0 < TIME_BUDGET_MS) {
   const { rows: [sz] } = await pool.query(`SELECT pg_database_size(current_database()) AS s`);
-  if (Number(sz.s) > DB_CEILING) { console.log('DB ceiling 27GB reached — stopping. Review before continuing.'); process.exit(3); }
+  if (Number(sz.s) > DB_CEILING) { console.log('DB ceiling 36GB reached — stopping. Review before continuing.'); process.exit(3); }
 
   const { rows: next } = await pool.query(
     `SELECT address FROM grade_universe WHERE backfilled_at IS NULL ORDER BY added_at LIMIT 1`);
