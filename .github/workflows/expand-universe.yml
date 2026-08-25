@@ -33,6 +33,9 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           TIME_BUDGET_MIN: '40'
+          # 50K-fill cap for the remaining leaderboard cohort: wallets that hit
+          # it are bot-pace F regardless, and full history was blowing the disk.
+          MAX_PAGES: '100'
         run: |
           set -o pipefail
           node expand-universe.mjs | tee expand.log
