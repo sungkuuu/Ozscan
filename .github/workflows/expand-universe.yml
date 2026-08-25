@@ -7,8 +7,8 @@ name: expand-universe
 
 on:
   schedule:
-    - cron: '23 * * * *'   # hourly; 45-min runs cannot overlap on time alone,
-                           # but GitHub fires ticks late, so guard with concurrency
+    - cron: '13,43 * * * *'  # every 30 min: concurrency serializes runs, so a
+                             # denser tick just keeps the queue primed (no idle gap)
   workflow_dispatch:
 
 concurrency:
