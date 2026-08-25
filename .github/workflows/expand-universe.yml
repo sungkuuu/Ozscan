@@ -22,7 +22,7 @@ permissions:
 jobs:
   expand:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 355
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,7 +32,7 @@ jobs:
       - name: Expand grading universe
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          TIME_BUDGET_MIN: '40'
+          TIME_BUDGET_MIN: '320'
           # 50K-fill cap for the remaining leaderboard cohort: wallets that hit
           # it are bot-pace F regardless, and full history was blowing the disk.
           MAX_PAGES: '100'
