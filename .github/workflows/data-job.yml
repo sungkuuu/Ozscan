@@ -24,11 +24,15 @@ on:
         description: VERSION tag override (backfill-gap only)
         required: false
         type: string
+      shard:
+        description: SHARD i/n (resolution-backfill only, e.g. 0/4)
+        required: false
+        type: string
 
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -42,4 +46,5 @@ jobs:
           START_TS: ${{ inputs.start_ts }}
           END_TS: ${{ inputs.end_ts }}
           VERSION: ${{ inputs.version }}
+          SHARD: ${{ inputs.shard }}
         run: node ${{ inputs.script }}

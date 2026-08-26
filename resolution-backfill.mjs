@@ -26,13 +26,16 @@ await pool.query(`
   )
 `);
 
+// SHARD="i/n" lets n parallel runners split the id space disjointly.
+const [SHARD_I, SHARD_N] = (process.env.SHARD || '0/1').split('/').map(Number);
 const { rows } = await pool.query(`
   SELECT DISTINCT condition_id FROM smart_alerts
   WHERE condition_id IS NOT NULL AND condition_id ~ '^0x[0-9a-fA-F]{64}$'
     AND condition_id NOT IN (SELECT condition_id FROM market_resolutions)
-`);
+    AND mod(abs(hashtext(condition_id)), $1) = $2
+`, [SHARD_N, SHARD_I]);
 const ids = rows.map((r) => r.condition_id);
-console.log(`Resolutions to fetch: ${ids.length}`);
+console.log(`Resolutions to fetch (shard ${SHARD_I}/${SHARD_N}): ${ids.length}`);
 
 let blockStreak = 0;
 
