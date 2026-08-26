@@ -27,15 +27,26 @@ await pool.query(`
 `);
 
 // SHARD="i/n" lets n parallel runners split the id space disjointly.
+// Driver reads the precomputed label_queue table when it exists — four
+// concurrent 35GB DISTINCT scans of smart_alerts caused a lock pileup that
+// stalled the live collector for hours (2026-08-26). Never scan here again.
 const [SHARD_I, SHARD_N] = (process.env.SHARD || '0/1').split('/').map(Number);
-const { rows } = await pool.query(`
-  SELECT DISTINCT condition_id FROM smart_alerts
-  WHERE condition_id IS NOT NULL AND condition_id ~ '^0x[0-9a-fA-F]{64}$'
-    AND condition_id NOT IN (SELECT condition_id FROM market_resolutions)
-    AND mod(abs(hashtext(condition_id)), $1) = $2
-`, [SHARD_N, SHARD_I]);
+const { rows: [{ exists: hasQueue }] } = await pool.query(
+  `SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name='label_queue') AS exists`);
+const { rows } = hasQueue
+  ? await pool.query(`
+      SELECT condition_id FROM label_queue
+      WHERE condition_id NOT IN (SELECT condition_id FROM market_resolutions)
+        AND mod(abs(hashtext(condition_id)), $1) = $2
+    `, [SHARD_N, SHARD_I])
+  : await pool.query(`
+      SELECT DISTINCT condition_id FROM smart_alerts
+      WHERE condition_id IS NOT NULL AND condition_id ~ '^0x[0-9a-fA-F]{64}$'
+        AND condition_id NOT IN (SELECT condition_id FROM market_resolutions)
+        AND mod(abs(hashtext(condition_id)), $1) = $2
+    `, [SHARD_N, SHARD_I]);
 const ids = rows.map((r) => r.condition_id);
-console.log(`Resolutions to fetch (shard ${SHARD_I}/${SHARD_N}): ${ids.length}`);
+console.log(`Resolutions to fetch (shard ${SHARD_I}/${SHARD_N}, queue=${hasQueue}): ${ids.length}`);
 
 let blockStreak = 0;
 
