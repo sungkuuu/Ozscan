@@ -28,6 +28,14 @@ on:
         description: SHARD i/n (resolution-backfill only, e.g. 0/4)
         required: false
         type: string
+      pace_ms:
+        description: PACE_MS per-request delay (resolution-backfill, default 450)
+        required: false
+        type: string
+      concurrency:
+        description: CONCURRENCY lanes per shard (resolution-backfill, default 1)
+        required: false
+        type: string
 
 jobs:
   run:
@@ -47,4 +55,6 @@ jobs:
           END_TS: ${{ inputs.end_ts }}
           VERSION: ${{ inputs.version }}
           SHARD: ${{ inputs.shard }}
+          PACE_MS: ${{ inputs.pace_ms }}
+          CONCURRENCY: ${{ inputs.concurrency }}
         run: node ${{ inputs.script }}

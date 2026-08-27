@@ -118,7 +118,13 @@ const ENDPOINTS = [
 let locked = null;         // endpoint proven to work
 let probeFails = 0, done = 0, found = 0, notFound = 0;
 
-for (const id of ids) {
+// Throughput knobs. Defaults stay polite; raise via env once an endpoint is
+// locked and the API is clearly tolerating the load. The blockStreak guard
+// above still backs off and exits on repeated non-OK responses.
+const PACE_MS = Number(process.env.PACE_MS ?? 450);
+const CONCURRENCY = Number(process.env.CONCURRENCY ?? 1);
+
+async function handle(id) {
   let result = null, matchedBy = null;
   const order = locked ? [locked] : ENDPOINTS;
   for (const ep of order) {
@@ -152,7 +158,18 @@ for (const id of ids) {
     }
   }
   if (done % 500 === 0) console.log(`${done}/${ids.length} (found ${found}, notFound ${notFound})`);
-  await sleep(450);
+  await sleep(PACE_MS);
 }
+
+// Probe serially until an endpoint is locked, then widen to CONCURRENCY lanes.
+let cursor = 0;
+while (cursor < ids.length && !locked) await handle(ids[cursor++]);
+
+const rest = ids.slice(cursor);
+const lanes = Array.from({ length: Math.max(1, CONCURRENCY) }, async (_, lane) => {
+  for (let i = lane; i < rest.length; i += CONCURRENCY) await handle(rest[i]);
+});
+await Promise.all(lanes);
+
 console.log(`DONE — ${done} processed, ${found} found, ${notFound} not found`);
 await pool.end();
