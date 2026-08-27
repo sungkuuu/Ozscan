@@ -116,6 +116,15 @@ tbody tr:hover{background:var(--surface-2)}
 .method h4{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 8px;font-weight:500}
 .method p{font-size:14px;margin:0;color:var(--ink-2)}
 
+
+/* site nav */
+.sitenav{display:flex;align-items:baseline;gap:22px;flex-wrap:wrap;padding-bottom:14px;margin-bottom:26px;border-bottom:1px solid var(--rule)}
+.sitenav .brand{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:var(--ink);text-decoration:none;margin-right:4px}
+.sitenav a.nav{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.06em;color:var(--ink-3);text-decoration:none;padding-bottom:2px;border-bottom:1px solid transparent}
+.sitenav a.nav:hover{color:var(--ink)}
+.sitenav a.nav[aria-current="page"]{color:var(--ink);border-bottom-color:var(--ink)}
+@media (max-width:620px){ .sitenav{gap:14px} }
+
 footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3);display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between}
 @media (max-width:620px){ .spec{border-right:none;border-bottom:1px solid var(--rule-soft)} }
 </style>

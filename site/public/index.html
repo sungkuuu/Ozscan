@@ -116,6 +116,15 @@ tbody tr:hover{background:var(--surface-2)}
 .method h4{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 8px;font-weight:500}
 .method p{font-size:14px;margin:0;color:var(--ink-2)}
 
+
+/* site nav */
+.sitenav{display:flex;align-items:baseline;gap:22px;flex-wrap:wrap;padding-bottom:14px;margin-bottom:26px;border-bottom:1px solid var(--rule)}
+.sitenav .brand{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:var(--ink);text-decoration:none;margin-right:4px}
+.sitenav a.nav{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.06em;color:var(--ink-3);text-decoration:none;padding-bottom:2px;border-bottom:1px solid transparent}
+.sitenav a.nav:hover{color:var(--ink)}
+.sitenav a.nav[aria-current="page"]{color:var(--ink);border-bottom-color:var(--ink)}
+@media (max-width:620px){ .sitenav{gap:14px} }
+
 footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3);display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between}
 @media (max-width:620px){ .spec{border-right:none;border-bottom:1px solid var(--rule-soft)} }
 </style>
@@ -123,10 +132,18 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <body>
 <div class="wrap">
 
+<nav class="sitenav">
+  <a class="brand" href="/">Assay Score</a>
+  <a class="nav" href="/" aria-current="page">Ratings</a>
+  <a class="nav" href="/check/">Check a wallet</a>
+  <a class="nav" href="/evidence/">Evidence</a>
+  <a class="nav" href="/api/">API</a>
+</nav>
+
 <header class="masthead">
   <div class="eyebrow">Report 001 · Data through 2026-08-27</div>
   <h1>Polymarket Copyability Ratings</h1>
-  <p class="standfirst">909 tracked wallets, graded on one question: could a follower have captured what this wallet did? Profit alone does not answer it. <a href="/check/">Check any wallet →</a> · <a href="/evidence/">Did the grades predict anything? →</a></p>
+  <p class="standfirst">909 tracked wallets, graded on one question: could a follower have captured what this wallet did? Profit alone does not answer it.</p>
 
   <dl class="specimen">
     <div class="spec"><dt>Wallets graded</dt><dd>909<small>≥50 settled bets</small></dd></div>
@@ -844,7 +861,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <section class="prose">
   <h2>What this report does not claim</h2>
   <p>Detection latency here is one to five minutes. A faster observer might measure different short-horizon values, and nothing in this data speaks to sub-minute copying.</p>
-  <p>Outcome labels currently cover 612,798 of 654,581 markets these wallets traded (94%) and continue to accumulate; grades are recomputed as they land.</p>
+  <p>Outcome labels currently cover 612,798 of 654,584 markets these wallets traded (94%) and continue to accumulate; grades are recomputed as they land.</p>
   <p>A grade of F is not a verdict on a trader. It says the wallet's edge is not transferable to someone watching from outside — which is a statement about copyability, not about skill.</p>
 </section>
 

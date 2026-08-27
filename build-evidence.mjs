@@ -5,6 +5,7 @@
 // forward and edit RESULT below to publish a new round.
 
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { nav } from './site-nav.mjs';
 
 const ROOT = process.env.REPO_DIR || `${process.env.HOME}/OzScan/Ozscan`;
 const head = readFileSync(`${ROOT}/site/head.tmpl.html`, 'utf8');
@@ -37,6 +38,8 @@ const s = RESULT.slip;
 const body = `
 <body>
 <div class="wrap">
+
+${nav('/evidence/')}
 
 <header class="masthead">
   <div class="eyebrow">Assay Score · Evidence · ${RESULT.run_date}</div>

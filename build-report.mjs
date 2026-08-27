@@ -4,6 +4,7 @@
 // wallet_grades every time: node build-report.mjs && (cd site && npx wrangler deploy)
 
 import { readFileSync, writeFileSync } from 'fs';
+import { nav } from './site-nav.mjs';
 import { Pool } from 'pg';
 
 const DB_URL = process.env.DATABASE_URL
@@ -75,10 +76,12 @@ const body = `
 <body>
 <div class="wrap">
 
+${nav('/')}
+
 <header class="masthead">
   <div class="eyebrow">Report 001 · Data through ${today}</div>
   <h1>Polymarket Copyability Ratings</h1>
-  <p class="standfirst">${m.wallets} tracked wallets, graded on one question: could a follower have captured what this wallet did? Profit alone does not answer it. <a href="/check/">Check any wallet →</a> · <a href="/evidence/">Did the grades predict anything? →</a></p>
+  <p class="standfirst">${m.wallets} tracked wallets, graded on one question: could a follower have captured what this wallet did? Profit alone does not answer it.</p>
 
   <dl class="specimen">
     <div class="spec"><dt>Wallets graded</dt><dd>${m.wallets}<small>≥50 settled bets</small></dd></div>

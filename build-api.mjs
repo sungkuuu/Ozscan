@@ -4,6 +4,7 @@
 // Run: node build-api.mjs   (then deploy the site worker)
 
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { nav } from './site-nav.mjs';
 import { Pool } from 'pg';
 
 const DB_URL = process.env.DATABASE_URL
@@ -73,6 +74,8 @@ const head = readFileSync(`${ROOT}/site/head.tmpl.html`, 'utf8');
 const docs = `
 <body>
 <div class="wrap">
+
+${nav('/api/')}
 <header class="masthead">
   <div class="eyebrow">Assay Score · Grade API v0</div>
   <h1>Grade lookup API</h1>

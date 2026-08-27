@@ -4,6 +4,7 @@
 // fresh as the last regrade. Run after build-api.mjs.
 
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { nav } from './site-nav.mjs';
 
 const ROOT = process.env.REPO_DIR || `${process.env.HOME}/OzScan/Ozscan`;
 const head = readFileSync(`${ROOT}/site/head.tmpl.html`, 'utf8');
@@ -12,6 +13,8 @@ const today = new Date().toISOString().slice(0, 10);
 const body = `
 <body>
 <div class="wrap">
+
+${nav('/check/')}
 
 <header class="masthead">
   <div class="eyebrow">Assay Score · Wallet check</div>
