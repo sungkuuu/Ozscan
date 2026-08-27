@@ -15,7 +15,9 @@
  "first_bet": "2026-04-11T15:00:00.000Z",
  "last_bet": "2026-07-27T15:00:00.000Z",
  "active_days": 40,
- "flags": [],
- "computed_at": "2026-08-26T22:38:00.104Z",
- "generated_at": "2026-08-27T02:58:39.185Z"
+ "flags": [
+  "dormant"
+ ],
+ "computed_at": "2026-08-27T05:46:23.794Z",
+ "generated_at": "2026-08-27T05:55:43.586Z"
 }

@@ -1,23 +1,21 @@
 {
  "address": "0x955331783b32da6f11516103f71f545ef3d1cfc7",
  "grade": "F",
- "score": -44.9,
- "resolved_bets": 93,
- "resolved_markets": 43,
- "win_pct": 46.2,
- "roi_staked_pct": -34.9,
- "roi_equal_pct": -34.2,
- "pnl_usd": -4663,
+ "score": -35.1,
+ "resolved_bets": 114,
+ "resolved_markets": 48,
+ "win_pct": 46.5,
+ "roi_staked_pct": -35.1,
+ "roi_equal_pct": -34.3,
+ "pnl_usd": -4869,
  "top1_pnl_share_pct": 0,
  "bets_per_active_day": 16.9,
- "avg_entry_cents": 63.3,
+ "avg_entry_cents": 62.5,
  "clv_1h_cents": null,
  "first_bet": "2026-04-06T15:00:00.000Z",
  "last_bet": "2026-08-03T15:00:00.000Z",
  "active_days": 10,
- "flags": [
-  "thin-sample"
- ],
- "computed_at": "2026-08-26T22:38:26.615Z",
- "generated_at": "2026-08-27T02:58:39.185Z"
+ "flags": [],
+ "computed_at": "2026-08-27T05:47:02.412Z",
+ "generated_at": "2026-08-27T05:55:43.586Z"
 }
