@@ -1,0 +1,21 @@
+{
+ "address": "0xd1049158a102840ce595efc6ab683a0cb6fbacef",
+ "grade": "F",
+ "score": -21.8,
+ "resolved_bets": 3296,
+ "resolved_markets": 128,
+ "win_pct": 57.9,
+ "roi_staked_pct": -0.4,
+ "roi_equal_pct": -21.8,
+ "pnl_usd": -9976,
+ "top1_pnl_share_pct": 0,
+ "bets_per_active_day": 123.57377049180327,
+ "avg_entry_cents": 59.5,
+ "clv_1h_cents": null,
+ "first_bet": "2026-06-06T15:00:00.000Z",
+ "last_bet": "2026-08-21T15:00:00.000Z",
+ "active_days": 41,
+ "flags": [],
+ "computed_at": "2026-08-26T22:37:30.374Z",
+ "generated_at": "2026-08-27T02:58:39.185Z"
+}

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="76" height="20" role="img" aria-label="assay: D">
+<rect width="52" height="20" rx="3" fill="#24292f"/>
+<rect x="52" width="24" height="20" fill="#A8742C"/>
+<rect x="52" width="4" height="20" fill="#A8742C"/>
+<rect width="76" height="20" rx="3" fill="none"/>
+<g fill="#fff" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-anchor="middle">
+<text x="26" y="14" font-size="11">assay</text>
+<text x="64" y="14" font-size="11" font-weight="bold">D</text>
+</g></svg>
