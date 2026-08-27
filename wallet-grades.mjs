@@ -17,9 +17,14 @@ const pool = new Pool({ connectionString: DB_URL, ssl: { rejectUnauthorized: fal
 
 const MIN_RESOLVED = Number(process.env.MIN_RESOLVED || 50);
 const MIN_MARKETS = Number(process.env.MIN_MARKETS || 20); // one sliced longshot != a record
+// Walk-forward support: restrict the scoring window and write to a side table,
+// so a training-period grade can be tested against a later, unseen period.
+const WIN_START = Number(process.env.WINDOW_START || 0);
+const WIN_END = Number(process.env.WINDOW_END || 9999999999);
+const TABLE = (process.env.GRADES_TABLE || 'wallet_grades').replace(/[^a-z_]/g, '');
 
 await pool.query(`
-  CREATE TABLE IF NOT EXISTS wallet_grades (
+  CREATE TABLE IF NOT EXISTS ${TABLE} (
     address TEXT PRIMARY KEY,
     grade TEXT, score NUMERIC,
     resolved_bets INT, resolved_markets INT, win_pct NUMERIC, roi_staked_pct NUMERIC, roi_equal_pct NUMERIC,
@@ -44,6 +49,7 @@ WITH bets AS (
   WHERE s.action = 'BUY' AND s.outcome IS NOT NULL
     AND s.price BETWEEN 5 AND 95 AND s.size > 0
     AND r.closed IS TRUE AND r.winning_outcome IS NOT NULL
+    AND s.timestamp >= ${WIN_START} AND s.timestamp < ${WIN_END}
 ),
 per AS (
   SELECT address,
@@ -65,7 +71,7 @@ per AS (
 ),
 pace AS (
   SELECT address, count(*)::numeric / GREATEST(count(DISTINCT to_timestamp(timestamp)::date), 1) AS bets_per_active_day
-  FROM smart_alerts WHERE action IS NOT NULL GROUP BY address
+  FROM smart_alerts WHERE action IS NOT NULL AND timestamp >= ${WIN_START} AND timestamp < ${WIN_END} GROUP BY address
 ),
 clv AS (
   SELECT address, ROUND(AVG(mk_1h) * 100, 2) AS clv_1h_cents, count(*) AS clv_episodes
@@ -98,7 +104,11 @@ function grade(w) {
   if (Math.sign(roiS) !== Math.sign(roiE) && roiS !== 0 && roiE !== 0) flags.push('weighting-flip');
   if (Number(w.avg_entry_cents) > 80) flags.push('favorite-heavy');
   if (Number(w.resolved_bets) < 100) flags.push('thin-sample');
-  const daysSinceLast = (Date.now() / 86400000) - (new Date(w.last_bet).getTime() / 86400000);
+  // Dormancy is measured from the end of the scoring window, not wall-clock: a
+  // walk-forward run that stops at June 30 must not mark every wallet dormant
+  // just because today is later.
+  const asOfMs = Math.min(Date.now(), WIN_END * 1000);
+  const daysSinceLast = (asOfMs / 86400000) - (new Date(w.last_bet).getTime() / 86400000);
   if (daysSinceLast > 30) flags.push('dormant');
   if (clv !== null && clv < 0) flags.push('negative-clv');
 
@@ -123,7 +133,7 @@ function grade(w) {
 for (const w of rows) {
   const { g, score, top1, flags } = grade(w);
   await pool.query(
-    `INSERT INTO wallet_grades (address, grade, score, resolved_bets, resolved_markets, win_pct, roi_staked_pct, roi_equal_pct,
+    `INSERT INTO ${TABLE} (address, grade, score, resolved_bets, resolved_markets, win_pct, roi_staked_pct, roi_equal_pct,
        pnl_usd, staked_usd, top1_pnl_share_pct, bets_per_active_day, median_bet_usd, avg_entry_cents,
        sports_share_pct, clv_1h_cents, clv_episodes, first_bet, last_bet, active_days, flags, computed_at)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,NOW())
@@ -145,8 +155,8 @@ const { rows: out } = await pool.query(
   `SELECT grade, LEFT(address,10)||'…' AS wallet, score, resolved_bets AS bets, win_pct, roi_staked_pct AS roi,
           roi_equal_pct AS roi_eq, pnl_usd, ROUND(bets_per_active_day) AS pace, clv_1h_cents AS clv,
           last_bet, array_to_string(flags,',') AS flags
-   FROM wallet_grades ORDER BY score DESC`);
+   FROM ${TABLE} ORDER BY score DESC`);
 console.table(out);
-const { rows: dist } = await pool.query(`SELECT grade, count(*) FROM wallet_grades GROUP BY 1 ORDER BY 1`);
+const { rows: dist } = await pool.query(`SELECT grade, count(*) FROM ${TABLE} GROUP BY 1 ORDER BY 1`);
 console.log('\nGrade distribution:', dist.map(d => `${d.grade}:${d.count}`).join('  '));
 await pool.end();
