@@ -34,10 +34,12 @@ const [SHARD_I, SHARD_N] = (process.env.SHARD || '0/1').split('/').map(Number);
 const { rows: [{ exists: hasQueue }] } = await pool.query(
   `SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name='label_queue') AS exists`);
 const { rows } = hasQueue
+  // label_queue holds only outstanding work: rows are deleted as they land, so
+  // this stays a plain index scan. Anti-joining against market_resolutions here
+  // cost 5+ minutes per shard and starved the whole fleet (2026-08-27).
   ? await pool.query(`
       SELECT condition_id FROM label_queue
-      WHERE condition_id NOT IN (SELECT condition_id FROM market_resolutions)
-        AND mod(abs(hashtext(condition_id)), $1) = $2
+      WHERE mod(abs(hashtext(condition_id)), $1) = $2
     `, [SHARD_N, SHARD_I])
   : await pool.query(`
       SELECT DISTINCT condition_id FROM smart_alerts
@@ -157,6 +159,7 @@ async function handle(id) {
       );
     }
   }
+  if (hasQueue) await pool.query(`DELETE FROM label_queue WHERE condition_id = $1`, [id]);
   if (done % 500 === 0) console.log(`${done}/${ids.length} (found ${found}, notFound ${notFound})`);
   await sleep(PACE_MS);
 }
