@@ -29,6 +29,22 @@ const RESULT = {
 // were computed from. Measuring it against the current 909-wallet table instead
 // silently swapped the population — the first published version did that and
 // carried a "seventy times" claim the correct cohort does not support.
+// Where the graded wallets came from. Counts read from grade_universe on
+// 2026-08-28; the collector's whale threshold is WHALE_SIZE_USDC in index.js.
+const UNIVERSE = {
+  total: 1329,
+  whale_usdc: 2000,
+  sources: [
+    { n: 960, label: 'seen in the live trade feed placing a single trade of $2,000 or more' },
+    { n: 196, label: "taken from Polymarket's own leaderboard" },
+    { n: 90, label: "taken from a builder's public smart-money leaderboard" },
+    { n: 82, label: 'earlier wallets from the same trade feed, backfilled first' },
+    { n: 1, label: "featured as a top trader on a builder's front page" },
+  ],
+  graded: 909,
+  cohort: 724,
+};
+
 const CATEGORY = {
   run_date: '2026-08-28',
   rule: "/(btc|eth|sol|xrp|doge|bitcoin|ethereum|solana)[-_].*(up|down)|updown/i",
@@ -50,6 +66,9 @@ const rows = RESULT.grades.map((r) => `<tr>
 <td class="num ${r.median > 0 ? 'pos' : 'neg'}">${r.median >= 0 ? '+' : ''}${r.median.toFixed(1)}%</td>
 <td class="num ${r.exTop > 0 ? 'pos' : 'neg'}">${r.exTop >= 0 ? '+' : ''}${r.exTop.toFixed(1)}%</td>
 </tr>`).join('\n');
+
+const uniRows = UNIVERSE.sources.map((r) =>
+  `<li><strong>${r.n.toLocaleString()}</strong> ${r.label}</li>`).join('\n');
 
 const catRows = CATEGORY.rows.map((r) => {
   const pct = (r.updown / r.bets) * 100;
@@ -80,6 +99,17 @@ ${nav('/evidence/')}
 <section>
   <h2>The test</h2>
   <p>Grades were computed from settled outcomes in <strong>${RESULT.train}</strong> and nothing else. They were then measured against realized results in <strong>${RESULT.test}</strong>. No wallet was re-graded using the test period, and no wallet was dropped for performing badly.</p>
+</section>
+
+<section>
+  <h2>Where the wallets came from</h2>
+  <p class="sec-note">Selection decides what a result like this can mean, so here is the whole of it. The universe is ${UNIVERSE.total.toLocaleString()} addresses:</p>
+  <ul class="sources">
+${uniRows}
+  </ul>
+  <p>Wallets with fewer than 50 settled bets are not graded, which leaves ${UNIVERSE.graded} today. The walk forward used the ${UNIVERSE.cohort} that cleared that floor on data through June 30.</p>
+  <p><strong>This is not a random sample of Polymarket.</strong> Every wallet in it was already large, already ranked, or both — nobody enters by being interesting. Two of the sources rank by past profit, which is the selector this whole report argues against, so the A grade is separating <em>inside</em> a pool that has already been filtered that way rather than picking winners out of the general population.</p>
+  <p>Two consequences worth stating plainly. Nothing here speaks to wallets that no leaderboard has noticed and that never placed a $${UNIVERSE.whale_usdc.toLocaleString()} trade while the collector was watching — they were never eligible to be graded. And a wallet that stopped trading before collection began is absent, not failed, so the population is drawn from survivors of a window we did not choose.</p>
 </section>
 
 <section>

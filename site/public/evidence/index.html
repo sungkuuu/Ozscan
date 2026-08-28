@@ -119,6 +119,10 @@ tbody tr:hover{background:var(--surface-2)}
 }
 .flag.none{opacity:.45}
 
+.sources{margin:0 0 18px;padding-left:20px;color:var(--ink-2);font-size:15px}
+.sources li{margin:0 0 6px}
+.sources strong{color:var(--ink);font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+
 /* callout */
 .callout{border-left:3px solid var(--accent);background:var(--surface);padding:22px 24px;margin:26px 0}
 .callout .eyebrow{color:var(--accent)}
@@ -172,6 +176,21 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <section>
   <h2>The test</h2>
   <p>Grades were computed from settled outcomes in <strong>April 2 – June 30, 2026</strong> and nothing else. They were then measured against realized results in <strong>July 1 – August 27, 2026</strong>. No wallet was re-graded using the test period, and no wallet was dropped for performing badly.</p>
+</section>
+
+<section>
+  <h2>Where the wallets came from</h2>
+  <p class="sec-note">Selection decides what a result like this can mean, so here is the whole of it. The universe is 1,329 addresses:</p>
+  <ul class="sources">
+<li><strong>960</strong> seen in the live trade feed placing a single trade of $2,000 or more</li>
+<li><strong>196</strong> taken from Polymarket's own leaderboard</li>
+<li><strong>90</strong> taken from a builder's public smart-money leaderboard</li>
+<li><strong>82</strong> earlier wallets from the same trade feed, backfilled first</li>
+<li><strong>1</strong> featured as a top trader on a builder's front page</li>
+  </ul>
+  <p>Wallets with fewer than 50 settled bets are not graded, which leaves 909 today. The walk forward used the 724 that cleared that floor on data through June 30.</p>
+  <p><strong>This is not a random sample of Polymarket.</strong> Every wallet in it was already large, already ranked, or both — nobody enters by being interesting. Two of the sources rank by past profit, which is the selector this whole report argues against, so the A grade is separating <em>inside</em> a pool that has already been filtered that way rather than picking winners out of the general population.</p>
+  <p>Two consequences worth stating plainly. Nothing here speaks to wallets that no leaderboard has noticed and that never placed a $2,000 trade while the collector was watching — they were never eligible to be graded. And a wallet that stopped trading before collection began is absent, not failed, so the population is drawn from survivors of a window we did not choose.</p>
 </section>
 
 <section>
