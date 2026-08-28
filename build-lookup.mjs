@@ -17,7 +17,10 @@ const body = `
 ${nav('/check/')}
 
 <header class="masthead">
-  <div class="eyebrow">Assay Score · Wallet check</div>
+  <div class="crest">
+    <img src="/mark.png" srcset="/mark.png 1x, /mark@2x.png 2x" width="52" height="52" alt="">
+    <div class="eyebrow">Assay Score · Wallet check</div>
+  </div>
   <h1>Is this wallet worth following?</h1>
   <p class="standfirst">Paste a Polymarket wallet address. You get the grade and the reasons behind it, computed from settled outcomes — not from what the wallet says about itself.</p>
 </header>

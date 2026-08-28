@@ -13,7 +13,7 @@ export function nav(current) {
     `<a class="nav" href="${href}"${href === current ? ' aria-current="page"' : ''}>${label}</a>`
   ).join('\n  ');
   return `<nav class="sitenav">
-  <a class="brand" href="/">Assay Score</a>
+  <a class="brand" href="/"><img class="brandmark" src="/mark.png" srcset="/mark.png 1x, /mark@2x.png 2x" width="26" height="26" alt="">Assay Score</a>
   ${items}
 </nav>`;
 }

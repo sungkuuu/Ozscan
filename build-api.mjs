@@ -77,7 +77,10 @@ const docs = `
 
 ${nav('/api/')}
 <header class="masthead">
-  <div class="eyebrow">Assay Score · Grade API v0</div>
+  <div class="crest">
+    <img src="/mark.png" srcset="/mark.png 1x, /mark@2x.png 2x" width="52" height="52" alt="">
+    <div class="eyebrow">Assay Score · Grade API v0</div>
+  </div>
   <h1>Grade lookup API</h1>
   <p class="standfirst">Read-only. Static snapshots regenerated with every regrade — currently ${g.length} wallets, ${meta.label_coverage_pct}% outcome-label coverage. No key, no rate card, CORS open.</p>
 </header>

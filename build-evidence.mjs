@@ -42,7 +42,10 @@ const body = `
 ${nav('/evidence/')}
 
 <header class="masthead">
-  <div class="eyebrow">Assay Score · Evidence · ${RESULT.run_date}</div>
+  <div class="crest">
+    <img src="/mark.png" srcset="/mark.png 1x, /mark@2x.png 2x" width="52" height="52" alt="">
+    <div class="eyebrow">Assay Score · Evidence · ${RESULT.run_date}</div>
+  </div>
   <h1>Did the grades predict anything?</h1>
   <p class="standfirst">A rating is only worth what it forecasts. So we graded wallets using data through June 30, sealed it, and scored those grades against July and August — a period the grading never saw.</p>
 </header>

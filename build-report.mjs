@@ -79,7 +79,10 @@ const body = `
 ${nav('/')}
 
 <header class="masthead">
-  <div class="eyebrow">Report 001 · Data through ${today}</div>
+  <div class="crest">
+    <img src="/mark.png" srcset="/mark.png 1x, /mark@2x.png 2x" width="52" height="52" alt="">
+    <div class="eyebrow">Report 001 · Data through ${today}</div>
+  </div>
   <h1>Polymarket Copyability Ratings</h1>
   <p class="standfirst">${m.wallets} tracked wallets, graded on one question: could a follower have captured what this wallet did? Profit alone does not answer it.</p>
 

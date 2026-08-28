@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Thirty-two Polymarket wallets graded on whether a follower could actually have captured their edge.">
+<meta name="description" content="Polymarket wallets graded on one question: could a follower actually have captured what this wallet did?">
 <meta property="og:title" content="Polymarket Copyability Ratings">
-<meta property="og:description" content="The most profitable wallet on the list scores an F. It trades 22,208 times a day.">
+<meta property="og:description" content="The most profitable wallet on the list scores an F. No follower can capture twenty thousand fills a day.">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/mark@2x.png">
 <title>Polymarket Copyability Ratings</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,6 +54,12 @@ h1,h2,h3{font-family:"Newsreader",Georgia,serif;font-weight:500;text-wrap:balanc
 
 /* masthead */
 .masthead{border-top:2px solid var(--ink);padding-top:18px}
+.masthead .crest{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.masthead .crest img{width:52px;height:52px;border-radius:11px;flex:none}
+:root:not([data-theme="dark"]) .masthead .crest img{box-shadow:0 0 0 1px var(--rule)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .masthead .crest img{box-shadow:none}}
+:root[data-theme="dark"] .masthead .crest img{box-shadow:none}
+@media (max-width:620px){.masthead .crest img{width:42px;height:42px}}
 .masthead h1{font-size:clamp(34px,5.2vw,56px);line-height:1.04;letter-spacing:-.015em;margin:14px 0 10px}
 .standfirst{font-size:clamp(16px,1.6vw,19px);color:var(--ink-2);max-width:60ch}
 .specimen{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0;margin-top:34px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
@@ -119,7 +126,13 @@ tbody tr:hover{background:var(--surface-2)}
 
 /* site nav */
 .sitenav{display:flex;align-items:baseline;gap:22px;flex-wrap:wrap;padding-bottom:14px;margin-bottom:26px;border-bottom:1px solid var(--rule)}
-.sitenav .brand{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:var(--ink);text-decoration:none;margin-right:4px}
+.sitenav{align-items:center}
+.sitenav .brand{display:inline-flex;align-items:center;gap:9px;font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:var(--ink);text-decoration:none;margin-right:4px}
+.brandmark{display:block;width:26px;height:26px;border-radius:6px;flex:none}
+/* the mark is a dark disc, so it needs a hairline to sit on the light paper */
+:root:not([data-theme="dark"]) .brandmark{box-shadow:0 0 0 1px var(--rule)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .brandmark{box-shadow:none}}
+:root[data-theme="dark"] .brandmark{box-shadow:none}
 .sitenav a.nav{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.06em;color:var(--ink-3);text-decoration:none;padding-bottom:2px;border-bottom:1px solid transparent}
 .sitenav a.nav:hover{color:var(--ink)}
 .sitenav a.nav[aria-current="page"]{color:var(--ink);border-bottom-color:var(--ink)}
@@ -133,7 +146,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <div class="wrap">
 
 <nav class="sitenav">
-  <a class="brand" href="/">Assay Score</a>
+  <a class="brand" href="/"><img class="brandmark" src="/mark.png" srcset="/mark.png 1x, /mark@2x.png 2x" width="26" height="26" alt="">Assay Score</a>
   <a class="nav" href="/">Ratings</a>
   <a class="nav" href="/check/" aria-current="page">Check a wallet</a>
   <a class="nav" href="/evidence/">Evidence</a>
@@ -141,7 +154,10 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 </nav>
 
 <header class="masthead">
-  <div class="eyebrow">Assay Score · Wallet check</div>
+  <div class="crest">
+    <img src="/mark.png" srcset="/mark.png 1x, /mark@2x.png 2x" width="52" height="52" alt="">
+    <div class="eyebrow">Assay Score · Wallet check</div>
+  </div>
   <h1>Is this wallet worth following?</h1>
   <p class="standfirst">Paste a Polymarket wallet address. You get the grade and the reasons behind it, computed from settled outcomes — not from what the wallet says about itself.</p>
 </header>
@@ -166,7 +182,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 
 <footer>
   <span>Method and full ratings on the <a href="/">report page</a> · API at <a href="/api/">/api</a></span>
-  <span>Data through 2026-08-27</span>
+  <span>Data through 2026-08-28</span>
 </footer>
 
 </div>
