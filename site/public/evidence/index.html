@@ -195,7 +195,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 
 <section>
   <h2>What the grades forecast</h2>
-  <p class="sec-note">"Hit rate" is the share of still-active wallets that finished the test period profitable. "Median wallet" is the middle wallet's return on stake — a check that the result isn't one lucky outlier. The last column removes each grade's single best wallet entirely.</p>
+  <p class="sec-note">"Hit rate" is the share of still-active wallets that finished the test period profitable. "Median wallet" is the middle wallet's return on stake — a check that the result isn't one lucky outlier. The last column is a different statistic, not that median with a row deleted: it removes the grade's single largest earner and then pools the profit and stake of every wallet left, which is what a follower spreading capital across the whole cohort would have made without the one wallet that carried it.</p>
   <div class="tablewrap">
     <table>
       <thead><tr>
@@ -258,7 +258,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
   <div class="callout">
     <div class="eyebrow">Headline result</div>
     <h3>23 of the 27 wallets we graded A were profitable out of sample.</h3>
-    <p>The median A wallet returned <strong>+19.4%</strong> on stake, and the grade still holds at <strong>+10%</strong> after deleting its single best performer — so this is not one outlier carrying a cohort. Under a coin-flip assumption, 23 or more out of 27 lands around two in ten thousand.</p>
+    <p>The median A wallet returned <strong>+19.4%</strong> on stake. Pooled across the cohort with its single largest earner removed, the grade still returns <strong>+10%</strong> — a harder test than the median, and the relevant one if you would have spread capital over all of them rather than picked the winner in advance. Under a coin-flip assumption, 23 or more out of 27 lands around two in ten thousand.</p>
     <p>Every other grade sits near a coin flip. That is the honest shape of the result: <strong>the signal lives at the top of the scale, not across it.</strong></p>
   </div>
 </section>
@@ -329,6 +329,13 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
   <p><strong>It is conditional on the market staying uncrowded.</strong> The five-minute cushion exists because few people are currently racing to copy the same wallets. As copy trading grows — and as lists like ours get published — that cushion narrows.</p>
   <p><strong>B did not work, and F was not a loss.</strong> B-grade wallets hit 55% and turn negative once their best performer is removed. F-grade wallets finished slightly positive in aggregate. An F means the record gives no reason to expect it to repeat; it does not mean the wallet loses money.</p>
   <p>One test period, thirty A-grade wallets, two months. Prices are recomputed from settled outcomes and public order history throughout. This is evidence, not a guarantee, and none of it is financial advice.</p>
+</section>
+
+<section class="prose">
+  <h2>Checking it yourself</h2>
+  <p>Everything needed to judge the design is on this page: the windows, the wallet universe and how it was filtered, the definition of every column, the rule that classifies a market, and the four conditions the result depends on. That is deliberate — a rating nobody can argue with is a rating nobody can use.</p>
+  <p>Recomputing the numbers line by line takes one more thing: the per-wallet record behind them. That file has a row for each of the 724 wallets in the cohort — the grade and score it carried on June 30, its settled bets in each window, and the stake, profit and return it produced in the test period. From it every figure in the table above can be rebuilt, including both readings of the last column.</p>
+  <p>It is not a free download. Write to <a href="mailto:contact@assayscore.com">contact@assayscore.com</a> and we will quote it. The current grades stay free and unmetered at <a href="/api/">the API</a>.</p>
 </section>
 
 <footer>
