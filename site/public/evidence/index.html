@@ -123,6 +123,9 @@ tbody tr:hover{background:var(--surface-2)}
 .sources li{margin:0 0 6px}
 .sources strong{color:var(--ink);font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
 
+h3.sub{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:500;margin:30px 0 8px}
+code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.92em;background:var(--surface);border:1px solid var(--rule-soft);border-radius:3px;padding:1px 5px;color:var(--ink)}
+
 /* callout */
 .callout{border-left:3px solid var(--accent);background:var(--surface);padding:22px 24px;margin:26px 0}
 .callout .eyebrow{color:var(--accent)}
@@ -191,6 +194,93 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
   <p>Wallets with fewer than 50 settled bets are not graded, which leaves 909 today. The walk forward used the 724 that cleared that floor on data through June 30.</p>
   <p><strong>This is not a random sample of Polymarket.</strong> Every wallet in it was already large, already ranked, or both — nobody enters by being interesting. Two of the sources rank by past profit, which is the selector this whole report argues against, so the A grade is separating <em>inside</em> a pool that has already been filtered that way rather than picking winners out of the general population.</p>
   <p>Two consequences worth stating plainly. Nothing here speaks to wallets that no leaderboard has noticed and that never placed a $2,000 trade while the collector was watching — they were never eligible to be graded. And a wallet that stopped trading before collection began is absent, not failed, so the population is drawn from survivors of a window we did not choose.</p>
+</section>
+
+<section>
+  <h2>How a grade is computed</h2>
+  <p class="sec-note">The thresholds below are read from the same file the scorer runs on, so this page cannot describe one rule while the code applies another.</p>
+
+  <h3 class="sub">What counts as a settled bet</h3>
+  <p>A <strong>BUY</strong> recorded on a wallet at an entry price between <strong>5¢ and 95¢</strong>, where the market must have closed with a winning outcome recorded. Sells are not counted as separate bets; the outcome decides the result. The price band drops near-certain and near-worthless entries, where a rounding of one cent swamps the return.</p>
+
+  <h3 class="sub">What a bet returns</h3>
+  <p>A bet stakes an amount in USDC at a price in cents. Winning pays the full share value, so profit is <code>size × (100 − price) / price</code>; losing costs <code>−size</code>, the whole stake. Nothing is read from the wallet's displayed balance, and no unrealized position is counted.</p>
+  <p>Two returns are computed from those bets, and both appear in the ratings table because they answer different questions. <strong>Stake-weighted</strong> is <code>Σ profit ÷ Σ stake — one dollar, one vote</code>. <strong>Equal-weighted</strong> is the <code>mean of (profit ÷ stake) per bet — one bet, one vote</code>. When the two disagree in sign, a handful of large bets are carrying a record that the wallet's ordinary behaviour does not support — which is itself one of the flags below.</p>
+
+  <h3 class="sub">Flags</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th class="l">Flag</th><th class="l">Raised when</th><th>Score</th></tr></thead>
+      <tbody>
+<tr>
+<td class="l"><code>bot-pace</code></td>
+<td class="l">more than 500 settled bets per active day</td>
+<td class="num">−25</td>
+</tr>
+<tr>
+<td class="l"><code>single-bet-driven</code></td>
+<td class="l">one bet produced more than 30% of total profit</td>
+<td class="num">−15</td>
+</tr>
+<tr>
+<td class="l"><code>weighting-flip</code></td>
+<td class="l">stake-weighted and equal-weighted ROI disagree in sign</td>
+<td class="num">−15</td>
+</tr>
+<tr>
+<td class="l"><code>thin-sample</code></td>
+<td class="l">fewer than 100 settled bets</td>
+<td class="num">−10</td>
+</tr>
+<tr>
+<td class="l"><code>favorite-heavy</code></td>
+<td class="l">average entry above 80¢</td>
+<td class="num">—</td>
+</tr>
+<tr>
+<td class="l"><code>dormant</code></td>
+<td class="l">no settled bet in the 30 days before the window ends</td>
+<td class="num">—</td>
+</tr>
+<tr>
+<td class="l"><code>negative-clv</code></td>
+<td class="l">one-hour markout after detection is below zero</td>
+<td class="num">—</td>
+</tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="sub">Score and cutoffs</h3>
+  <p>The score starts as the lower of the two ROI readings, clamped to ±50, then subtracts the penalties above and adds the one-hour markout in cents × 5, clamped to ±10. A dormant wallet is capped at 5 whatever it scored — a record you can no longer follow is not a rating.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th class="l">Grade</th><th class="l">Awarded when</th></tr></thead>
+      <tbody>
+<tr>
+<td class="l"><span class="stamp g-a">A</span></td>
+<td class="l">score ≥ 20 and no flags at all</td>
+</tr>
+<tr>
+<td class="l"><span class="stamp g-b">B</span></td>
+<td class="l">score ≥ 10</td>
+</tr>
+<tr>
+<td class="l"><span class="stamp g-c">C</span></td>
+<td class="l">score ≥ 0</td>
+</tr>
+<tr>
+<td class="l"><span class="stamp g-d">D</span></td>
+<td class="l">score ≥ −15</td>
+</tr>
+<tr>
+<td class="l"><span class="stamp g-f">F</span></td>
+<td class="l">below −15</td>
+</tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>A is the only grade that requires a clean sheet.</strong> Three of the flags carry no point penalty at all, so a wallet can score well above 20 and still be capped at B by a single one. That is deliberate: the flags describe ways a record can be true and still not be followable, and averaging that away is exactly the mistake this rating exists to avoid.</p>
 </section>
 
 <section>

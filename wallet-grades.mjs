@@ -10,6 +10,7 @@
 
 import { readFileSync } from 'fs';
 import { Pool } from 'pg';
+import { N } from './grade-spec.mjs';
 
 const DB_URL = process.env.DATABASE_URL
   || readFileSync(`${process.env.HOME}/OzScan/backups/.db_url`, 'utf8').trim();
@@ -47,7 +48,7 @@ WITH bets AS (
   FROM smart_alerts s
   JOIN market_resolutions r ON r.condition_id = s.condition_id
   WHERE s.action = 'BUY' AND s.outcome IS NOT NULL
-    AND s.price BETWEEN 5 AND 95 AND s.size > 0
+    AND s.price BETWEEN ${N.PRICE_MIN} AND ${N.PRICE_MAX} AND s.size > 0
     AND r.closed IS TRUE AND r.winning_outcome IS NOT NULL
     AND s.timestamp >= ${WIN_START} AND s.timestamp < ${WIN_END}
 ),
@@ -99,33 +100,33 @@ function grade(w) {
   const pace = Number(w.bets_per_active_day);
   const clv = w.clv_1h_cents === null ? null : Number(w.clv_1h_cents);
 
-  if (pace > 500) flags.push('bot-pace');
-  if (top1 > 30) flags.push('single-bet-driven');
+  if (pace > N.BOT_PACE) flags.push('bot-pace');
+  if (top1 > N.TOP1_SHARE) flags.push('single-bet-driven');
   if (Math.sign(roiS) !== Math.sign(roiE) && roiS !== 0 && roiE !== 0) flags.push('weighting-flip');
-  if (Number(w.avg_entry_cents) > 80) flags.push('favorite-heavy');
-  if (Number(w.resolved_bets) < 100) flags.push('thin-sample');
+  if (Number(w.avg_entry_cents) > N.FAVORITE_CENTS) flags.push('favorite-heavy');
+  if (Number(w.resolved_bets) < N.THIN_SAMPLE) flags.push('thin-sample');
   // Dormancy is measured from the end of the scoring window, not wall-clock: a
   // walk-forward run that stops at June 30 must not mark every wallet dormant
   // just because today is later.
   const asOfMs = Math.min(Date.now(), WIN_END * 1000);
   const daysSinceLast = (asOfMs / 86400000) - (new Date(w.last_bet).getTime() / 86400000);
-  if (daysSinceLast > 30) flags.push('dormant');
+  if (daysSinceLast > N.DORMANT_DAYS) flags.push('dormant');
   if (clv !== null && clv < 0) flags.push('negative-clv');
 
   // score: robust ROI (min of the two weightings) minus penalties
-  let score = Math.max(-50, Math.min(50, Math.min(roiS, roiE)));
-  if (flags.includes('bot-pace')) score -= 25;
-  if (flags.includes('single-bet-driven')) score -= 15;
-  if (flags.includes('weighting-flip')) score -= 15;
-  if (flags.includes('thin-sample')) score -= 10;
-  if (clv !== null) score += Math.max(-10, Math.min(10, clv * 5));
+  let score = Math.max(-N.CLAMP, Math.min(N.CLAMP, Math.min(roiS, roiE)));
+  if (flags.includes('bot-pace')) score -= N.PENALTY['bot-pace'];
+  if (flags.includes('single-bet-driven')) score -= N.PENALTY['single-bet-driven'];
+  if (flags.includes('weighting-flip')) score -= N.PENALTY['weighting-flip'];
+  if (flags.includes('thin-sample')) score -= N.PENALTY['thin-sample'];
+  if (clv !== null) score += Math.max(-N.CLV_CLAMP, Math.min(N.CLV_CLAMP, clv * N.CLV_MULT));
 
-  if (flags.includes('dormant')) score = Math.min(score, 5);   // can't follow what no longer trades
+  if (flags.includes('dormant')) score = Math.min(score, N.DORMANT_CAP);   // can't follow what no longer trades
   let g;
-  if (score >= 20 && flags.length === 0) g = 'A';
-  else if (score >= 10) g = 'B';
-  else if (score >= 0) g = 'C';
-  else if (score >= -15) g = 'D';
+  if (score >= N.A_SCORE && flags.length === 0) g = 'A';
+  else if (score >= N.B_SCORE) g = 'B';
+  else if (score >= N.C_SCORE) g = 'C';
+  else if (score >= N.D_SCORE) g = 'D';
   else g = 'F';
   return { g, score: Math.round(score * 10) / 10, top1: Math.round(top1 * 10) / 10, flags };
 }

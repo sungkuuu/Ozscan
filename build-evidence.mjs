@@ -6,6 +6,7 @@
 
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { nav } from './site-nav.mjs';
+import { SETTLED_BET, PNL, FLAGS, SCORE, CUTOFFS } from './grade-spec.mjs';
 
 const ROOT = process.env.REPO_DIR || `${process.env.HOME}/OzScan/Ozscan`;
 const head = readFileSync(`${ROOT}/site/head.tmpl.html`, 'utf8');
@@ -67,6 +68,17 @@ const rows = RESULT.grades.map((r) => `<tr>
 <td class="num ${r.exTop > 0 ? 'pos' : 'neg'}">${r.exTop >= 0 ? '+' : ''}${r.exTop.toFixed(1)}%</td>
 </tr>`).join('\n');
 
+const flagRows = FLAGS.map((f) => `<tr>
+<td class="l"><code>${f.key}</code></td>
+<td class="l">${f.rule}</td>
+<td class="num">${f.penalty ? `−${f.penalty}` : '—'}</td>
+</tr>`).join('\n');
+
+const cutoffRows = CUTOFFS.map((c) => `<tr>
+<td class="l"><span class="stamp g-${c.g.toLowerCase()}">${c.g}</span></td>
+<td class="l">${c.rule}</td>
+</tr>`).join('\n');
+
 const uniRows = UNIVERSE.sources.map((r) =>
   `<li><strong>${r.n.toLocaleString()}</strong> ${r.label}</li>`).join('\n');
 
@@ -110,6 +122,40 @@ ${uniRows}
   <p>Wallets with fewer than 50 settled bets are not graded, which leaves ${UNIVERSE.graded} today. The walk forward used the ${UNIVERSE.cohort} that cleared that floor on data through June 30.</p>
   <p><strong>This is not a random sample of Polymarket.</strong> Every wallet in it was already large, already ranked, or both — nobody enters by being interesting. Two of the sources rank by past profit, which is the selector this whole report argues against, so the A grade is separating <em>inside</em> a pool that has already been filtered that way rather than picking winners out of the general population.</p>
   <p>Two consequences worth stating plainly. Nothing here speaks to wallets that no leaderboard has noticed and that never placed a $${UNIVERSE.whale_usdc.toLocaleString()} trade while the collector was watching — they were never eligible to be graded. And a wallet that stopped trading before collection began is absent, not failed, so the population is drawn from survivors of a window we did not choose.</p>
+</section>
+
+<section>
+  <h2>How a grade is computed</h2>
+  <p class="sec-note">The thresholds below are read from the same file the scorer runs on, so this page cannot describe one rule while the code applies another.</p>
+
+  <h3 class="sub">What counts as a settled bet</h3>
+  <p>A <strong>${SETTLED_BET.side}</strong> recorded on a wallet at an entry price between <strong>${SETTLED_BET.price_min_cents}¢ and ${SETTLED_BET.price_max_cents}¢</strong>, where ${SETTLED_BET.note}. Sells are not counted as separate bets; the outcome decides the result. The price band drops near-certain and near-worthless entries, where a rounding of one cent swamps the return.</p>
+
+  <h3 class="sub">What a bet returns</h3>
+  <p>A bet stakes an amount in USDC at a price in cents. Winning pays the full share value, so profit is <code>${PNL.win}</code>; losing costs <code>${PNL.loss}</code>, the whole stake. Nothing is read from the wallet's displayed balance, and no unrealized position is counted.</p>
+  <p>Two returns are computed from those bets, and both appear in the ratings table because they answer different questions. <strong>Stake-weighted</strong> is <code>${PNL.roi_staked}</code>. <strong>Equal-weighted</strong> is the <code>${PNL.roi_equal}</code>. When the two disagree in sign, a handful of large bets are carrying a record that the wallet's ordinary behaviour does not support — which is itself one of the flags below.</p>
+
+  <h3 class="sub">Flags</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th class="l">Flag</th><th class="l">Raised when</th><th>Score</th></tr></thead>
+      <tbody>
+${flagRows}
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="sub">Score and cutoffs</h3>
+  <p>The score starts as ${SCORE.base}, then subtracts the penalties above and adds ${SCORE.clv_bonus}. A dormant wallet is capped at ${SCORE.dormant_cap} whatever it scored — a record you can no longer follow is not a rating.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th class="l">Grade</th><th class="l">Awarded when</th></tr></thead>
+      <tbody>
+${cutoffRows}
+      </tbody>
+    </table>
+  </div>
+  <p><strong>A is the only grade that requires a clean sheet.</strong> Three of the flags carry no point penalty at all, so a wallet can score well above 20 and still be capped at B by a single one. That is deliberate: the flags describe ways a record can be true and still not be followable, and averaging that away is exactly the mistake this rating exists to avoid.</p>
 </section>
 
 <section>
