@@ -24,18 +24,20 @@ const RESULT = {
   slip: { bets: 31709, matched: 19243, gap: 3.15, wallet: 5.58, follower: 6.08 },
 };
 
-// A separate check, run 2026-08-28: what share of each grade's settled bets are
-// the 15-minute crypto up/down markets. The grade never looks at what a market
-// is about — only at pace, concentration, entry level and settled return — so
-// this is a read on what those inputs turned out to be selecting against.
+// Category check, run 2026-08-28 on the same footing as the walk forward: the
+// grades frozen at June 30 (wallet_grades_train) and only the bets those grades
+// were computed from. Measuring it against the current 909-wallet table instead
+// silently swapped the population — the first published version did that and
+// carried a "seventy times" claim the correct cohort does not support.
 const CATEGORY = {
   run_date: '2026-08-28',
+  rule: "/(btc|eth|sol|xrp|doge|bitcoin|ethereum|solana)[-_].*(up|down)|updown/i",
   rows: [
-    { g: 'A', bets: 150186, updown: 301 },
-    { g: 'B', bets: 382646, updown: 3411 },
-    { g: 'C', bets: 1938903, updown: 11079 },
-    { g: 'D', bets: 2148648, updown: 195068 },
-    { g: 'F', bets: 22143783, updown: 3159174 },
+    { g: 'A', bets: 136549, updown: 68 },
+    { g: 'B', bets: 279953, updown: 313 },
+    { g: 'C', bets: 978705, updown: 11373 },
+    { g: 'D', bets: 1337927, updown: 121999 },
+    { g: 'F', bets: 10605243, updown: 696045 },
   ],
 };
 
@@ -55,7 +57,7 @@ const catRows = CATEGORY.rows.map((r) => {
 <td class="l"><span class="stamp g-${r.g.toLowerCase()}">${r.g}</span></td>
 <td class="num">${r.bets.toLocaleString()}</td>
 <td class="num">${r.updown.toLocaleString()}</td>
-<td class="num ${r.g === 'A' ? 'pos' : (pct > 5 ? 'neg' : '')}">${pct.toFixed(1)}%</td>
+<td class="num ${pct < 1 ? 'pos' : (pct > 5 ? 'neg' : '')}">${pct.toFixed(2)}%</td>
 </tr>`;
 }).join('\n');
 
@@ -120,7 +122,7 @@ ${rows}
 
 <section>
   <h2>What the grade turned out to be selecting against</h2>
-  <p class="sec-note">Nothing in the grade looks at what a market is about. It reads pace, concentration, entry level, sample size and settled return. So this is a check, run ${CATEGORY.run_date}, on what those inputs ended up excluding: the share of each grade's settled bets placed in Polymarket's fifteen-minute crypto up/down markets.</p>
+  <p class="sec-note">Nothing in the grade looks at what a market is about. It reads pace, concentration, entry level, sample size and settled return. This check, run ${CATEGORY.run_date}, asks what those inputs ended up excluding. It uses the same footing as the test above — the grades frozen at June 30, and only the bets they were computed from — and counts a bet as crypto up/down when its market slug matches <code>${CATEGORY.rule}</code>.</p>
   <div class="tablewrap">
     <table>
       <thead><tr>
@@ -131,8 +133,9 @@ ${catRows}
       </tbody>
     </table>
   </div>
-  <p>A-grade wallets place two bets in a thousand there. F-grade wallets place one in seven — seventy times the rate. That market resolves every fifteen minutes and is worked by machines at a pace no person can follow, which is what the grade was measuring without being told what the market was.</p>
-  <p>It also marks a limit on what outside data can fix. The one public archive of Polymarket order-book depth covers these crypto markets, and <strong>0.2% of what an A-grade wallet trades falls inside it</strong>. For the markets a followable wallet actually trades, depth history is not published anywhere.</p>
+  <p>A and B wallets are effectively absent from that market — one bet in two thousand for A. D and F sit at roughly one in eleven and one in fifteen. The market resolves every fifteen minutes and is worked at machine pace, and the grade pushed the wallets living there down the scale without being told what the market was.</p>
+  <p><strong>The pattern is not monotone.</strong> D carries a higher share than F, so this is not a category filter running quietly inside the grade. What separates cleanly is the top of the scale from the bottom half; the ordering within the bottom half is not explained by this at all.</p>
+  <p>It also bounds what outside data can fix. The one public archive of Polymarket order-book depth covers these crypto markets, and on this cohort <strong>0.05% of what an A-grade wallet traded falls inside it</strong>. For the markets a followable wallet actually trades, depth history is not published anywhere.</p>
 </section>
 
 <section class="prose">

@@ -258,7 +258,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 
 <section>
   <h2>What the grade turned out to be selecting against</h2>
-  <p class="sec-note">Nothing in the grade looks at what a market is about. It reads pace, concentration, entry level, sample size and settled return. So this is a check, run 2026-08-28, on what those inputs ended up excluding: the share of each grade's settled bets placed in Polymarket's fifteen-minute crypto up/down markets.</p>
+  <p class="sec-note">Nothing in the grade looks at what a market is about. It reads pace, concentration, entry level, sample size and settled return. This check, run 2026-08-28, asks what those inputs ended up excluding. It uses the same footing as the test above — the grades frozen at June 30, and only the bets they were computed from — and counts a bet as crypto up/down when its market slug matches <code>/(btc|eth|sol|xrp|doge|bitcoin|ethereum|solana)[-_].*(up|down)|updown/i</code>.</p>
   <div class="tablewrap">
     <table>
       <thead><tr>
@@ -267,39 +267,40 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
       <tbody>
 <tr>
 <td class="l"><span class="stamp g-a">A</span></td>
-<td class="num">150,186</td>
-<td class="num">301</td>
-<td class="num pos">0.2%</td>
+<td class="num">136,549</td>
+<td class="num">68</td>
+<td class="num pos">0.05%</td>
 </tr>
 <tr>
 <td class="l"><span class="stamp g-b">B</span></td>
-<td class="num">382,646</td>
-<td class="num">3,411</td>
-<td class="num ">0.9%</td>
+<td class="num">279,953</td>
+<td class="num">313</td>
+<td class="num pos">0.11%</td>
 </tr>
 <tr>
 <td class="l"><span class="stamp g-c">C</span></td>
-<td class="num">1,938,903</td>
-<td class="num">11,079</td>
-<td class="num ">0.6%</td>
+<td class="num">978,705</td>
+<td class="num">11,373</td>
+<td class="num ">1.16%</td>
 </tr>
 <tr>
 <td class="l"><span class="stamp g-d">D</span></td>
-<td class="num">2,148,648</td>
-<td class="num">195,068</td>
-<td class="num neg">9.1%</td>
+<td class="num">1,337,927</td>
+<td class="num">121,999</td>
+<td class="num neg">9.12%</td>
 </tr>
 <tr>
 <td class="l"><span class="stamp g-f">F</span></td>
-<td class="num">22,143,783</td>
-<td class="num">3,159,174</td>
-<td class="num neg">14.3%</td>
+<td class="num">10,605,243</td>
+<td class="num">696,045</td>
+<td class="num neg">6.56%</td>
 </tr>
       </tbody>
     </table>
   </div>
-  <p>A-grade wallets place two bets in a thousand there. F-grade wallets place one in seven — seventy times the rate. That market resolves every fifteen minutes and is worked by machines at a pace no person can follow, which is what the grade was measuring without being told what the market was.</p>
-  <p>It also marks a limit on what outside data can fix. The one public archive of Polymarket order-book depth covers these crypto markets, and <strong>0.2% of what an A-grade wallet trades falls inside it</strong>. For the markets a followable wallet actually trades, depth history is not published anywhere.</p>
+  <p>A and B wallets are effectively absent from that market — one bet in two thousand for A. D and F sit at roughly one in eleven and one in fifteen. The market resolves every fifteen minutes and is worked at machine pace, and the grade pushed the wallets living there down the scale without being told what the market was.</p>
+  <p><strong>The pattern is not monotone.</strong> D carries a higher share than F, so this is not a category filter running quietly inside the grade. What separates cleanly is the top of the scale from the bottom half; the ordering within the bottom half is not explained by this at all.</p>
+  <p>It also bounds what outside data can fix. The one public archive of Polymarket order-book depth covers these crypto markets, and on this cohort <strong>0.05% of what an A-grade wallet traded falls inside it</strong>. For the markets a followable wallet actually trades, depth history is not published anywhere.</p>
 </section>
 
 <section class="prose">
