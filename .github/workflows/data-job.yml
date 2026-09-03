@@ -11,7 +11,7 @@ on:
         description: Script to run
         required: true
         type: choice
-        options: [backfill-gap.mjs, resolution-backfill.mjs, clv-pilot.mjs]
+        options: [backfill-gap.mjs, resolution-backfill.mjs, clv-pilot.mjs, copy-signal.mjs]
       start_ts:
         description: START_TS override (epoch s, backfill-gap only)
         required: false
@@ -36,6 +36,10 @@ on:
         description: CONCURRENCY lanes per shard (resolution-backfill, default 1)
         required: false
         type: string
+      mode:
+        description: MODE for copy-signal.mjs (pollonce | backtest)
+        required: false
+        type: string
 
 jobs:
   run:
@@ -57,4 +61,5 @@ jobs:
           SHARD: ${{ inputs.shard }}
           PACE_MS: ${{ inputs.pace_ms }}
           CONCURRENCY: ${{ inputs.concurrency }}
+          MODE: ${{ inputs.mode }}
         run: node ${{ inputs.script }}

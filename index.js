@@ -1546,3 +1546,9 @@ setInterval(checkResolvedTrades, 60 * 60 * 1000);
 // Arbitrage feature disabled
 // detectArbitrage();
 // setInterval(detectArbitrage, 5 * 60 * 1000);
+
+// Copy-signal engine (Assay copy product). Separate module over the same DB;
+// a deploy alone changes nothing — it starts only when COPY_SIGNALS_ENABLED=true.
+if (process.env.COPY_SIGNALS_ENABLED === 'true') {
+  import('./copy-signal.mjs').catch((e) => console.error('copy-signal start failed:', e.message));
+}

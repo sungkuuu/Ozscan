@@ -115,6 +115,71 @@ function computeThresholds(episodes) {
   return t;
 }
 
+
+// --- live poller ------------------------------------------------------------
+// The frozen collector only sees wallets in its own live set; most A wallets
+// entered the universe by backfill and go stale the moment a backfill run
+// ends (measured 2026-09-03: 37 of 38 idle ~8.6d — the run boundary, not the
+// wallets). This tops up A-wallet fills from the activity API using the exact
+// row mapping and conflict key expand-universe.mjs uses, marked with its own
+// collector_version so provenance stays auditable. Local IPs are banned by
+// Polymarket — this only works from Railway or an Actions runner.
+
+const POLL_VERSION = 'copy-poll-v1';
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function loadAList() {
+  const { rows } = await pool.query(`SELECT address FROM wallet_grades WHERE grade='A'`);
+  return rows.map((r) => r.address);
+}
+
+async function pollWallet(addr, sinceTs) {
+  const url = `https://data-api.polymarket.com/activity?user=${addr}&limit=100&start=${sinceTs}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const acts = await res.json();
+  if (!Array.isArray(acts) || !acts.length) return 0;
+  const rows = []; const seen = new Set();
+  for (const a of acts) {
+    const type = (a.type || '').toUpperCase();
+    if (['REWARD', 'REDEEM', 'MERGE', 'SPLIT'].includes(type)) continue;
+    const rawTs = a.timestamp || 0;
+    const ts = typeof rawTs === 'number' ? (rawTs > 1e12 ? Math.floor(rawTs / 1000) : rawTs) : Math.floor(new Date(rawTs).getTime() / 1000);
+    const txHash = a.transactionHash || null;
+    const assetId = a.asset || null;
+    const action = a.side ? String(a.side).toUpperCase() : null;
+    const tradeId = txHash ? [txHash, assetId || '', action || '', a.price ?? '', a.size ?? ''].join(':') : (a.id || null);
+    if (!tradeId || !ts || seen.has(tradeId)) continue;
+    seen.add(tradeId);
+    const side = (a.outcome || a.side || a.type || '').toUpperCase();
+    rows.push([tradeId, addr, a.title || a.slug || 'Unknown market',
+      side === 'BUY' ? 'YES' : side === 'SELL' ? 'NO' : side || '—',
+      parseFloat(a.usdcSize || a.size || a.amount || 0), parseFloat(a.price || 0) * 100,
+      a.conditionId || null, a.slug || null, a.eventSlug || null, ts,
+      action, a.outcome != null ? String(a.outcome) : null, assetId, txHash]);
+  }
+  let inserted = 0;
+  for (let i = 0; i < rows.length; i += 200) {
+    const chunk = rows.slice(i, i + 200);
+    const cols = 14;
+    const values = chunk.map((_, j) => `(${Array.from({ length: cols }, (_, k) => `$${j * cols + k + 1}`).join(',')},'${POLL_VERSION}','p1')`);
+    const r = await pool.query(
+      `INSERT INTO smart_alerts (trade_id, address, market, side, size, price, condition_id, slug, event_slug, timestamp, action, outcome, asset_id, transaction_hash, collector_version, parser_version)
+       VALUES ${values.join(',')} ON CONFLICT (trade_id) DO NOTHING`, chunk.flat());
+    inserted += r.rowCount;
+  }
+  return inserted;
+}
+
+async function pollSweep(wallets, sinceTs) {
+  let total = 0, errors = 0;
+  for (const addr of wallets) {
+    try { total += await pollWallet(addr, sinceTs); }
+    catch { errors++; }
+    await sleep(300);
+  }
+  return { total, errors };
+}
 const short = (a) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 const fmtTs = (ts) => new Date(ts * 1000).toISOString().slice(0, 16).replace('T', ' ');
 
@@ -173,10 +238,18 @@ async function run() {
   let thresholds = computeThresholds(episodes);
   const { rows: [cur] } = await pool.query(`SELECT v FROM copy_signal_state WHERE k='last_ts'`);
   let lastTs = cur ? Number(cur.v) : now;
+  let aList = await loadAList();
+  let tick = 0;
 
-  console.log(`live: A-wallet thresholds for ${thresholds.size} wallets, cursor ${fmtTs(lastTs)}`);
+  console.log(`live: ${aList.size ?? aList.length} A wallets, thresholds for ${thresholds.size}, cursor ${fmtTs(lastTs)}`);
   for (;;) {
     try {
+      // sweep the activity API every ~60s; refresh the A list every ~10 min
+      if (tick % 6 === 0) {
+        const sw = await pollSweep(aList, Math.floor(Date.now() / 1000) - 7200);
+        if (sw.total || sw.errors) console.log(`poll: +${sw.total} fills, ${sw.errors} errors`);
+      }
+      if (tick % 60 === 59) aList = await loadAList();
       const fresh = await loadFills(lastTs - EPISODE_GAP_S * 2); // overlap for episode merging
       const eps = buildEpisodes(fresh).filter((e) => e.startTs > lastTs);
       for (const ep of eps) {
@@ -197,11 +270,28 @@ async function run() {
     } catch (e) {
       console.error('cycle error:', e.message);
     }
-    await new Promise((r) => setTimeout(r, 10_000));
+    tick++;
+    await sleep(10_000);
   }
 }
 
-const [mode, arg] = process.argv.slice(2);
-if (mode === 'backtest') await backtest(Number(arg) || 7);
-else if (mode === 'run') await run();
-else { console.log('usage: node copy-signal.mjs backtest [days] | run'); await pool.end(); }
+// One poll sweep and exit — for testing from an Actions runner (local IPs are banned).
+async function pollOnce() {
+  const aList = await loadAList();
+  const sw = await pollSweep(aList, Math.floor(Date.now() / 1000) - 86400);
+  const { rows: [f] } = await pool.query(
+    `SELECT count(*) n, ROUND(EXTRACT(EPOCH FROM now())-MAX(timestamp)) age_s
+     FROM smart_alerts WHERE collector_version=$1`, ['copy-poll-v1']);
+  console.log(`pollonce: ${aList.length} wallets swept, +${sw.total} fills inserted, ${sw.errors} errors`);
+  console.log(`copy-poll rows total: ${f.n}, newest fill ${f.age_s}s ago`);
+  await pool.end();
+}
+
+const isCli = (process.argv[1] || '').includes('copy-signal');
+const [modeArg, arg] = process.argv.slice(2);
+const mode = modeArg || process.env.MODE; // data-job.yml passes MODE (it runs scripts without args)
+if (isCli && mode === 'backtest') await backtest(Number(arg) || 7);
+else if (isCli && mode === 'run') await run();
+else if (isCli && mode === 'pollonce') await pollOnce();
+else if (!isCli && process.env.COPY_SIGNALS_ENABLED === 'true') run(); // imported by the worker
+else if (isCli) { console.log('usage: node copy-signal.mjs backtest [days] | run | pollonce'); await pool.end(); }
