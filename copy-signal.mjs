@@ -32,6 +32,10 @@ const NEW_ENTRY_MAX_USD = 100; // prior net exposure below this counts as "new"
 const SIZE_PCTL = 0.90;        // episode must clear the wallet's own p90
 const LOOKBACK_DAYS = 60;      // history used for position state and p90
 const PRICE_MIN = 5, PRICE_MAX = 95; // same band the grade uses
+// Full-coverage polling surfaced a class of A wallets that spray flat ~$400
+// bets across dozens of minor-league markets — profitable, but 34 signals a
+// day is a feed, not a signal. Conviction needs an absolute floor too.
+const SIGNAL_MIN_USD = Number(process.env.SIGNAL_MIN_USD || 1000);
 
 // ---------------------------------------------------------------------------
 
@@ -97,6 +101,7 @@ function signalOf(ep, thresholds) {
   if (ep.preNetUsd > NEW_ENTRY_MAX_USD) return null;            // not a new opinion
   const floor = thresholds.get(ep.address) ?? Infinity;
   if (ep.sizeUsd < floor) return null;                          // small for this wallet
+  if (ep.sizeUsd < SIGNAL_MIN_USD) return null;                 // small in absolute terms
   return {
     ts: ep.startTs, address: ep.address, market: ep.market, slug: ep.slug,
     outcome: ep.outcome, avgPrice: Math.round(avgPrice * 10) / 10,
