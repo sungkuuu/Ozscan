@@ -119,6 +119,13 @@ tbody tr:hover{background:var(--surface-2)}
 }
 .flag.none{opacity:.45}
 
+.sources{margin:0 0 18px;padding-left:20px;color:var(--ink-2);font-size:15px}
+.sources li{margin:0 0 6px}
+.sources strong{color:var(--ink);font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+
+h3.sub{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:500;margin:30px 0 8px}
+code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.92em;background:var(--surface);border:1px solid var(--rule-soft);border-radius:3px;padding:1px 5px;color:var(--ink)}
+
 /* callout */
 .callout{border-left:3px solid var(--accent);background:var(--surface);padding:22px 24px;margin:26px 0}
 .callout .eyebrow{color:var(--accent)}
@@ -155,6 +162,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <nav class="sitenav">
   <a class="brand" href="/"><img class="brandmark" src="/mark.png" srcset="/mark.png 1x, /mark@2x.png 2x" width="26" height="26" alt="">Assay Score</a>
   <a class="nav" href="/" aria-current="page">Ratings</a>
+  <a class="nav" href="/signals/">Signals</a>
   <a class="nav" href="/check/">Check a wallet</a>
   <a class="nav" href="/evidence/">Evidence</a>
   <a class="nav" href="/api/">API</a>
@@ -163,16 +171,16 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <header class="masthead">
   <div class="crest">
     <img src="/mark.png" srcset="/mark.png 1x, /mark@2x.png 2x" width="52" height="52" alt="">
-    <div class="eyebrow">Report 001 · Data through 2026-08-28</div>
+    <div class="eyebrow">Report 001 · Data through 2026-09-03</div>
   </div>
   <h1>Polymarket Copyability Ratings</h1>
-  <p class="standfirst">909 tracked wallets, graded on one question: could a follower have captured what this wallet did? Profit alone does not answer it.</p>
+  <p class="standfirst">910 tracked wallets, graded on one question: could a follower have captured what this wallet did? Profit alone does not answer it.</p>
 
   <dl class="specimen">
-    <div class="spec"><dt>Wallets graded</dt><dd>909<small>≥50 settled bets</small></dd></div>
-    <div class="spec"><dt>Settled bets</dt><dd>18,221,226<small>BUY, 5–95¢</small></dd></div>
-    <div class="spec"><dt>Capital staked</dt><dd>$3874.88M<small>net P&amp;L $65.52M</small></dd></div>
-    <div class="spec"><dt>Markets resolved</dt><dd>612,837<small>93% of universe</small></dd></div>
+    <div class="spec"><dt>Wallets graded</dt><dd>910<small>≥50 settled bets</small></dd></div>
+    <div class="spec"><dt>Settled bets</dt><dd>18,224,665<small>BUY, 5–95¢</small></dd></div>
+    <div class="spec"><dt>Capital staked</dt><dd>$3875.99M<small>net P&amp;L $65.47M</small></dd></div>
+    <div class="spec"><dt>Markets resolved</dt><dd>613,299<small>92% of universe</small></dd></div>
     <div class="spec"><dt>Copy episodes</dt><dd>13,842<small>priced at detection</small></dd></div>
   </dl>
 </header>
@@ -181,10 +189,10 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
   <h2>Grade distribution</h2>
   <p class="sec-note">Grades run A (followable and profitable) to F (not followable, whatever the profit).</p>
   <div class="dist">
-    <span class="d-a" style="flex:38 1 0%">A 38</span>
-    <span class="d-b" style="flex:48 1 0%">B 48</span>
-    <span class="d-c" style="flex:150 1 0%">C 150</span>
-    <span class="d-d" style="flex:218 1 0%">D 218</span>
+    <span class="d-a" style="flex:37 1 0%">A 37</span>
+    <span class="d-b" style="flex:47 1 0%">B 47</span>
+    <span class="d-c" style="flex:152 1 0%">C 152</span>
+    <span class="d-d" style="flex:219 1 0%">D 219</span>
     <span class="d-f" style="flex:455 1 0%">F 455</span>
   </div>
   <div class="dist-key">
@@ -203,8 +211,8 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 </section>
 
 <section>
-  <h2>Ratings — top 50 of 909</h2>
-  <p class="sec-note">The 50 highest-scoring wallets of 909 graded; the distribution above covers the rest. Sorted by score. ROI is shown two ways on purpose: staked-weighted and equal-weighted. When the two disagree in sign, the record is carried by a handful of large bets rather than a repeatable process.</p>
+  <h2>Ratings — top 50 of 910</h2>
+  <p class="sec-note">The 50 highest-scoring wallets of 910 graded; the distribution above covers the rest. Sorted by score. ROI is shown two ways on purpose: staked-weighted and equal-weighted. When the two disagree in sign, the record is carried by a handful of large bets rather than a repeatable process.</p>
   <div class="tablewrap">
     <table>
       <thead><tr>
@@ -216,70 +224,18 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <tr>
 <td class="num idx">01</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
-<td class="addr" title="0x93fb8127a1b21a112b11af936361225df0563e4a">0x93fb8127…3e4a</td>
-<td class="num">3,469</td>
-<td class="num">57.9%</td>
-<td class="num pos">+90.7%</td>
-<td class="num pos">+161.8%</td>
-<td class="num pos">$740K</td>
-<td class="num">56</td>
-<td class="num">—</td>
-<td class="flags"><span class="flag none">none</span></td>
-</tr>
-<tr>
-<td class="num idx">02</td>
-<td class="grade-cell"><span class="stamp g-a">A</span></td>
 <td class="addr" title="0xfbe6717a7b235417aaee2823aa5edd1a052b4a1b">0xfbe6717a…4a1b</td>
 <td class="num">951</td>
 <td class="num">58.0%</td>
 <td class="num pos">+219.0%</td>
 <td class="num pos">+110.8%</td>
 <td class="num pos">$31K</td>
-<td class="num">36</td>
+<td class="num">35</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
 <tr>
-<td class="num idx">03</td>
-<td class="grade-cell"><span class="stamp g-a">A</span></td>
-<td class="addr" title="0xbcac39ed1f84f7711303e92d53abedc4bc406621">0xbcac39ed…6621</td>
-<td class="num">1,135</td>
-<td class="num">54.6%</td>
-<td class="num pos">+128.0%</td>
-<td class="num pos">+199.2%</td>
-<td class="num pos">$125K</td>
-<td class="num">55</td>
-<td class="num">—</td>
-<td class="flags"><span class="flag none">none</span></td>
-</tr>
-<tr>
-<td class="num idx">04</td>
-<td class="grade-cell"><span class="stamp g-a">A</span></td>
-<td class="addr" title="0x8a16eb406b6ecd9334e6202a159c9dd51288c0d5">0x8a16eb40…c0d5</td>
-<td class="num">127</td>
-<td class="num">64.6%</td>
-<td class="num pos">+147.6%</td>
-<td class="num pos">+464.9%</td>
-<td class="num pos">$30K</td>
-<td class="num">112</td>
-<td class="num">—</td>
-<td class="flags"><span class="flag none">none</span></td>
-</tr>
-<tr>
-<td class="num idx">05</td>
-<td class="grade-cell"><span class="stamp g-a">A</span></td>
-<td class="addr" title="0x1e1323cafdf350d87ec61a12b565143b721aaf03">0x1e1323ca…af03</td>
-<td class="num">108</td>
-<td class="num">51.9%</td>
-<td class="num pos">+118.5%</td>
-<td class="num pos">+88.8%</td>
-<td class="num pos">$25K</td>
-<td class="num">10</td>
-<td class="num">—</td>
-<td class="flags"><span class="flag none">none</span></td>
-</tr>
-<tr>
-<td class="num idx">06</td>
+<td class="num idx">02</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
 <td class="addr" title="0x54a2c4cfc4332d831acc3f5a860d6540982c1d43">0x54a2c4cf…1d43</td>
 <td class="num">2,200</td>
@@ -287,20 +243,72 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num pos">+53.7%</td>
 <td class="num pos">+108.8%</td>
 <td class="num pos">$45K</td>
-<td class="num">38</td>
+<td class="num">37</td>
+<td class="num">—</td>
+<td class="flags"><span class="flag none">none</span></td>
+</tr>
+<tr>
+<td class="num idx">03</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr" title="0x2d4bf8f846bf68f43b9157bf30810d334ac6ca7a">0x2d4bf8f8…ca7a</td>
+<td class="num">592</td>
+<td class="num">42.6%</td>
+<td class="num pos">+93.0%</td>
+<td class="num pos">+61.9%</td>
+<td class="num pos">$165K</td>
+<td class="num">7</td>
+<td class="num">—</td>
+<td class="flags"><span class="flag none">none</span></td>
+</tr>
+<tr>
+<td class="num idx">04</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr" title="0x1e1323cafdf350d87ec61a12b565143b721aaf03">0x1e1323ca…af03</td>
+<td class="num">112</td>
+<td class="num">50.0%</td>
+<td class="num pos">+114.3%</td>
+<td class="num pos">+82.1%</td>
+<td class="num pos">$24K</td>
+<td class="num">9</td>
+<td class="num">—</td>
+<td class="flags"><span class="flag none">none</span></td>
+</tr>
+<tr>
+<td class="num idx">05</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr" title="0x74cb0070bc348b4322c9e91ee1fec5a470341688">0x74cb0070…1688</td>
+<td class="num">470</td>
+<td class="num">59.4%</td>
+<td class="num pos">+61.1%</td>
+<td class="num pos">+63.6%</td>
+<td class="num pos">$16K</td>
+<td class="num">18</td>
+<td class="num">—</td>
+<td class="flags"><span class="flag none">none</span></td>
+</tr>
+<tr>
+<td class="num idx">06</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr" title="0x8a16eb406b6ecd9334e6202a159c9dd51288c0d5">0x8a16eb40…c0d5</td>
+<td class="num">127</td>
+<td class="num">64.6%</td>
+<td class="num pos">+147.6%</td>
+<td class="num pos">+464.9%</td>
+<td class="num pos">$30K</td>
+<td class="num">92</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
 <tr>
 <td class="num idx">07</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
-<td class="addr" title="0x82307f44c9405e73dc1cff466073dcc505535121">0x82307f44…5121</td>
-<td class="num">1,280</td>
-<td class="num">39.1%</td>
-<td class="num pos">+119.6%</td>
-<td class="num pos">+137.4%</td>
-<td class="num pos">$62K</td>
-<td class="num">26</td>
+<td class="addr" title="0x7056f248c5098cce2fb0a062cdd2ab0f8318c95c">0x7056f248…c95c</td>
+<td class="num">165</td>
+<td class="num">69.1%</td>
+<td class="num pos">+71.8%</td>
+<td class="num pos">+109.5%</td>
+<td class="num pos">$23K</td>
+<td class="num">13</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
@@ -320,31 +328,18 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <tr>
 <td class="num idx">09</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
-<td class="addr" title="0x74cb0070bc348b4322c9e91ee1fec5a470341688">0x74cb0070…1688</td>
-<td class="num">466</td>
-<td class="num">59.2%</td>
-<td class="num pos">+61.4%</td>
-<td class="num pos">+64.0%</td>
-<td class="num pos">$16K</td>
-<td class="num">17</td>
+<td class="addr" title="0x82307f44c9405e73dc1cff466073dcc505535121">0x82307f44…5121</td>
+<td class="num">1,281</td>
+<td class="num">39.2%</td>
+<td class="num pos">+119.5%</td>
+<td class="num pos">+137.4%</td>
+<td class="num pos">$62K</td>
+<td class="num">26</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
 <tr>
 <td class="num idx">10</td>
-<td class="grade-cell"><span class="stamp g-a">A</span></td>
-<td class="addr" title="0x7056f248c5098cce2fb0a062cdd2ab0f8318c95c">0x7056f248…c95c</td>
-<td class="num">165</td>
-<td class="num">69.1%</td>
-<td class="num pos">+71.8%</td>
-<td class="num pos">+109.5%</td>
-<td class="num pos">$23K</td>
-<td class="num">14</td>
-<td class="num">—</td>
-<td class="flags"><span class="flag none">none</span></td>
-</tr>
-<tr>
-<td class="num idx">11</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
 <td class="addr" title="0xe977b6270e1d6740117b4a56cc7595e4c9e4700f">0xe977b627…700f</td>
 <td class="num">1,506</td>
@@ -357,15 +352,28 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
 <tr>
+<td class="num idx">11</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr" title="0x93fb8127a1b21a112b11af936361225df0563e4a">0x93fb8127…3e4a</td>
+<td class="num">3,469</td>
+<td class="num">57.9%</td>
+<td class="num pos">+90.7%</td>
+<td class="num pos">+161.8%</td>
+<td class="num pos">$740K</td>
+<td class="num">56</td>
+<td class="num">—</td>
+<td class="flags"><span class="flag none">none</span></td>
+</tr>
+<tr>
 <td class="num idx">12</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
-<td class="addr" title="0x2d4bf8f846bf68f43b9157bf30810d334ac6ca7a">0x2d4bf8f8…ca7a</td>
-<td class="num">592</td>
-<td class="num">42.6%</td>
-<td class="num pos">+93.0%</td>
-<td class="num pos">+61.9%</td>
-<td class="num pos">$165K</td>
-<td class="num">7</td>
+<td class="addr" title="0xbcac39ed1f84f7711303e92d53abedc4bc406621">0xbcac39ed…6621</td>
+<td class="num">1,135</td>
+<td class="num">54.6%</td>
+<td class="num pos">+128.0%</td>
+<td class="num pos">+199.2%</td>
+<td class="num pos">$125K</td>
+<td class="num">54</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
@@ -378,7 +386,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num pos">+93.3%</td>
 <td class="num pos">+47.4%</td>
 <td class="num pos">$20K</td>
-<td class="num">34</td>
+<td class="num">32</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
@@ -398,6 +406,19 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <tr>
 <td class="num idx">15</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr" title="0x4d1452faf4de78b990e6ec7b9d69217c1df636fd">0x4d1452fa…36fd</td>
+<td class="num">716</td>
+<td class="num">53.4%</td>
+<td class="num pos">+44.1%</td>
+<td class="num pos">+60.0%</td>
+<td class="num pos">$18K</td>
+<td class="num">18</td>
+<td class="num">—</td>
+<td class="flags"><span class="flag none">none</span></td>
+</tr>
+<tr>
+<td class="num idx">16</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
 <td class="addr" title="0x6fcdeaa380b3dd8494cc0d750599198c0f20fbfc">0x6fcdeaa3…fbfc</td>
 <td class="num">213</td>
 <td class="num">64.8%</td>
@@ -409,27 +430,14 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
 <tr>
-<td class="num idx">16</td>
-<td class="grade-cell"><span class="stamp g-a">A</span></td>
-<td class="addr" title="0x4d1452faf4de78b990e6ec7b9d69217c1df636fd">0x4d1452fa…36fd</td>
-<td class="num">669</td>
-<td class="num">52.0%</td>
-<td class="num pos">+42.9%</td>
-<td class="num pos">+59.7%</td>
-<td class="num pos">$16K</td>
-<td class="num">17</td>
-<td class="num">—</td>
-<td class="flags"><span class="flag none">none</span></td>
-</tr>
-<tr>
 <td class="num idx">17</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
 <td class="addr" title="0xd970693a3384dc762b191707a4927ac3814bbbba">0xd970693a…bbba</td>
-<td class="num">2,909</td>
-<td class="num">59.9%</td>
-<td class="num pos">+42.1%</td>
-<td class="num pos">+61.8%</td>
-<td class="num pos">$42K</td>
+<td class="num">2,922</td>
+<td class="num">60.0%</td>
+<td class="num pos">+42.5%</td>
+<td class="num pos">+61.9%</td>
+<td class="num pos">$43K</td>
 <td class="num">61</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag none">none</span></td>
@@ -438,7 +446,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num idx">18</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
 <td class="addr" title="0x1985327e5782c62362dbbdf714c423d40d8f51ab">0x1985327e…51ab</td>
-<td class="num">1,344</td>
+<td class="num">1,350</td>
 <td class="num">68.7%</td>
 <td class="num pos">+40.1%</td>
 <td class="num pos">+50.8%</td>
@@ -449,6 +457,19 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 </tr>
 <tr>
 <td class="num idx">19</td>
+<td class="grade-cell"><span class="stamp g-b">B</span></td>
+<td class="addr" title="0x829ec97d2961e7aff43a7c91c555de11671e339c">0x829ec97d…339c</td>
+<td class="num">73</td>
+<td class="num">32.9%</td>
+<td class="num pos">+360.3%</td>
+<td class="num pos">+186.6%</td>
+<td class="num pos">$15K</td>
+<td class="num">7</td>
+<td class="num">—</td>
+<td class="flags"><span class="flag">thin sample</span></td>
+</tr>
+<tr>
+<td class="num idx">20</td>
 <td class="grade-cell"><span class="stamp g-b">B</span></td>
 <td class="addr" title="0x62147c0550e1da9c568a3cfcbdeb91060db6c4a0">0x62147c05…c4a0</td>
 <td class="num">67</td>
@@ -461,7 +482,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="flags"><span class="flag">thin sample</span></td>
 </tr>
 <tr>
-<td class="num idx">20</td>
+<td class="num idx">21</td>
 <td class="grade-cell"><span class="stamp g-b">B</span></td>
 <td class="addr" title="0xde1efdf503626f97a8e50f8dbc15011f29897ac6">0xde1efdf5…7ac6</td>
 <td class="num">53</td>
@@ -470,19 +491,6 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num pos">+84.5%</td>
 <td class="num pos">$11K</td>
 <td class="num">6</td>
-<td class="num">—</td>
-<td class="flags"><span class="flag">thin sample</span></td>
-</tr>
-<tr>
-<td class="num idx">21</td>
-<td class="grade-cell"><span class="stamp g-b">B</span></td>
-<td class="addr" title="0x829ec97d2961e7aff43a7c91c555de11671e339c">0x829ec97d…339c</td>
-<td class="num">73</td>
-<td class="num">32.9%</td>
-<td class="num pos">+360.3%</td>
-<td class="num pos">+186.6%</td>
-<td class="num pos">$15K</td>
-<td class="num">7</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag">thin sample</span></td>
 </tr>
@@ -503,12 +511,12 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num idx">23</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
 <td class="addr" title="0x3968f7c9fd10697665c3b0b92a8c9b18462985b5">0x3968f7c9…85b5</td>
-<td class="num">1,115</td>
-<td class="num">64.8%</td>
-<td class="num pos">+37.7%</td>
-<td class="num pos">+46.7%</td>
+<td class="num">1,122</td>
+<td class="num">65.0%</td>
+<td class="num pos">+38.0%</td>
+<td class="num pos">+46.8%</td>
 <td class="num pos">$24K</td>
-<td class="num">37</td>
+<td class="num">36</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
@@ -516,11 +524,11 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num idx">24</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
 <td class="addr" title="0x09b045baad1fbe115c70785635a261411774a3b6">0x09b045ba…a3b6</td>
-<td class="num">1,884</td>
-<td class="num">58.9%</td>
-<td class="num pos">+36.7%</td>
-<td class="num pos">+42.2%</td>
-<td class="num pos">$36K</td>
+<td class="num">1,894</td>
+<td class="num">58.7%</td>
+<td class="num pos">+36.1%</td>
+<td class="num pos">+41.6%</td>
+<td class="num pos">$35K</td>
 <td class="num">55</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag none">none</span></td>
@@ -568,12 +576,12 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num idx">28</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
 <td class="addr" title="0x425eb2c891adef5aad61a573892081f9f3adecfa">0x425eb2c8…ecfa</td>
-<td class="num">1,084</td>
+<td class="num">1,091</td>
 <td class="num">59.4%</td>
-<td class="num pos">+33.3%</td>
+<td class="num pos">+33.2%</td>
 <td class="num pos">+51.4%</td>
 <td class="num pos">$19K</td>
-<td class="num">35</td>
+<td class="num">34</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
@@ -586,7 +594,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num pos">+42.8%</td>
 <td class="num pos">+32.0%</td>
 <td class="num pos">$30K</td>
-<td class="num">25</td>
+<td class="num">24</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
@@ -599,7 +607,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num pos">+31.6%</td>
 <td class="num pos">+87.4%</td>
 <td class="num pos">$20K</td>
-<td class="num">35</td>
+<td class="num">36</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
@@ -612,7 +620,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num pos">+48.7%</td>
 <td class="num pos">+31.0%</td>
 <td class="num pos">$15K</td>
-<td class="num">42</td>
+<td class="num">38</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
@@ -620,7 +628,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num idx">32</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
 <td class="addr" title="0xd5bf2e7a0871eccfecf7dc315deca1326d54f0cc">0xd5bf2e7a…f0cc</td>
-<td class="num">1,625</td>
+<td class="num">1,626</td>
 <td class="num">64.6%</td>
 <td class="num pos">+37.8%</td>
 <td class="num pos">+29.9%</td>
@@ -658,19 +666,6 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <tr>
 <td class="num idx">35</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
-<td class="addr" title="0xe1f313a980c5cfd4444f66bcf40563eb900e5402">0xe1f313a9…5402</td>
-<td class="num">257</td>
-<td class="num">61.9%</td>
-<td class="num pos">+45.4%</td>
-<td class="num pos">+25.5%</td>
-<td class="num pos">$48K</td>
-<td class="num">20</td>
-<td class="num">—</td>
-<td class="flags"><span class="flag none">none</span></td>
-</tr>
-<tr>
-<td class="num idx">36</td>
-<td class="grade-cell"><span class="stamp g-a">A</span></td>
 <td class="addr" title="0x73ecf6a30d3c6538cd931ec13c9ed6eba944f5bb">0x73ecf6a3…f5bb</td>
 <td class="num">242</td>
 <td class="num">72.3%</td>
@@ -682,7 +677,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
 <tr>
-<td class="num idx">37</td>
+<td class="num idx">36</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
 <td class="addr" title="0x1b9ccfe8ee4597f6a7d8ed86761390cc43a2b67d">0x1b9ccfe8…b67d</td>
 <td class="num">403</td>
@@ -690,12 +685,12 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num pos">+25.0%</td>
 <td class="num pos">+24.6%</td>
 <td class="num pos">$18K</td>
-<td class="num">25</td>
+<td class="num">24</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
 <tr>
-<td class="num idx">38</td>
+<td class="num idx">37</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
 <td class="addr" title="0x72f039e9bbf2ccf22ef7683729d9867fa09d6be8">0x72f039e9…6be8</td>
 <td class="num">288</td>
@@ -708,6 +703,19 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
 <tr>
+<td class="num idx">38</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr" title="0x0547b2442db4121674a1521ef043291317502ad3">0x0547b244…2ad3</td>
+<td class="num">205</td>
+<td class="num">73.7%</td>
+<td class="num pos">+28.9%</td>
+<td class="num pos">+22.5%</td>
+<td class="num pos">$11K</td>
+<td class="num">19</td>
+<td class="num">—</td>
+<td class="flags"><span class="flag none">none</span></td>
+</tr>
+<tr>
 <td class="num idx">39</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
 <td class="addr" title="0xc8075693f48668a264b9fa313b47f52712fcc12b">0xc8075693…c12b</td>
@@ -716,25 +724,12 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num pos">+21.7%</td>
 <td class="num pos">+29.4%</td>
 <td class="num pos">$1.63M</td>
-<td class="num">455</td>
+<td class="num">400</td>
 <td class="num pos">+0.14¢</td>
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
 <tr>
 <td class="num idx">40</td>
-<td class="grade-cell"><span class="stamp g-a">A</span></td>
-<td class="addr" title="0x0547b2442db4121674a1521ef043291317502ad3">0x0547b244…2ad3</td>
-<td class="num">201</td>
-<td class="num">73.1%</td>
-<td class="num pos">+28.8%</td>
-<td class="num pos">+22.0%</td>
-<td class="num pos">$11K</td>
-<td class="num">21</td>
-<td class="num">—</td>
-<td class="flags"><span class="flag none">none</span></td>
-</tr>
-<tr>
-<td class="num idx">41</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
 <td class="addr" title="0xe154165732b79548f7533fc45168b102dd7a0b7f">0xe1541657…0b7f</td>
 <td class="num">2,603</td>
@@ -742,12 +737,12 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num pos">+35.7%</td>
 <td class="num pos">+21.4%</td>
 <td class="num pos">$38K</td>
-<td class="num">141</td>
+<td class="num">139</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
 <tr>
-<td class="num idx">42</td>
+<td class="num idx">41</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
 <td class="addr" title="0xe1000ddb5f5025849765e29d051dfff78f5d4d41">0xe1000ddb…4d41</td>
 <td class="num">2,528</td>
@@ -760,7 +755,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
 <tr>
-<td class="num idx">43</td>
+<td class="num idx">42</td>
 <td class="grade-cell"><span class="stamp g-a">A</span></td>
 <td class="addr" title="0x8796b01a723066063eba805833778c276162eb9f">0x8796b01a…eb9f</td>
 <td class="num">141</td>
@@ -768,12 +763,12 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num pos">+28.7%</td>
 <td class="num pos">+20.3%</td>
 <td class="num pos">$9K</td>
-<td class="num">234</td>
+<td class="num">232</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
 <tr>
-<td class="num idx">44</td>
+<td class="num idx">43</td>
 <td class="grade-cell"><span class="stamp g-b">B</span></td>
 <td class="addr" title="0x138acc285e9125199b9d3b593d01ee05ef4f2a04">0x138acc28…2a04</td>
 <td class="num">130</td>
@@ -786,7 +781,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="flags"><span class="flag">favorite heavy</span></td>
 </tr>
 <tr>
-<td class="num idx">45</td>
+<td class="num idx">44</td>
 <td class="grade-cell"><span class="stamp g-b">B</span></td>
 <td class="addr" title="0x5188fa0e8a77e87bc6a58e6781fdfc4e165cc804">0x5188fa0e…c804</td>
 <td class="num">4,251</td>
@@ -799,7 +794,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
 <tr>
-<td class="num idx">46</td>
+<td class="num idx">45</td>
 <td class="grade-cell"><span class="stamp g-b">B</span></td>
 <td class="addr" title="0x4388640a35b4ecebc33f8c73b58a2b988c615050">0x4388640a…5050</td>
 <td class="num">4,853</td>
@@ -812,7 +807,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
 <tr>
-<td class="num idx">47</td>
+<td class="num idx">46</td>
 <td class="grade-cell"><span class="stamp g-b">B</span></td>
 <td class="addr" title="0x0a7ed19909e9b4c6cd0fc1d59c1d481415a1fce4">0x0a7ed199…fce4</td>
 <td class="num">12,379</td>
@@ -825,7 +820,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
 <tr>
-<td class="num idx">48</td>
+<td class="num idx">47</td>
 <td class="grade-cell"><span class="stamp g-b">B</span></td>
 <td class="addr" title="0xd794ba8c56b881853d97095e5710569fc4af248b">0xd794ba8c…248b</td>
 <td class="num">136</td>
@@ -838,7 +833,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
 <tr>
-<td class="num idx">49</td>
+<td class="num idx">48</td>
 <td class="grade-cell"><span class="stamp g-b">B</span></td>
 <td class="addr" title="0x82398835fe16616214d928ba87127e28fc1cd9a3">0x82398835…d9a3</td>
 <td class="num">570</td>
@@ -851,7 +846,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
 <tr>
-<td class="num idx">50</td>
+<td class="num idx">49</td>
 <td class="grade-cell"><span class="stamp g-b">B</span></td>
 <td class="addr" title="0xbb3eaeb82973aa8f140ae596f792fcdbd9cab9c5">0xbb3eaeb8…b9c5</td>
 <td class="num">1,779</td>
@@ -860,6 +855,19 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="num pos">+20.5%</td>
 <td class="num pos">$46K</td>
 <td class="num">69</td>
+<td class="num">—</td>
+<td class="flags"><span class="flag none">none</span></td>
+</tr>
+<tr>
+<td class="num idx">50</td>
+<td class="grade-cell"><span class="stamp g-b">B</span></td>
+<td class="addr" title="0x1b20a00709dfe648afd26b326394b5e031f83ab0">0x1b20a007…3ab0</td>
+<td class="num">2,273</td>
+<td class="num">53.1%</td>
+<td class="num pos">+35.7%</td>
+<td class="num pos">+17.9%</td>
+<td class="num pos">$881K</td>
+<td class="num">207</td>
 <td class="num">—</td>
 <td class="flags"><span class="flag none">none</span></td>
 </tr>
@@ -884,13 +892,13 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <section class="prose">
   <h2>What this report does not claim</h2>
   <p>Detection latency here is one to five minutes. A faster observer might measure different short-horizon values, and nothing in this data speaks to sub-minute copying.</p>
-  <p>Outcome labels currently cover 612,837 of 656,095 markets these wallets traded (93%) and continue to accumulate; grades are recomputed as they land.</p>
+  <p>Outcome labels currently cover 613,299 of 667,786 markets these wallets traded (92%) and continue to accumulate; grades are recomputed as they land.</p>
   <p>A grade of F is not a verdict on a trader. It says the wallet's edge is not transferable to someone watching from outside — which is a statement about copyability, not about skill.</p>
 </section>
 
 <footer>
   <span>Method and grade inputs published in full · addresses are public onchain identifiers</span>
-  <span>Report 001 · rebuilt 2026-08-28</span>
+  <span>Report 001 · rebuilt 2026-09-03</span>
 </footer>
 
 </div>

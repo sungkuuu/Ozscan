@@ -9,13 +9,13 @@
  "roi_equal_pct": 24.6,
  "pnl_usd": 18165,
  "top1_pnl_share_pct": 13.8,
- "bets_per_active_day": 25.352941176470587,
+ "bets_per_active_day": 24.157894736842106,
  "avg_entry_cents": 51,
  "clv_1h_cents": null,
  "first_bet": "2026-08-03T15:00:00.000Z",
  "last_bet": "2026-08-23T15:00:00.000Z",
  "active_days": 16,
  "flags": [],
- "computed_at": "2026-08-28T06:27:05.971Z",
- "generated_at": "2026-08-28T07:32:57.720Z"
+ "computed_at": "2026-09-03T09:53:44.990Z",
+ "generated_at": "2026-09-03T14:00:19.451Z"
 }

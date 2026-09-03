@@ -200,6 +200,42 @@ function fmtSignal(s) {
 
 // ---------------------------------------------------------------------------
 
+
+// Records historical signals so the public feed has real content on day one.
+// Idempotent: (ts, address, condition_id) is unique, so re-running is safe.
+async function seed(days) {
+  await ensureTables();
+  const now = Math.floor(Date.now() / 1000);
+  const since = now - (days + LOOKBACK_DAYS) * 86400;
+  const cut = now - days * 86400;
+  const episodes = buildEpisodes(await loadFills(since));
+  const thresholds = computeThresholds(episodes.filter((e) => e.startTs < cut));
+  let n = 0;
+  for (const ep of episodes.filter((e) => e.startTs >= cut)) {
+    const sig = signalOf(ep, thresholds);
+    if (!sig) continue;
+    const r = await pool.query(
+      `INSERT INTO copy_signals (ts,address,condition_id,outcome,market,slug,avg_price,size_usd,wallet_p90)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       ON CONFLICT (ts,address,condition_id) DO NOTHING`,
+      [sig.ts, sig.address, ep.condition_id, sig.outcome, sig.market, sig.slug,
+       sig.avgPrice, sig.sizeUsd, sig.walletP90]);
+    n += r.rowCount;
+  }
+  console.log(`seed: ${days}일 → 신호 ${n}건 기록`);
+  await pool.end();
+}
+
+async function ensureTables() {
+  await pool.query(`CREATE TABLE IF NOT EXISTS copy_signal_state (k TEXT PRIMARY KEY, v TEXT)`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS copy_signals (
+    id SERIAL PRIMARY KEY, ts BIGINT, address TEXT, condition_id TEXT, outcome TEXT,
+    market TEXT, slug TEXT, avg_price NUMERIC, size_usd NUMERIC, wallet_p90 NUMERIC,
+    created_at TIMESTAMPTZ DEFAULT now())`);
+  await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS copy_signals_uniq
+    ON copy_signals (ts, address, condition_id)`);
+}
+
 async function backtest(days) {
   const now = Math.floor(Date.now() / 1000);
   const since = now - (days + LOOKBACK_DAYS) * 86400;
@@ -226,11 +262,7 @@ async function backtest(days) {
 }
 
 async function run() {
-  await pool.query(`CREATE TABLE IF NOT EXISTS copy_signal_state (k TEXT PRIMARY KEY, v TEXT)`);
-  await pool.query(`CREATE TABLE IF NOT EXISTS copy_signals (
-    id SERIAL PRIMARY KEY, ts BIGINT, address TEXT, condition_id TEXT, outcome TEXT,
-    market TEXT, slug TEXT, avg_price NUMERIC, size_usd NUMERIC, wallet_p90 NUMERIC,
-    created_at TIMESTAMPTZ DEFAULT now())`);
+  await ensureTables();
 
   const bot = process.env.BOT_TOKEN && process.env.COPY_CHAT_ID
     ? new (await import('node-telegram-bot-api')).default(process.env.BOT_TOKEN)
@@ -263,7 +295,8 @@ async function run() {
         if (!s) continue;
         await pool.query(
           `INSERT INTO copy_signals (ts,address,condition_id,outcome,market,slug,avg_price,size_usd,wallet_p90)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+           ON CONFLICT (ts,address,condition_id) DO NOTHING`,
           [s.ts, s.address, ep.condition_id, s.outcome, s.market, s.slug, s.avgPrice, s.sizeUsd, s.walletP90]);
         const text = fmtSignal(s);
         if (bot) await bot.sendMessage(process.env.COPY_CHAT_ID, text, { disable_web_page_preview: true });
@@ -298,5 +331,6 @@ const mode = modeArg || process.env.MODE; // data-job.yml passes MODE (it runs s
 if (isCli && mode === 'backtest') await backtest(Number(arg) || 7);
 else if (isCli && mode === 'run') await run();
 else if (isCli && mode === 'pollonce') await pollOnce();
+else if (isCli && mode === 'seed') await seed(Number(arg) || 30);
 else if (!isCli && process.env.COPY_SIGNALS_ENABLED === 'true') run(); // imported by the worker
-else if (isCli) { console.log('usage: node copy-signal.mjs backtest [days] | run | pollonce'); await pool.end(); }
+else if (isCli) { console.log('usage: node copy-signal.mjs backtest [days] | seed [days] | run | pollonce'); await pool.end(); }

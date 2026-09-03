@@ -3,6 +3,7 @@
 
 const LINKS = [
   ['/', 'Ratings'],
+  ['/signals/', 'Signals'],
   ['/check/', 'Check a wallet'],
   ['/evidence/', 'Evidence'],
   ['/api/', 'API'],

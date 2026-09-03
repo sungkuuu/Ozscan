@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Polymarket wallets graded on one question: could a follower actually have captured what this wallet did?">
+<meta property="og:title" content="Polymarket Copyability Ratings">
+<meta property="og:description" content="The most profitable wallet on the list scores an F. No follower can capture twenty thousand fills a day.">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Assay Score">
+<meta property="og:image" content="https://assayscore.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Assay Score — Polymarket wallets graded A to F.">
+<meta name="twitter:site" content="@assayscore">
+<meta name="twitter:image" content="https://assayscore.com/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/mark@2x.png">
+<title>Signals — Assay Score</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#E9EBEE; --surface:#F7F8FA; --surface-2:#FFFFFF;
+  --ink:#0E1116; --ink-2:#3D4652; --ink-3:#6B7482;
+  --rule:#C7CCD4; --rule-soft:#DEE2E8;
+  --accent:#22386B;
+  --pass:#2C6350; --caution:#856019; --fail:#8A3733;
+  --stamp-bg:#DFE3E9;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D1014; --surface:#141821; --surface-2:#1A1F29;
+    --ink:#E6E9EE; --ink-2:#AEB6C2; --ink-3:#7B848F;
+    --rule:#2A313B; --rule-soft:#212832;
+    --accent:#8FA9DC;
+    --pass:#63B394; --caution:#D2A44B; --fail:#DE7B72;
+    --stamp-bg:#232A35;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D1014; --surface:#141821; --surface-2:#1A1F29;
+  --ink:#E6E9EE; --ink-2:#AEB6C2; --ink-3:#7B848F;
+  --rule:#2A313B; --rule-soft:#212832;
+  --accent:#8FA9DC;
+  --pass:#63B394; --caution:#D2A44B; --fail:#DE7B72;
+  --stamp-bg:#232A35;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Archivo","Helvetica Neue",Arial,sans-serif;
+  font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:clamp(24px,5vw,64px) clamp(16px,4vw,40px) 96px}
+.prose{max-width:66ch}
+h1,h2,h3{font-family:"Newsreader",Georgia,serif;font-weight:500;text-wrap:balance;margin:0}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+
+/* masthead */
+.masthead{border-top:2px solid var(--ink);padding-top:18px}
+.masthead .crest{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.masthead .crest img{width:52px;height:52px;border-radius:11px;flex:none}
+:root:not([data-theme="dark"]) .masthead .crest img{box-shadow:0 0 0 1px var(--rule)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .masthead .crest img{box-shadow:none}}
+:root[data-theme="dark"] .masthead .crest img{box-shadow:none}
+@media (max-width:620px){.masthead .crest img{width:42px;height:42px}}
+.masthead h1{font-size:clamp(34px,5.2vw,56px);line-height:1.04;letter-spacing:-.015em;margin:14px 0 10px}
+.standfirst{font-size:clamp(16px,1.6vw,19px);color:var(--ink-2);max-width:60ch}
+.specimen{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0;margin-top:34px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.spec{padding:14px 16px 14px 0;border-right:1px solid var(--rule-soft)}
+.spec:last-child{border-right:none}
+.spec dt{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0 0 6px}
+.spec dd{margin:0;font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:500;font-variant-numeric:tabular-nums}
+.spec dd small{font-size:12px;color:var(--ink-3);font-weight:400;display:block;margin-top:2px;letter-spacing:0}
+
+section{margin-top:56px}
+h2{font-size:clamp(23px,2.6vw,30px);letter-spacing:-.01em;margin-bottom:6px}
+.sec-note{color:var(--ink-3);font-size:14px;margin:0 0 22px}
+p{margin:0 0 16px;color:var(--ink-2)}
+p strong{color:var(--ink);font-weight:600}
+
+/* distribution */
+.dist{display:flex;height:46px;border:1px solid var(--rule);overflow:hidden;margin-bottom:10px}
+.dist span{display:flex;align-items:center;justify-content:center;font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;color:#fff;border-right:1px solid var(--paper);min-width:3.2em}
+.dist span:last-child{border-right:none}
+.d-a{background:var(--pass)}.d-b{background:#4C7F6B}.d-c{background:#7E7A52}.d-d{background:var(--caution)}.d-f{background:var(--fail)}
+.dist-key{display:flex;flex-wrap:wrap;gap:18px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-3)}
+
+/* table */
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:940px}
+thead th{
+  font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:500;text-align:right;padding:12px 12px;border-bottom:1px solid var(--rule);
+  background:var(--surface-2);position:sticky;top:0;white-space:nowrap
+}
+thead th.l{text-align:left}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--rule-soft);font-size:14px;text-align:right;white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surface-2)}
+.num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.idx{color:var(--ink-3);font-size:12px}
+.addr{font-family:"IBM Plex Mono",monospace;font-size:13px;text-align:left;color:var(--ink)}
+.pos{color:var(--pass)}.neg{color:var(--fail)}
+.grade-cell{text-align:center;padding-left:4px;padding-right:4px}
+.stamp{
+  display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;
+  font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:13px;color:#fff;
+  border-radius:2px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)
+}
+.g-a{background:var(--pass)}.g-b{background:#4C7F6B}.g-c{background:#6F7A85}.g-d{background:var(--caution)}.g-f{background:var(--fail)}
+.flags{text-align:left;white-space:normal;min-width:210px}
+.flag{
+  display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.04em;
+  padding:2px 6px;margin:2px 4px 2px 0;border:1px solid var(--rule);color:var(--ink-3);border-radius:2px
+}
+.flag.none{opacity:.45}
+
+.sources{margin:0 0 18px;padding-left:20px;color:var(--ink-2);font-size:15px}
+.sources li{margin:0 0 6px}
+.sources strong{color:var(--ink);font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+
+h3.sub{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:500;margin:30px 0 8px}
+code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.92em;background:var(--surface);border:1px solid var(--rule-soft);border-radius:3px;padding:1px 5px;color:var(--ink)}
+
+/* callout */
+.callout{border-left:3px solid var(--accent);background:var(--surface);padding:22px 24px;margin:26px 0}
+.callout .eyebrow{color:var(--accent)}
+.callout h3{font-size:20px;margin:8px 0 10px}
+.callout p:last-child{margin-bottom:0}
+
+.method{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:var(--rule-soft);border:1px solid var(--rule)}
+.method > div{background:var(--surface);padding:18px 20px}
+.method h4{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 8px;font-weight:500}
+.method p{font-size:14px;margin:0;color:var(--ink-2)}
+
+
+/* site nav */
+.sitenav{display:flex;align-items:baseline;gap:22px;flex-wrap:wrap;padding-bottom:14px;margin-bottom:26px;border-bottom:1px solid var(--rule)}
+.sitenav{align-items:center}
+.sitenav .brand{display:inline-flex;align-items:center;gap:9px;font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:var(--ink);text-decoration:none;margin-right:4px}
+.brandmark{display:block;width:26px;height:26px;border-radius:6px;flex:none}
+/* the mark is a dark disc, so it needs a hairline to sit on the light paper */
+:root:not([data-theme="dark"]) .brandmark{box-shadow:0 0 0 1px var(--rule)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .brandmark{box-shadow:none}}
+:root[data-theme="dark"] .brandmark{box-shadow:none}
+.sitenav a.nav{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.06em;color:var(--ink-3);text-decoration:none;padding-bottom:2px;border-bottom:1px solid transparent}
+.sitenav a.nav:hover{color:var(--ink)}
+.sitenav a.nav[aria-current="page"]{color:var(--ink);border-bottom-color:var(--ink)}
+@media (max-width:620px){ .sitenav{gap:14px} }
+
+footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3);display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between}
+@media (max-width:620px){ .spec{border-right:none;border-bottom:1px solid var(--rule-soft)} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="sitenav">
+  <a class="brand" href="/"><img class="brandmark" src="/mark.png" srcset="/mark.png 1x, /mark@2x.png 2x" width="26" height="26" alt="">Assay Score</a>
+  <a class="nav" href="/">Ratings</a>
+  <a class="nav" href="/signals/" aria-current="page">Signals</a>
+  <a class="nav" href="/check/">Check a wallet</a>
+  <a class="nav" href="/evidence/">Evidence</a>
+  <a class="nav" href="/api/">API</a>
+</nav>
+
+<header class="masthead">
+  <div class="crest">
+    <img src="/mark.png" srcset="/mark.png 1x, /mark@2x.png 2x" width="52" height="52" alt="">
+    <div class="eyebrow">Assay Score · Signals</div>
+  </div>
+  <h1>One alert when a graded wallet commits.</h1>
+  <p class="standfirst">A-grade wallets place over a thousand fills a day between them. Almost none of it is worth acting on. This is the part that is: a wallet that passed the walk-forward, opening a new position, large by its own standard.</p>
+
+  <dl class="specimen">
+    <div class="spec"><dt>Signals sent</dt><dd>66<small>since 2026-08-05</small></dd></div>
+    <div class="spec"><dt>Per day</dt><dd>2.2<small>not a feed</small></dd></div>
+    <div class="spec"><dt>Wallets firing</dt><dd>17<small>of 37 graded A</small></dd></div>
+    <div class="spec"><dt>Median size</dt><dd>$5,161<small>their money, not ours</small></dd></div>
+  </dl>
+</header>
+
+<section>
+  <h2>What you do with one</h2>
+  <div class="method">
+    <div><h4>1 · It arrives</h4><p>Wallet, market, side, the price it filled at, and how big the position is relative to that wallet's own history. Nothing else — no score to interpret, no chart to read.</p></div>
+    <div><h4>2 · You decide</h4><p>Open the market and take the same side, or don't. We route no orders and hold no funds; you trade on Polymarket yourself. A signal is not a recommendation.</p></div>
+    <div><h4>3 · You hold to resolution</h4><p>This matters more than speed. The edge we measured only survives if you hold until the market settles. Selling an hour later erased it in testing.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>The last 40 signals</h2>
+  <p class="sec-note">Delayed 24 hours, which is why you can read them here for free. W/L is the settled outcome; <span class="flag">open</span> means the market has not resolved yet. Nothing is removed after the fact — this table is the record, wins and losses both.</p>
+  <p><strong>16 of 22</strong> settled signals on this page won. The rest are still open.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr>
+        <th>Time (UTC)</th><th class="l">Grade</th><th class="l">Wallet</th><th class="l">Market</th>
+        <th class="l">Side</th><th>Entry</th><th>Size</th><th class="l">Result</th>
+      </tr></thead>
+      <tbody>
+<tr>
+<td class="num idx">08-24 18:57</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xe154…0b7f</td>
+<td class="l">Will Nicolás Maduro be the #1 searched person on Google in</td>
+<td class="l"><strong>No</strong></td>
+<td class="num">48.3¢</td>
+<td class="num">$2,869</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-24 13:28</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xb7ab…a2d1</td>
+<td class="l">US Open, Qualification ATP: Raul Brancaccio vs Thiago Seyb</td>
+<td class="l"><strong>Thiago Seyboth Wild</strong></td>
+<td class="num">57.1¢</td>
+<td class="num">$9,193</td>
+<td class="grade-cell"><span class="stamp g-a">W</span></td>
+</tr>
+<tr>
+<td class="num idx">08-24 10:59</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xb7ab…a2d1</td>
+<td class="l">US Open, Qualification WTA: Mia Ristic vs Ayana Akli</td>
+<td class="l"><strong>Mia Ristic</strong></td>
+<td class="num">49.7¢</td>
+<td class="num">$10,264</td>
+<td class="grade-cell"><span class="stamp g-a">W</span></td>
+</tr>
+<tr>
+<td class="num idx">08-24 09:58</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xb7ab…a2d1</td>
+<td class="l">US Open, Qualification ATP: Joel Schwaerzler vs Gustavo He</td>
+<td class="l"><strong>Gustavo Heide</strong></td>
+<td class="num">53.0¢</td>
+<td class="num">$20,492</td>
+<td class="grade-cell"><span class="stamp g-f">L</span></td>
+</tr>
+<tr>
+<td class="num idx">08-24 09:02</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xb7ab…a2d1</td>
+<td class="l">US Open, Qualification ATP: Kimmer Coppejans vs Jurij Rodi</td>
+<td class="l"><strong>Kimmer Coppejans</strong></td>
+<td class="num">40.2¢</td>
+<td class="num">$5,149</td>
+<td class="grade-cell"><span class="stamp g-f">L</span></td>
+</tr>
+<tr>
+<td class="num idx">08-24 08:53</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xb7ab…a2d1</td>
+<td class="l">US Open, Qualification ATP: Luka Pavlovic vs Juan Pablo Va</td>
+<td class="l"><strong>Juan Pablo Varillas</strong></td>
+<td class="num">29.3¢</td>
+<td class="num">$5,177</td>
+<td class="grade-cell"><span class="stamp g-f">L</span></td>
+</tr>
+<tr>
+<td class="num idx">08-23 20:25</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xe154…0b7f</td>
+<td class="l">Will Paris Saint-Germain FC vs. Stade Rennais FC 1901 end </td>
+<td class="l"><strong>No</strong></td>
+<td class="num">40.8¢</td>
+<td class="num">$4,556</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-23 20:25</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xe154…0b7f</td>
+<td class="l">Will Stade Rennais FC 1901 win on 2026-08-23?</td>
+<td class="l"><strong>Yes</strong></td>
+<td class="num">22.7¢</td>
+<td class="num">$15,012</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-23 20:25</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xe154…0b7f</td>
+<td class="l">Paris Saint-Germain FC vs. Stade Rennais FC 1901: Paris Sa</td>
+<td class="l"><strong>Under</strong></td>
+<td class="num">7.9¢</td>
+<td class="num">$14,163</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-23 20:14</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xe154…0b7f</td>
+<td class="l">Spread: Stade Rennais FC 1901 (-1.5)</td>
+<td class="l"><strong>Stade Rennais FC 1901</strong></td>
+<td class="num">18.1¢</td>
+<td class="num">$1,282</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-23 20:04</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xe154…0b7f</td>
+<td class="l">Paris Saint-Germain FC vs. Stade Rennais FC 1901: O/U 4.5</td>
+<td class="l"><strong>Over</strong></td>
+<td class="num">12.8¢</td>
+<td class="num">$1,097</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-23 20:03</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xe154…0b7f</td>
+<td class="l">Paris Saint-Germain FC vs. Stade Rennais FC 1901: O/U 3.5</td>
+<td class="l"><strong>Over</strong></td>
+<td class="num">34.1¢</td>
+<td class="num">$6,289</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-23 19:22</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xe154…0b7f</td>
+<td class="l">Will Stade Rennais FC 1901 win on 2026-08-23?</td>
+<td class="l"><strong>No</strong></td>
+<td class="num">45.0¢</td>
+<td class="num">$1,575</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-23 19:22</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xe154…0b7f</td>
+<td class="l">Will Paris Saint-Germain FC win on 2026-08-23?</td>
+<td class="l"><strong>Yes</strong></td>
+<td class="num">23.5¢</td>
+<td class="num">$1,215</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-23 17:38</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0x8230…5121</td>
+<td class="l">Venezia FC vs. US Lecce: O/U 2.5</td>
+<td class="l"><strong>Under</strong></td>
+<td class="num">40.0¢</td>
+<td class="num">$1,225</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-23 15:38</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0x8230…5121</td>
+<td class="l">Will Club Atlético de Madrid win on 2026-08-23?</td>
+<td class="l"><strong>Yes</strong></td>
+<td class="num">17.0¢</td>
+<td class="num">$1,286</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-23 13:50</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xdfe4…3cbd</td>
+<td class="l">Manchester City FC vs. AFC Bournemouth: 1st Half O/U 1.5</td>
+<td class="l"><strong>Under</strong></td>
+<td class="num">50.9¢</td>
+<td class="num">$2,579</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-23 13:27</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0x8230…5121</td>
+<td class="l">Bahlinger SC vs. 1. FC Magdeburg: O/U 3.5</td>
+<td class="l"><strong>Under</strong></td>
+<td class="num">38.0¢</td>
+<td class="num">$1,088</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-21 16:14</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0x1e13…af03</td>
+<td class="l">Sion: Lorenzo Giustino vs Benjamin Hassan</td>
+<td class="l"><strong>Lorenzo Giustino</strong></td>
+<td class="num">23.6¢</td>
+<td class="num">$1,950</td>
+<td class="grade-cell"><span class="stamp g-f">L</span></td>
+</tr>
+<tr>
+<td class="num idx">08-21 08:51</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xe154…0b7f</td>
+<td class="l">Will Bitcoin reach $80,000 in August?</td>
+<td class="l"><strong>No</strong></td>
+<td class="num">19.7¢</td>
+<td class="num">$1,966</td>
+<td class="grade-cell"><span class="stamp g-f">L</span></td>
+</tr>
+<tr>
+<td class="num idx">08-20 11:24</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0x7056…c95c</td>
+<td class="l">Will &quot;The Odyssey&quot; 6th Weekend Box Office be between 17m a</td>
+<td class="l"><strong>No</strong></td>
+<td class="num">69.1¢</td>
+<td class="num">$1,128</td>
+<td class="grade-cell"><span class="stamp g-a">W</span></td>
+</tr>
+<tr>
+<td class="num idx">08-19 23:47</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0x81f8…4078</td>
+<td class="l">CA Mineiro vs. Red Bull Bragantino: O/U 2.5</td>
+<td class="l"><strong>Over</strong></td>
+<td class="num">91.3¢</td>
+<td class="num">$1,470</td>
+<td class="grade-cell"><span class="stamp g-a">W</span></td>
+</tr>
+<tr>
+<td class="num idx">08-19 21:48</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xe154…0b7f</td>
+<td class="l">Will Bitcoin reach $120,000 by December 31, 2026?</td>
+<td class="l"><strong>No</strong></td>
+<td class="num">19.0¢</td>
+<td class="num">$2,194</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-19 21:06</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xdfe4…3cbd</td>
+<td class="l">Will Club Atlético de Madrid win on 2026-08-19?</td>
+<td class="l"><strong>Yes</strong></td>
+<td class="num">49.0¢</td>
+<td class="num">$4,529</td>
+<td class="grade-cell"><span class="stamp g-a">W</span></td>
+</tr>
+<tr>
+<td class="num idx">08-19 00:18</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0x4d14…36fd</td>
+<td class="l">LoL: Onion Team vs BRUTE (BO3) - Hitpoint Masters Regular </td>
+<td class="l"><strong>BRUTE</strong></td>
+<td class="num">68.4¢</td>
+<td class="num">$1,187</td>
+<td class="grade-cell"><span class="stamp g-a">W</span></td>
+</tr>
+<tr>
+<td class="num idx">08-18 23:57</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0x4d14…36fd</td>
+<td class="l">LoL: Onion Team vs BRUTE (BO3) - Hitpoint Masters Regular </td>
+<td class="l"><strong>BRUTE</strong></td>
+<td class="num">51.6¢</td>
+<td class="num">$1,179</td>
+<td class="grade-cell"><span class="stamp g-a">W</span></td>
+</tr>
+<tr>
+<td class="num idx">08-18 21:14</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0x4d14…36fd</td>
+<td class="l">LoL: Onion Team vs BRUTE (BO3) - Hitpoint Masters Regular </td>
+<td class="l"><strong>BRUTE</strong></td>
+<td class="num">74.5¢</td>
+<td class="num">$1,225</td>
+<td class="grade-cell"><span class="stamp g-a">W</span></td>
+</tr>
+<tr>
+<td class="num idx">08-18 20:29</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xd726…b5c9</td>
+<td class="l">US ceasefire against Iran continues through September 30?</td>
+<td class="l"><strong>No</strong></td>
+<td class="num">42.6¢</td>
+<td class="num">$1,278</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-18 11:57</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xbcac…6621</td>
+<td class="l">Will Barcelona win the 2026-27 UEFA Champions League Champ</td>
+<td class="l"><strong>No</strong></td>
+<td class="num">82.0¢</td>
+<td class="num">$8,200</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-16 20:38</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0x7056…c95c</td>
+<td class="l">Will Avengers: Doomsday have the best domestic opening wee</td>
+<td class="l"><strong>Yes</strong></td>
+<td class="num">30.8¢</td>
+<td class="num">$4,728</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-16 15:36</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0x8230…5121</td>
+<td class="l">Will Real Racing Club vs. Villarreal CF end in a draw?</td>
+<td class="l"><strong>Yes</strong></td>
+<td class="num">14.0¢</td>
+<td class="num">$1,289</td>
+<td class="grade-cell"><span class="stamp g-a">W</span></td>
+</tr>
+<tr>
+<td class="num idx">08-13 18:07</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0x8230…5121</td>
+<td class="l">Will Tromsø IL win on 2026-08-13?</td>
+<td class="l"><strong>Yes</strong></td>
+<td class="num">74.0¢</td>
+<td class="num">$1,033</td>
+<td class="grade-cell"><span class="stamp g-a">W</span></td>
+</tr>
+<tr>
+<td class="num idx">08-13 15:49</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xbcac…6621</td>
+<td class="l">Will Nigel Farage win 60–70% of votes in the Clacton parli</td>
+<td class="l"><strong>Yes</strong></td>
+<td class="num">25.0¢</td>
+<td class="num">$1,250</td>
+<td class="grade-cell"><span class="stamp g-a">W</span></td>
+</tr>
+<tr>
+<td class="num idx">08-13 15:45</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xbcac…6621</td>
+<td class="l">Will Nigel Farage win at least 80% of votes in the Clacton</td>
+<td class="l"><strong>No</strong></td>
+<td class="num">59.0¢</td>
+<td class="num">$1,475</td>
+<td class="grade-cell"><span class="stamp g-a">W</span></td>
+</tr>
+<tr>
+<td class="num idx">08-13 14:25</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0x7056…c95c</td>
+<td class="l">Will the total domestic gross for Spider-Man: Brand New Da</td>
+<td class="l"><strong>No</strong></td>
+<td class="num">38.0¢</td>
+<td class="num">$1,740</td>
+<td class="grade-cell"><span class="flag">open</span></td>
+</tr>
+<tr>
+<td class="num idx">08-13 01:42</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xdfe4…3cbd</td>
+<td class="l">Orlando City SC vs. Atlético San Luis: O/U 4.5</td>
+<td class="l"><strong>Under</strong></td>
+<td class="num">81.5¢</td>
+<td class="num">$1,086</td>
+<td class="grade-cell"><span class="stamp g-a">W</span></td>
+</tr>
+<tr>
+<td class="num idx">08-12 19:06</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0x4d14…36fd</td>
+<td class="l">LoL: Dream Esports vs Capybara Esports (BO3) - LPLOL Group</td>
+<td class="l"><strong>Dream Esports</strong></td>
+<td class="num">55.5¢</td>
+<td class="num">$1,018</td>
+<td class="grade-cell"><span class="stamp g-a">W</span></td>
+</tr>
+<tr>
+<td class="num idx">08-12 14:53</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0xb7ab…a2d1</td>
+<td class="l">Cincinnati Open: Aleksandar Kovacevic vs Karen Khachanov</td>
+<td class="l"><strong>Karen Khachanov</strong></td>
+<td class="num">71.0¢</td>
+<td class="num">$6,089</td>
+<td class="grade-cell"><span class="stamp g-f">L</span></td>
+</tr>
+<tr>
+<td class="num idx">08-12 12:02</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0x4d14…36fd</td>
+<td class="l">LoL: Onion Team vs eSuba (BO3) - Hitpoint Masters Regular </td>
+<td class="l"><strong>eSuba</strong></td>
+<td class="num">70.4¢</td>
+<td class="num">$1,794</td>
+<td class="grade-cell"><span class="stamp g-a">W</span></td>
+</tr>
+<tr>
+<td class="num idx">08-11 11:34</td>
+<td class="grade-cell"><span class="stamp g-a">A</span></td>
+<td class="addr">0x4d14…36fd</td>
+<td class="l">LoL: NightBirds vs Onion Team (BO3) - Hitpoint Masters Reg</td>
+<td class="l"><strong>NightBirds</strong></td>
+<td class="num">92.7¢</td>
+<td class="num">$1,815</td>
+<td class="grade-cell"><span class="stamp g-a">W</span></td>
+</tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="prose">
+  <h2>Getting it live</h2>
+  <p>The delayed table above is the whole product, 24 hours late. Live delivery is a limited number of seats, and the limit is not a sales tactic: the follow price we measured exists because few people are racing for it. Every extra follower on the same wallet narrows that, and we would rather cap it than sell an edge we are diluting. That reasoning, and the measurement behind it, is on the <a href="/evidence/">evidence page</a>.</p>
+  <p>If you want a seat, write to <a href="mailto:contact@assayscore.com?subject=Signals%20seat">contact@assayscore.com</a> — tell us what you trade and roughly what size, and we will tell you whether there is room and what it costs. Builders wanting the grades inside their own product should use the <a href="/api/">free API</a> instead; that is not seat-limited.</p>
+  <p><strong>What this is not.</strong> Not advice, not managed money, not a guarantee. We hold no assets, sign no transactions and route no orders. Grades come from settled outcomes only, and the conditions the result depends on — hold to resolution, liquidity, an uncrowded market — are published in full rather than buried. Prediction markets are not available everywhere; check what applies where you are.</p>
+</section>
+
+<footer>
+  <span>Grades and method on the <a href="/">report page</a> · <a href="/evidence/">how it was tested</a> · <a href="/api/">API</a></span>
+  <span>Signals delayed 24h · rebuilt 2026-09-03</span>
+</footer>
+
+</div>
+</body>
+</html>
