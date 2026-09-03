@@ -126,6 +126,12 @@ tbody tr:hover{background:var(--surface-2)}
 h3.sub{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:500;margin:30px 0 8px}
 code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.92em;background:var(--surface);border:1px solid var(--rule-soft);border-radius:3px;padding:1px 5px;color:var(--ink)}
 
+pre.sample{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:13px;line-height:1.7;background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--pass);padding:16px 18px;overflow-x:auto;white-space:pre-wrap;color:var(--ink-2);margin:0 0 18px}
+.addr a{color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--rule)}
+.addr a:hover{border-bottom-color:var(--ink)}
+
+.lede-cta{font-size:16px;color:var(--ink-2);border-left:3px solid var(--pass);padding-left:14px;margin:18px 0 0}
+.lede-cta a{color:var(--ink)}
 /* callout */
 .callout{border-left:3px solid var(--accent);background:var(--surface);padding:22px 24px;margin:26px 0}
 .callout .eyebrow{color:var(--accent)}
@@ -175,6 +181,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
   </div>
   <h1>Polymarket Copyability Ratings</h1>
   <p class="standfirst">910 tracked wallets, graded on one question: could a follower have captured what this wallet did? Profit alone does not answer it.</p>
+  <p class="lede-cta">Want the answer as it happens rather than as a report? <a href="/signals/"><strong>Live signals</strong></a> — what the A-grade wallets are doing right now, free and without an account.</p>
 
   <dl class="specimen">
     <div class="spec"><dt>Wallets graded</dt><dd>910<small>≥50 settled bets</small></dd></div>
@@ -892,7 +899,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <section class="prose">
   <h2>What this report does not claim</h2>
   <p>Detection latency here is one to five minutes. A faster observer might measure different short-horizon values, and nothing in this data speaks to sub-minute copying.</p>
-  <p>Outcome labels currently cover 613,299 of 667,786 markets these wallets traded (92%) and continue to accumulate; grades are recomputed as they land.</p>
+  <p>Outcome labels currently cover 613,299 of 667,821 markets these wallets traded (92%) and continue to accumulate; grades are recomputed as they land.</p>
   <p>A grade of F is not a verdict on a trader. It says the wallet's edge is not transferable to someone watching from outside — which is a statement about copyability, not about skill.</p>
 </section>
 

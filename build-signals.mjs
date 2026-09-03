@@ -15,9 +15,10 @@ const DB_URL = process.env.DATABASE_URL
 const pool = new Pool({ connectionString: DB_URL, ssl: { rejectUnauthorized: false } });
 const ROOT = process.env.REPO_DIR || `${process.env.HOME}/OzScan/Ozscan`;
 
-// Free tier is delayed on purpose: the live feed is the product, this is the
-// receipt. DELAY_H also sets what the page promises, so they cannot drift.
-const DELAY_H = 24;
+// No delay and no gate. Capping access at zero users was backwards — the
+// crowding problem the evidence page describes is real at hundreds of
+// followers, not at none. Until there is demand to ration, the page is the
+// product: live, free, nothing to sign.
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const short = (a) => `${a.slice(0, 6)}…${a.slice(-4)}`;
@@ -30,7 +31,6 @@ const { rows: sigs } = await pool.query(`
   FROM copy_signals s
   LEFT JOIN wallet_grades g ON g.address = s.address
   LEFT JOIN market_resolutions r ON r.condition_id = s.condition_id
-  WHERE s.ts < EXTRACT(EPOCH FROM now()) - ${DELAY_H} * 3600
   ORDER BY s.ts DESC
   LIMIT 40`);
 
@@ -57,8 +57,8 @@ const rows = sigs.map((s) => {
   return `<tr>
 <td class="num idx">${new Date(Number(s.ts) * 1000).toISOString().slice(5, 16).replace('T', ' ')}</td>
 <td class="grade-cell">${s.grade ? `<span class="stamp g-${s.grade.toLowerCase()}">${s.grade}</span>` : '—'}</td>
-<td class="addr">${short(s.address)}</td>
-<td class="l">${esc((s.market || s.slug || '').slice(0, 58))}</td>
+<td class="addr"><a href="/check/?a=${s.address}" title="${s.address}">${short(s.address)}</a></td>
+<td class="l">${s.slug ? `<a href="https://polymarket.com/market/${esc(s.slug)}" rel="nofollow noopener" target="_blank">${esc((s.market || s.slug).slice(0, 58))}</a>` : esc((s.market || '').slice(0, 58))}</td>
 <td class="l"><strong>${esc(s.outcome)}</strong></td>
 <td class="num">${Number(s.avg_price).toFixed(1)}¢</td>
 <td class="num">${money(s.size_usd)}</td>
@@ -80,8 +80,8 @@ ${nav('/signals/')}
     <img src="/mark.png" srcset="/mark.png 1x, /mark@2x.png 2x" width="52" height="52" alt="">
     <div class="eyebrow">Assay Score · Signals</div>
   </div>
-  <h1>One alert when a graded wallet commits.</h1>
-  <p class="standfirst">A-grade wallets place over a thousand fills a day between them. Almost none of it is worth acting on. This is the part that is: a wallet that passed the walk-forward, opening a new position, large by its own standard.</p>
+  <h1>Follow the wallets that passed the test.</h1>
+  <p class="standfirst">Of the wallets we graded A on data through June 30, <strong>23 of 27 were profitable</strong> over the two months that followed — a period the grading never saw. Every other grade landed near a coin flip. This page shows what those wallets are doing right now, free and without an account.</p>
 
   <dl class="specimen">
     <div class="spec"><dt>Signals sent</dt><dd>${tot.n}<small>since ${new Date(Number(tot.first_ts) * 1000).toISOString().slice(0, 10)}</small></dd></div>
@@ -101,8 +101,8 @@ ${nav('/signals/')}
 </section>
 
 <section>
-  <h2>The last ${sigs.length} signals</h2>
-  <p class="sec-note">Delayed ${DELAY_H} hours, which is why you can read them here for free. W/L is the settled outcome; <span class="flag">open</span> means the market has not resolved yet. Nothing is removed after the fact — this table is the record, wins and losses both.</p>
+  <h2>Live signals</h2>
+  <p class="sec-note">Every signal as it fired, newest first — no delay, no account. The wallet links to its full grade; the market links to Polymarket. <strong>W/L is the settled outcome</strong> and <span class="flag">open</span> means the market has not resolved. Nothing is removed after the fact: losses stay on this page, which is the point of publishing it at all.</p>
   ${settled.length ? `<p><strong>${wins} of ${settled.length}</strong> settled signals on this page won. The rest are still open.</p>` : ''}
   <div class="tablewrap">
     <table>
@@ -118,15 +118,25 @@ ${rows}
 </section>
 
 <section class="prose">
-  <h2>Getting it live</h2>
-  <p>The delayed table above is the whole product, ${DELAY_H} hours late. Live delivery is a limited number of seats, and the limit is not a sales tactic: the follow price we measured exists because few people are racing for it. Every extra follower on the same wallet narrows that, and we would rather cap it than sell an edge we are diluting. That reasoning, and the measurement behind it, is on the <a href="/evidence/">evidence page</a>.</p>
-  <p>If you want a seat, write to <a href="mailto:contact@assayscore.com?subject=Signals%20seat">contact@assayscore.com</a> — tell us what you trade and roughly what size, and we will tell you whether there is room and what it costs. Builders wanting the grades inside their own product should use the <a href="/api/">free API</a> instead; that is not seat-limited.</p>
+  <h2>Getting it as it happens</h2>
+  <p>Refreshing a page is a poor way to catch a signal, so the same feed is available two other ways, both free:</p>
+  <div class="method">
+    <div><h4>Telegram</h4><p>Signals pushed the moment they fire, in the format below. Ask at <a href="mailto:contact@assayscore.com?subject=Signals%20on%20Telegram">contact@assayscore.com</a> and we will send the channel link.</p></div>
+    <div><h4>JSON</h4><p><code>GET /api/v0/signals.json</code> — the same rows this page renders, for anyone wiring their own alerting. No key, no rate card, CORS open.</p></div>
+    <div><h4>Grades API</h4><p>Building your own tool? <a href="/api/">The grade API</a> gives you every wallet's rating directly, which is usually what you actually want.</p></div>
+  </div>
+  <h3 class="sub">What one looks like</h3>
+  <pre class="sample">🟢 A-grade entry — 0xb7ab…a2d1
+US Open, Qualification ATP: Raul Brancaccio vs Thiago Seyboth Wild
+Thiago Seyboth Wild @ 57.1¢ · $9,193 (wallet p90 $5,100)
+polymarket.com/market/us-open-qualification-atp-...
+Grade basis: assayscore.com/evidence — settled outcomes, not advice.</pre>
   <p><strong>What this is not.</strong> Not advice, not managed money, not a guarantee. We hold no assets, sign no transactions and route no orders. Grades come from settled outcomes only, and the conditions the result depends on — hold to resolution, liquidity, an uncrowded market — are published in full rather than buried. Prediction markets are not available everywhere; check what applies where you are.</p>
 </section>
 
 <footer>
   <span>Grades and method on the <a href="/">report page</a> · <a href="/evidence/">how it was tested</a> · <a href="/api/">API</a></span>
-  <span>Signals delayed ${DELAY_H}h · rebuilt ${new Date().toISOString().slice(0, 10)}</span>
+  <span>Live · rebuilt ${new Date().toISOString().slice(0, 10)}</span>
 </footer>
 
 </div>
@@ -134,6 +144,20 @@ ${rows}
 </html>`;
 
 mkdirSync(`${ROOT}/site/public/signals`, { recursive: true });
+mkdirSync(`${ROOT}/site/public/api/v0`, { recursive: true });
+writeFileSync(`${ROOT}/site/public/api/v0/signals.json`, JSON.stringify({
+  generated_at: new Date().toISOString(),
+  note: 'A-grade wallet entries that cleared the copy-signal filters. Not advice.',
+  method: 'https://assayscore.com/evidence',
+  count: sigs.length,
+  signals: sigs.map((s) => ({
+    ts: Number(s.ts), time: new Date(Number(s.ts) * 1000).toISOString(),
+    wallet: s.address, grade: s.grade, market: s.market, slug: s.slug,
+    side: s.outcome, entry_cents: Number(s.avg_price), size_usd: Number(s.size_usd),
+    settled: Boolean(s.closed && s.winning_outcome),
+    won: s.closed && s.winning_outcome ? norm(s.outcome) === norm(s.winning_outcome) : null,
+  })),
+}, null, 2));
 writeFileSync(`${ROOT}/site/public/signals/index.html`, head + body);
-console.log(`Built site/public/signals/index.html — ${tot.n} signals total, ${sigs.length} shown (${DELAY_H}h delay), ${wins}/${settled.length} settled won`);
+console.log(`Built site/public/signals/index.html — ${tot.n} signals total, ${sigs.length} shown (live), ${wins}/${settled.length} settled won`);
 await pool.end();

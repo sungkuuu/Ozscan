@@ -85,6 +85,7 @@ ${nav('/')}
   </div>
   <h1>Polymarket Copyability Ratings</h1>
   <p class="standfirst">${m.wallets} tracked wallets, graded on one question: could a follower have captured what this wallet did? Profit alone does not answer it.</p>
+  <p class="lede-cta">Want the answer as it happens rather than as a report? <a href="/signals/"><strong>Live signals</strong></a> — what the A-grade wallets are doing right now, free and without an account.</p>
 
   <dl class="specimen">
     <div class="spec"><dt>Wallets graded</dt><dd>${m.wallets}<small>≥50 settled bets</small></dd></div>
