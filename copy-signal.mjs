@@ -332,5 +332,10 @@ if (isCli && mode === 'backtest') await backtest(Number(arg) || 7);
 else if (isCli && mode === 'run') await run();
 else if (isCli && mode === 'pollonce') await pollOnce();
 else if (isCli && mode === 'seed') await seed(Number(arg) || 30);
-else if (!isCli && process.env.COPY_SIGNALS_ENABLED === 'true') run(); // imported by the worker
+else if (!isCli && process.env.COPY_SIGNALS_ENABLED === 'true') {
+  // Imported by the collector, which shares this process. An unhandled
+  // rejection here would take the collector down with it, so the loop's
+  // failures stay the loop's: log and stop signalling, keep collecting.
+  run().catch((e) => console.error('copy-signal stopped:', e.message));
+}
 else if (isCli) { console.log('usage: node copy-signal.mjs backtest [days] | seed [days] | run | pollonce'); await pool.end(); }
