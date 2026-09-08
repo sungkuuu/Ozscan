@@ -46,6 +46,26 @@ const settled = sigs.filter((s) => s.closed && s.winning_outcome);
 const norm = (x) => String(x ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const wins = settled.filter((s) => norm(s.outcome) === norm(s.winning_outcome)).length;
 
+// Scoreboard over every signal ever recorded, not just the 40 rendered.
+// Win rate alone is the trap this whole product argues against — a 90%
+// hit rate at 90¢ loses money — so the return is computed beside it, on
+// equal stakes, which is how a follower would actually act on a feed.
+const { rows: [score] } = await pool.query(`
+  SELECT count(*) FILTER (WHERE r.closed AND r.winning_outcome IS NOT NULL) AS settled,
+         count(*) FILTER (WHERE r.closed AND r.winning_outcome IS NOT NULL
+           AND lower(regexp_replace(cs.outcome,'[^a-z0-9]','','gi'))
+             = lower(regexp_replace(r.winning_outcome,'[^a-z0-9]','','gi'))) AS won,
+         ROUND(AVG(cs.avg_price) FILTER (WHERE r.closed AND r.winning_outcome IS NOT NULL), 1) AS avg_entry,
+         ROUND(100.0 * SUM(
+           CASE WHEN r.closed AND r.winning_outcome IS NOT NULL THEN
+             CASE WHEN lower(regexp_replace(cs.outcome,'[^a-z0-9]','','gi'))
+                     = lower(regexp_replace(r.winning_outcome,'[^a-z0-9]','','gi'))
+                  THEN (100 - cs.avg_price) / cs.avg_price ELSE -1 END
+           ELSE 0 END)
+           / NULLIF(count(*) FILTER (WHERE r.closed AND r.winning_outcome IS NOT NULL), 0), 1) AS roi
+  FROM copy_signals cs
+  LEFT JOIN market_resolutions r ON r.condition_id = cs.condition_id`);
+
 const days = tot.first_ts ? Math.max(1, Math.round((Date.now() / 1000 - Number(tot.first_ts)) / 86400)) : 1;
 const perDay = (Number(tot.n) / days).toFixed(1);
 
@@ -87,7 +107,8 @@ ${nav('/signals/')}
     <div class="spec"><dt>Signals sent</dt><dd>${tot.n}<small>since ${new Date(Number(tot.first_ts) * 1000).toISOString().slice(0, 10)}</small></dd></div>
     <div class="spec"><dt>Per day</dt><dd>${perDay}<small>not a feed</small></dd></div>
     <div class="spec"><dt>Wallets firing</dt><dd>${tot.wallets}<small>of ${(await pool.query(`SELECT count(*) n FROM wallet_grades WHERE grade='A'`)).rows[0].n} graded A</small></dd></div>
-    <div class="spec"><dt>Median size</dt><dd>${money(tot.avg_size)}<small>their money, not ours</small></dd></div>
+    <div class="spec"><dt>Settled</dt><dd>${score.won}/${score.settled}<small>won, at ${score.avg_entry}¢ average entry</small></dd></div>
+    <div class="spec"><dt>Return</dt><dd class="${Number(score.roi) > 0 ? 'pos' : 'neg'}">${Number(score.roi) >= 0 ? '+' : ''}${score.roi}%<small>equal stake per signal</small></dd></div>
   </dl>
 </header>
 
@@ -103,7 +124,7 @@ ${nav('/signals/')}
 <section>
   <h2>Live signals</h2>
   <p class="sec-note">Every signal as it fired, newest first — no delay, no account. The wallet links to its full grade; the market links to Polymarket. <strong>W/L is the settled outcome</strong> and <span class="flag">open</span> means the market has not resolved. Nothing is removed after the fact: losses stay on this page, which is the point of publishing it at all.</p>
-  ${settled.length ? `<p><strong>${wins} of ${settled.length}</strong> settled signals on this page won. The rest are still open.</p>` : ''}
+  ${score.settled ? `<p>Across every signal recorded so far, <strong>${score.won} of ${score.settled}</strong> that have settled won, at an average entry of ${score.avg_entry}¢ — a price implying ${score.avg_entry}% odds. Staking the same amount on each would have returned <strong>${Number(score.roi) >= 0 ? '+' : ''}${score.roi}%</strong>. That is ${score.settled} outcomes over a few weeks, which is a start and not a track record.</p>` : ''}
   <div class="tablewrap">
     <table>
       <thead><tr>
@@ -159,5 +180,5 @@ writeFileSync(`${ROOT}/site/public/api/v0/signals.json`, JSON.stringify({
   })),
 }, null, 2));
 writeFileSync(`${ROOT}/site/public/signals/index.html`, head + body);
-console.log(`Built site/public/signals/index.html — ${tot.n} signals total, ${sigs.length} shown (live), ${wins}/${settled.length} settled won`);
+console.log(`Built site/public/signals/index.html — ${tot.n} signals total, ${sigs.length} shown (live), ${score.won}/${score.settled} settled won, ROI ${score.roi}%`);
 await pool.end();
