@@ -1,0 +1,354 @@
+{
+  "stamp": "2026-09-09",
+  "settled": [
+    {
+      "address": "0x5268527977f700f9bf9b6d5cd843859e4e70135d",
+      "market": "US Open WTA: Diane Parry vs Sorana Cirstea",
+      "outcome": "Sorana Cirstea",
+      "size": "5931.30265",
+      "price": "66",
+      "timestamp": "1788362875",
+      "winning_outcome": "Sorana Cirstea",
+      "end_date": "2026-09-09T00:00:00Z",
+      "won": true,
+      "pnl": "3055.5195469696969697",
+      "entry_date": "2026-09-02T00:00:00.000Z",
+      "resolve_date": "2026-09-09T00:00:00.000Z",
+      "held_days": "6.4"
+    },
+    {
+      "address": "0x5268527977f700f9bf9b6d5cd843859e4e70135d",
+      "market": "US Open WTA: Diane Parry vs Sorana Cirstea",
+      "outcome": "Sorana Cirstea",
+      "size": "3183.52781",
+      "price": "75",
+      "timestamp": "1788362976",
+      "winning_outcome": "Sorana Cirstea",
+      "end_date": "2026-09-09T00:00:00Z",
+      "won": true,
+      "pnl": "1061.1759366666666667",
+      "entry_date": "2026-09-02T00:00:00.000Z",
+      "resolve_date": "2026-09-09T00:00:00.000Z",
+      "held_days": "6.4"
+    },
+    {
+      "address": "0x5268527977f700f9bf9b6d5cd843859e4e70135d",
+      "market": "US Open WTA: Diane Parry vs Sorana Cirstea",
+      "outcome": "Sorana Cirstea",
+      "size": "3200.14911",
+      "price": "79",
+      "timestamp": "1788363613",
+      "winning_outcome": "Sorana Cirstea",
+      "end_date": "2026-09-09T00:00:00Z",
+      "won": true,
+      "pnl": "850.6725482278481013",
+      "entry_date": "2026-09-02T00:00:00.000Z",
+      "resolve_date": "2026-09-09T00:00:00.000Z",
+      "held_days": "6.3"
+    },
+    {
+      "address": "0x5268527977f700f9bf9b6d5cd843859e4e70135d",
+      "market": "US Open WTA: Diane Parry vs Sorana Cirstea",
+      "outcome": "Sorana Cirstea",
+      "size": "1584.78786",
+      "price": "83",
+      "timestamp": "1788363738",
+      "winning_outcome": "Sorana Cirstea",
+      "end_date": "2026-09-09T00:00:00Z",
+      "won": true,
+      "pnl": "324.5951038554216867",
+      "entry_date": "2026-09-02T00:00:00.000Z",
+      "resolve_date": "2026-09-09T00:00:00.000Z",
+      "held_days": "6.3"
+    },
+    {
+      "address": "0x2005d16a84ceefa912d4e380cd32e7ff827875ea",
+      "market": "US Open WTA: Diane Parry vs Sorana Cirstea",
+      "outcome": "Sorana Cirstea",
+      "size": "1161.46566",
+      "price": "90.9",
+      "timestamp": "1788367044",
+      "winning_outcome": "Sorana Cirstea",
+      "end_date": "2026-09-09T00:00:00Z",
+      "won": true,
+      "pnl": "116.2743400000000000",
+      "entry_date": "2026-09-02T00:00:00.000Z",
+      "resolve_date": "2026-09-09T00:00:00.000Z",
+      "held_days": "6.3"
+    },
+    {
+      "address": "0x5268527977f700f9bf9b6d5cd843859e4e70135d",
+      "market": "US Open WTA: Diane Parry vs Sorana Cirstea",
+      "outcome": "Sorana Cirstea",
+      "size": "1150",
+      "price": "92",
+      "timestamp": "1788365719",
+      "winning_outcome": "Sorana Cirstea",
+      "end_date": "2026-09-09T00:00:00Z",
+      "won": true,
+      "pnl": "100.0000000000000000",
+      "entry_date": "2026-09-02T00:00:00.000Z",
+      "resolve_date": "2026-09-09T00:00:00.000Z",
+      "held_days": "6.3"
+    },
+    {
+      "address": "0x5268527977f700f9bf9b6d5cd843859e4e70135d",
+      "market": "US Open WTA: Diane Parry vs Sorana Cirstea",
+      "outcome": "Sorana Cirstea",
+      "size": "1124.37",
+      "price": "93",
+      "timestamp": "1788364644",
+      "winning_outcome": "Sorana Cirstea",
+      "end_date": "2026-09-09T00:00:00Z",
+      "won": true,
+      "pnl": "84.6300000000000000",
+      "entry_date": "2026-09-02T00:00:00.000Z",
+      "resolve_date": "2026-09-09T00:00:00.000Z",
+      "held_days": "6.3"
+    },
+    {
+      "address": "0x5268527977f700f9bf9b6d5cd843859e4e70135d",
+      "market": "US Open WTA: Diane Parry vs Sorana Cirstea",
+      "outcome": "Sorana Cirstea",
+      "size": "1187.9532",
+      "price": "94",
+      "timestamp": "1788365412",
+      "winning_outcome": "Sorana Cirstea",
+      "end_date": "2026-09-09T00:00:00Z",
+      "won": true,
+      "pnl": "75.8268000000000000",
+      "entry_date": "2026-09-02T00:00:00.000Z",
+      "resolve_date": "2026-09-09T00:00:00.000Z",
+      "held_days": "6.3"
+    }
+  ],
+  "open": [
+    {
+      "address": "0x2c335066fe58fe9237c3d3dc7b275c2a034a0563",
+      "market": "Colorado Rockies vs. New York Yankees",
+      "outcome": "New York Yankees",
+      "size": "837147.89115",
+      "price": "85",
+      "timestamp": "1788910507",
+      "end_date": "2026-09-15T00:00:00Z"
+    },
+    {
+      "address": "0x2dfa4e79eca44b7c774f40a45535adbc368a6f60",
+      "market": "Counter-Strike: Spirit vs MOUZ (BO5) - BLAST Open Porto Playoffs",
+      "outcome": "Spirit",
+      "size": "444751.75951",
+      "price": "62",
+      "timestamp": "1788710613",
+      "end_date": null
+    },
+    {
+      "address": "0x0f6f76ced62a911bccef92f50faaff143854d977",
+      "market": "Will Real Betis Balompié win on 2026-09-08?",
+      "outcome": "No",
+      "size": "271347.23472",
+      "price": "72",
+      "timestamp": "1788890380",
+      "end_date": null
+    },
+    {
+      "address": "0x983eedfbd75803602e4a6e6ea9aab6dc6b9c6748",
+      "market": "Will OGC Nice win on 2026-09-05?",
+      "outcome": "Yes",
+      "size": "262014.75",
+      "price": "56.99999999999999",
+      "timestamp": "1788631948",
+      "end_date": null
+    },
+    {
+      "address": "0x983eedfbd75803602e4a6e6ea9aab6dc6b9c6748",
+      "market": "Will OGC Nice win on 2026-09-05?",
+      "outcome": "Yes",
+      "size": "257544",
+      "price": "56.00000000000001",
+      "timestamp": "1788631908",
+      "end_date": null
+    },
+    {
+      "address": "0x2c335066fe58fe9237c3d3dc7b275c2a034a0563",
+      "market": "Colorado Rockies vs. New York Yankees",
+      "outcome": "New York Yankees",
+      "size": "256912.5",
+      "price": "85",
+      "timestamp": "1788910485",
+      "end_date": "2026-09-15T00:00:00Z"
+    },
+    {
+      "address": "0xf0318c32136c2db7fec88b84869aee6a1106c80c",
+      "market": "US Open ATP: Ben Shelton vs Stefanos Tsitsipas",
+      "outcome": "Ben Shelton",
+      "size": "252000",
+      "price": "72",
+      "timestamp": "1788735156",
+      "end_date": null
+    },
+    {
+      "address": "0x7c37b52eb226bcb9411375ec48b0169663fb6aeb",
+      "market": "Will BV Borussia 09 Dortmund win on 2026-09-08?",
+      "outcome": "Yes",
+      "size": "228928",
+      "price": "56.00000000000001",
+      "timestamp": "1788888921",
+      "end_date": null
+    },
+    {
+      "address": "0x0f6f76ced62a911bccef92f50faaff143854d977",
+      "market": "US Open ATP: Frances Tiafoe vs Alex Michelsen",
+      "outcome": "Alex Michelsen",
+      "size": "210677.80494",
+      "price": "41.876263279999996",
+      "timestamp": "1788886308",
+      "end_date": "2026-09-15T00:00:00Z"
+    },
+    {
+      "address": "0xf0318c32136c2db7fec88b84869aee6a1106c80c",
+      "market": "US Open ATP: Frances Tiafoe vs Alex Michelsen",
+      "outcome": "Frances Tiafoe",
+      "size": "206028.76",
+      "price": "57.99999999999999",
+      "timestamp": "1788886308",
+      "end_date": "2026-09-15T00:00:00Z"
+    },
+    {
+      "address": "0x168a51f1cac0ad3b166797069382495a8aa10d24",
+      "market": "US Open ATP: Daniel Merida Aguilar vs Andrey Rublev",
+      "outcome": "Andrey Rublev",
+      "size": "191663.30708",
+      "price": "62",
+      "timestamp": "1788361332",
+      "end_date": null
+    },
+    {
+      "address": "0x2c335066fe58fe9237c3d3dc7b275c2a034a0563",
+      "market": "US Open ATP: Ben Shelton vs Carlos Alcaraz",
+      "outcome": "Carlos Alcaraz",
+      "size": "162687.96452",
+      "price": "77",
+      "timestamp": "1788880156",
+      "end_date": "2026-09-15T00:00:00Z"
+    },
+    {
+      "address": "0xc8075693f48668a264b9fa313b47f52712fcc12b",
+      "market": "UFC Fight Night: Ryan Spann vs. Mario Pinto (Heavyweight, Prelims)",
+      "outcome": "Mario Pinto",
+      "size": "153034.5971",
+      "price": "77",
+      "timestamp": "1788631882",
+      "end_date": null
+    },
+    {
+      "address": "0x0a39b3b29ab3b7dd753aa96fde4ecab3f2dbb0b9",
+      "market": "Will Aston Villa FC win on 2026-09-05?",
+      "outcome": "Yes",
+      "size": "149379.78242",
+      "price": "53",
+      "timestamp": "1788621429",
+      "end_date": null
+    },
+    {
+      "address": "0x7c37b52eb226bcb9411375ec48b0169663fb6aeb",
+      "market": "LoL: Invictus Gaming vs LGD Gaming (BO5) - LPL Playoffs",
+      "outcome": "LGD Gaming",
+      "size": "130511.62239",
+      "price": "38",
+      "timestamp": "1788857625",
+      "end_date": null
+    }
+  ],
+  "board": [
+    {
+      "address": "0xfbe6717a7b235417aaee2823aa5edd1a052b4a1b",
+      "grade": "A",
+      "resolved_bets": 951,
+      "win_pct": "58.0",
+      "roi_staked_pct": "219.0",
+      "pnl_usd": "30902",
+      "last_bet": "2026-08-22T00:00:00.000Z"
+    },
+    {
+      "address": "0xbcac39ed1f84f7711303e92d53abedc4bc406621",
+      "grade": "A",
+      "resolved_bets": 1135,
+      "win_pct": "54.6",
+      "roi_staked_pct": "128.0",
+      "pnl_usd": "125322",
+      "last_bet": "2026-08-14T00:00:00.000Z"
+    },
+    {
+      "address": "0x8a16eb406b6ecd9334e6202a159c9dd51288c0d5",
+      "grade": "A",
+      "resolved_bets": 139,
+      "win_pct": "59.0",
+      "roi_staked_pct": "132.7",
+      "pnl_usd": "28315",
+      "last_bet": "2026-09-02T00:00:00.000Z"
+    },
+    {
+      "address": "0x1e1323cafdf350d87ec61a12b565143b721aaf03",
+      "grade": "A",
+      "resolved_bets": 113,
+      "win_pct": "50.4",
+      "roi_staked_pct": "114.3",
+      "pnl_usd": "24318",
+      "last_bet": "2026-09-04T00:00:00.000Z"
+    },
+    {
+      "address": "0x54a2c4cfc4332d831acc3f5a860d6540982c1d43",
+      "grade": "A",
+      "resolved_bets": 2201,
+      "win_pct": "35.4",
+      "roi_staked_pct": "53.7",
+      "pnl_usd": "45222",
+      "last_bet": "2026-09-05T00:00:00.000Z"
+    },
+    {
+      "address": "0xd72654f5ab87e3a636715ad63dc5f8ea1279b5c9",
+      "grade": "A",
+      "resolved_bets": 355,
+      "win_pct": "70.7",
+      "roi_staked_pct": "93.9",
+      "pnl_usd": "20660",
+      "last_bet": "2026-08-22T00:00:00.000Z"
+    },
+    {
+      "address": "0x74cb0070bc348b4322c9e91ee1fec5a470341688",
+      "grade": "A",
+      "resolved_bets": 474,
+      "win_pct": "59.5",
+      "roi_staked_pct": "60.8",
+      "pnl_usd": "16353",
+      "last_bet": "2026-09-06T00:00:00.000Z"
+    },
+    {
+      "address": "0x2d4bf8f846bf68f43b9157bf30810d334ac6ca7a",
+      "grade": "A",
+      "resolved_bets": 592,
+      "win_pct": "42.6",
+      "roi_staked_pct": "93.0",
+      "pnl_usd": "165243",
+      "last_bet": "2026-08-24T00:00:00.000Z"
+    },
+    {
+      "address": "0x82307f44c9405e73dc1cff466073dcc505535121",
+      "grade": "A",
+      "resolved_bets": 1281,
+      "win_pct": "39.2",
+      "roi_staked_pct": "119.5",
+      "pnl_usd": "61558",
+      "last_bet": "2026-09-02T00:00:00.000Z"
+    },
+    {
+      "address": "0x7056f248c5098cce2fb0a062cdd2ab0f8318c95c",
+      "grade": "A",
+      "resolved_bets": 165,
+      "win_pct": "69.1",
+      "roi_staked_pct": "71.8",
+      "pnl_usd": "23246",
+      "last_bet": "2026-08-23T00:00:00.000Z"
+    }
+  ]
+}
