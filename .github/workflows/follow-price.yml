@@ -22,3 +22,11 @@ jobs:
       - env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: node follow-price.mjs
+      # Keep the live record's settlement labels current: queue every signal
+      # market that is unlabeled or past its end date, then drain the queue.
+      - env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node enqueue-signal-labels.mjs
+      - env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node resolution-backfill.mjs
