@@ -1,0 +1,24 @@
+name: follow-price
+
+# Records the CLOB price 1/5/15/60 minutes after every copy signal, so the
+# scoreboard can be computed at a price a follower could get instead of the
+# wallet's own fill. Runs from a runner because the office IP is blocked.
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --omit=dev
+      - env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node follow-price.mjs

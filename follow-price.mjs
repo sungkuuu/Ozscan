@@ -11,6 +11,7 @@
 // market afterwards). So this reads the CLOB's own price history around each
 // signal. Polymarket blocks the office IP, so run it on a runner:
 //   gh workflow run data-job.yml -f script=follow-price.mjs
+// and .github/workflows/follow-price.yml runs it every six hours.
 //
 // Writes one row per signal into copy_signal_followprice; re-running updates.
 
@@ -55,15 +56,18 @@ async function main() {
       measured_at timestamptz DEFAULT now()
     )`);
 
-  // Only settled signals: an unsettled one has no outcome to score against.
+  // Every signal at least 70 minutes old that has not been measured yet. The
+  // CLOB history is permanent, so measuring before settlement is fine — and
+  // necessary: the live test compares real fills against px_60 while the
+  // market is still open, and the scoreboard scores whatever settles later.
   const { rows: signals } = await pool.query(`
     SELECT cs.id, cs.ts, cs.address, cs.condition_id, cs.outcome, cs.avg_price
     FROM copy_signals cs
-    JOIN market_resolutions r ON r.condition_id = cs.condition_id
-    WHERE r.closed AND r.winning_outcome IS NOT NULL
+    LEFT JOIN copy_signal_followprice f ON f.signal_id = cs.id
+    WHERE f.signal_id IS NULL AND cs.ts <= EXTRACT(EPOCH FROM now()) - 4200
     ORDER BY cs.ts`);
 
-  console.log(`${signals.length} settled signals`);
+  console.log(`${signals.length} signals to measure`);
   let done = 0, missing = 0;
 
   for (const s of signals) {
