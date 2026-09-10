@@ -66,6 +66,25 @@ const { rows: [score] } = await pool.query(`
   FROM copy_signals cs
   LEFT JOIN market_resolutions r ON r.condition_id = cs.condition_id`);
 
+// The return above is computed at the wallet's own fill price — which nobody
+// reading this feed can get, because that fill has already moved the book. The
+// price a reader could actually pay is measured separately (follow-price.mjs
+// reads the CLOB one minute after each signal), and it is that number this page
+// leads with: publishing a return nobody could have captured is the exact
+// failure this product was built to call out.
+const { rows: [foll] } = await pool.query(`
+  SELECT count(*) AS n,
+         ROUND(AVG(f.px_60), 1) AS avg_entry,
+         ROUND(100.0 * AVG(
+           CASE WHEN lower(regexp_replace(cs.outcome,'[^a-z0-9]','','gi'))
+                   = lower(regexp_replace(r.winning_outcome,'[^a-z0-9]','','gi'))
+                THEN (100 - f.px_60) / f.px_60 ELSE -1 END), 1) AS roi
+  FROM copy_signal_followprice f
+  JOIN copy_signals cs ON cs.id = f.signal_id
+  JOIN market_resolutions r ON r.condition_id = cs.condition_id
+  WHERE f.px_60 IS NOT NULL AND r.closed AND r.winning_outcome IS NOT NULL`);
+const followable = Number(foll?.n) > 0;
+
 const days = tot.first_ts ? Math.max(1, Math.round((Date.now() / 1000 - Number(tot.first_ts)) / 86400)) : 1;
 const perDay = (Number(tot.n) / days).toFixed(1);
 
@@ -107,8 +126,8 @@ ${nav('/signals/')}
     <div class="spec"><dt>Signals sent</dt><dd>${tot.n}<small>since ${new Date(Number(tot.first_ts) * 1000).toISOString().slice(0, 10)}</small></dd></div>
     <div class="spec"><dt>Per day</dt><dd>${perDay}<small>not a feed</small></dd></div>
     <div class="spec"><dt>Wallets firing</dt><dd>${tot.wallets}<small>of ${(await pool.query(`SELECT count(*) n FROM wallet_grades WHERE grade='A'`)).rows[0].n} graded A</small></dd></div>
-    <div class="spec"><dt>Settled</dt><dd>${score.won}/${score.settled}<small>won, at ${score.avg_entry}¢ average entry</small></dd></div>
-    <div class="spec"><dt>Return</dt><dd class="${Number(score.roi) > 0 ? 'pos' : 'neg'}">${Number(score.roi) >= 0 ? '+' : ''}${score.roi}%<small>equal stake per signal</small></dd></div>
+    <div class="spec"><dt>Settled</dt><dd>${score.won}/${score.settled}<small>won${followable ? `, at ${foll.avg_entry}¢ a minute after the signal` : `, at ${score.avg_entry}¢ average entry`}</small></dd></div>
+    <div class="spec"><dt>Return</dt><dd class="${Number(followable ? foll.roi : score.roi) > 0 ? 'pos' : 'neg'}">${Number(followable ? foll.roi : score.roi) >= 0 ? '+' : ''}${followable ? foll.roi : score.roi}%<small>${followable ? 'equal stake, entering a minute later' : 'equal stake per signal'}</small></dd></div>
   </dl>
 </header>
 
@@ -124,7 +143,10 @@ ${nav('/signals/')}
 <section>
   <h2>Live signals</h2>
   <p class="sec-note">Every signal as it fired, newest first — no delay, no account. The wallet links to its full grade; the market links to Polymarket. <strong>W/L is the settled outcome</strong> and <span class="flag">open</span> means the market has not resolved. Nothing is removed after the fact: losses stay on this page, which is the point of publishing it at all.</p>
-  ${score.settled ? `<p>Across every signal recorded so far, <strong>${score.won} of ${score.settled}</strong> that have settled won, at an average entry of ${score.avg_entry}¢ — a price implying ${score.avg_entry}% odds. Staking the same amount on each would have returned <strong>${Number(score.roi) >= 0 ? '+' : ''}${score.roi}%</strong>. That is ${score.settled} outcomes over a few weeks, which is a start and not a track record.</p>` : ''}
+  ${score.settled ? `<p>Across every signal recorded so far, <strong>${score.won} of ${score.settled}</strong> that have settled won.</p>
+  ${followable ? `<p><strong>At what price, though.</strong> The wallets paid ${score.avg_entry}¢ on average, and equal stakes at their prices would have returned ${Number(score.roi) >= 0 ? '+' : ''}${score.roi}%. Nobody reading this page could have bought there: the fill that triggers a signal has already moved the book. One minute after each signal the same shares cost <strong>${foll.avg_entry}¢</strong>, and equal stakes at <em>that</em> price returned <strong>${Number(foll.roi) >= 0 ? '+' : ''}${foll.roi}%</strong> — roughly half. That second number is the honest one, and it is the one above.</p>
+  <p>Two things it still flatters. It is measured off the last traded price rather than the offer you would have to lift, so a real fill is worse. And the edge is in holding: buying a minute after the signal and selling fifteen minutes later returned about nothing, and selling after an hour returned single digits. The return only appears if the position is carried to resolution, which took a median of about a week.</p>` : ''}
+  <p>That is ${score.settled} outcomes over a few weeks, which is a start and not a track record.</p>` : ''}
   <div class="tablewrap">
     <table>
       <thead><tr>
@@ -180,5 +202,5 @@ writeFileSync(`${ROOT}/site/public/api/v0/signals.json`, JSON.stringify({
   })),
 }, null, 2));
 writeFileSync(`${ROOT}/site/public/signals/index.html`, head + body);
-console.log(`Built site/public/signals/index.html — ${tot.n} signals total, ${sigs.length} shown (live), ${score.won}/${score.settled} settled won, ROI ${score.roi}%`);
+console.log(`Built site/public/signals/index.html — ${tot.n} signals total, ${sigs.length} shown (live), ${score.won}/${score.settled} settled won, ROI ${score.roi}% at wallet price / ${followable ? foll.roi : 'n/a'}% followable`);
 await pool.end();
