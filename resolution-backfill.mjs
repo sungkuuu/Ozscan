@@ -11,7 +11,13 @@ import { Pool } from 'pg';
 
 const DB_URL = process.env.DATABASE_URL
   || readFileSync(`${process.env.HOME}/OzScan/backups/.db_url`, 'utf8').trim();
-const pool = new Pool({ connectionString: DB_URL, ssl: { rejectUnauthorized: false } });
+// A statement that waits on a lock would otherwise wait forever, and from the
+// runner that is indistinguishable from a hung fetch (2026-09-10: three runs
+// each labeled two markets and then went silent for 30 minutes). Fail loudly.
+const pool = new Pool({
+  connectionString: DB_URL, ssl: { rejectUnauthorized: false },
+  options: '-c statement_timeout=30000 -c lock_timeout=20000',
+});
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 await pool.query(`
@@ -140,6 +146,7 @@ const CONCURRENCY = Number(process.env.CONCURRENCY ?? 1);
 async function handle(id) {
   let result = null, matchedBy = null;
   const order = locked ? [locked] : ENDPOINTS;
+  const t0 = Date.now();
   for (const ep of order) {
     let r;
     do { r = await ep.fetch(id); } while (r === undefined); // undefined = retry after backoff
@@ -147,6 +154,8 @@ async function handle(id) {
     await sleep(300);
   }
   done++;
+  // One line per market so a stall points at an id, not at a 30-minute gap.
+  console.log(`${done}: ${id.slice(0, 12)}… ${matchedBy ? matchedBy.name : 'none'} ${Date.now() - t0}ms${result ? (result.closed ? ' closed' : ' open') + (result.winning ? ' → ' + result.winning : '') : ''}`);
   if (result) {
     if (!locked) { locked = matchedBy; console.log(`Endpoint locked: ${matchedBy.name}`); }
     probeFails = 0; found++;
