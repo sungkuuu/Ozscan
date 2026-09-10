@@ -140,8 +140,12 @@ let probeFails = 0, done = 0, found = 0, notFound = 0;
 // Throughput knobs. Defaults stay polite; raise via env once an endpoint is
 // locked and the API is clearly tolerating the load. The blockStreak guard
 // above still backs off and exits on repeated non-OK responses.
-const PACE_MS = Number(process.env.PACE_MS ?? 450);
-const CONCURRENCY = Number(process.env.CONCURRENCY ?? 1);
+// `??` is the wrong guard here: workflow_dispatch passes an unset input as
+// the empty string, and Number('') is 0 — which made the lane loop step by
+// zero and relabel the same market forever (2026-09-10, three runs, 30
+// minutes each, exactly two markets labeled per run).
+const PACE_MS = Number(process.env.PACE_MS) || 450;
+const CONCURRENCY = Math.max(1, Number(process.env.CONCURRENCY) || 1);
 
 async function handle(id) {
   let result = null, matchedBy = null;
