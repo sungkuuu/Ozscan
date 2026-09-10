@@ -186,8 +186,8 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
     <div class="spec"><dt>Signals sent</dt><dd>88<small>since 2026-08-05</small></dd></div>
     <div class="spec"><dt>Per day</dt><dd>2.4<small>not a feed</small></dd></div>
     <div class="spec"><dt>Wallets firing</dt><dd>24<small>of 36 graded A</small></dd></div>
-    <div class="spec"><dt>Settled</dt><dd>34/41<small>won, at 66.0¢ a minute after the signal</small></dd></div>
-    <div class="spec"><dt>Return</dt><dd class="pos">+37.7%<small>equal stake, entering a minute later</small></dd></div>
+    <div class="spec"><dt>Backfill, clean</dt><dd>19/25<small>won · +45.7% at +1 min</small></dd></div>
+    <div class="spec"><dt>Live record</dt><dd class="neg">1/2<small>won · -42.9% at +1 min</small></dd></div>
   </dl>
 </header>
 
@@ -203,10 +203,9 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <section>
   <h2>Live signals</h2>
   <p class="sec-note">Every signal as it fired, newest first — no delay, no account. The wallet links to its full grade; the market links to Polymarket. <strong>W/L is the settled outcome</strong> and <span class="flag">open</span> means the market has not resolved. Nothing is removed after the fact: losses stay on this page, which is the point of publishing it at all.</p>
-  <p>Across every signal recorded so far, <strong>34 of 41</strong> that have settled won.</p>
-  <p><strong>At what price, though.</strong> The wallets paid 55.6¢ on average, and equal stakes at their prices would have returned +70.0%. Nobody reading this page could have bought there: the fill that triggers a signal has already moved the book. One minute after each signal the same shares cost <strong>66.0¢</strong>, and equal stakes at <em>that</em> price returned <strong>+37.7%</strong> — roughly half. That second number is the honest one, and it is the one above.</p>
-  <p>Two things it still flatters. It is measured off the last traded price rather than the offer you would have to lift, so a real fill is worse. And the edge is in holding: buying a minute after the signal and selling fifteen minutes later returned about nothing, and selling after an hour returned single digits. The return only appears if the position is carried to resolution, which took a median of about a week.</p>
-  <p>That is 41 outcomes over a few weeks, which is a start and not a track record.</p>
+  <p><strong>Two columns, kept apart on purpose.</strong> The engine went live on 4 September. Everything before that date was <em>backfilled</em>: history replayed against the A list as it stood, which means wallets that earned their A in August had their August trades scored — selection with the benefit of hindsight. The clean cut above keeps only wallets that were already A on grades computed from bets through 4 August, and counts one bet per event, since four signals on one match are one outcome. That leaves <strong>19 of 25</strong> (of 44 backfilled settlements in total), returning <strong>+45.7%</strong> on equal stakes at the price a minute after the signal. Its 95% interval reaches below zero. It is evidence of direction, not proof.</p>
+  <p>The <strong>live record</strong> is the only column that earns the word: signals detected as they happened, no replay, no hindsight. It reads <strong>1 of 2</strong>, -42.9% at +1 min. At the current rate it needs a few weeks to say anything on its own, and this page will show whatever it says.</p>
+  <p>Both returns are measured at the last traded price one minute after the signal, not the offer you would have to lift, so a real fill is worse. And the edge is in holding: buying a minute after the signal and selling fifteen minutes later returned about nothing; only positions carried to resolution — a median of about a week — showed the return.</p>
   <div class="tablewrap">
     <table>
       <thead><tr>
@@ -242,7 +241,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>No</strong></td>
 <td class="num">50.0¢</td>
 <td class="num">$1,092</td>
-<td class="grade-cell"><span class="flag">open</span></td>
+<td class="grade-cell"><span class="stamp g-a">W</span></td>
 </tr>
 <tr>
 <td class="num idx">09-09 17:41</td>
@@ -252,7 +251,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>Under</strong></td>
 <td class="num">54.0¢</td>
 <td class="num">$8,021</td>
-<td class="grade-cell"><span class="flag">open</span></td>
+<td class="grade-cell"><span class="stamp g-f">L</span></td>
 </tr>
 <tr>
 <td class="num idx">09-09 15:02</td>
@@ -442,7 +441,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>Yes</strong></td>
 <td class="num">92.3¢</td>
 <td class="num">$1,966</td>
-<td class="grade-cell"><span class="flag">open</span></td>
+<td class="grade-cell"><span class="flag">open</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
 <tr>
 <td class="num idx">09-02 23:24</td>
@@ -452,7 +451,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>Yes</strong></td>
 <td class="num">93.2¢</td>
 <td class="num">$1,683</td>
-<td class="grade-cell"><span class="flag">open</span></td>
+<td class="grade-cell"><span class="flag">open</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
 <tr>
 <td class="num idx">09-02 23:24</td>
@@ -462,7 +461,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>Yes</strong></td>
 <td class="num">73.7¢</td>
 <td class="num">$3,032</td>
-<td class="grade-cell"><span class="flag">open</span></td>
+<td class="grade-cell"><span class="flag">open</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
 <tr>
 <td class="num idx">09-02 20:02</td>
@@ -472,7 +471,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>Salahdine Parnasse</strong></td>
 <td class="num">82.9¢</td>
 <td class="num">$28,952</td>
-<td class="grade-cell"><span class="flag">open</span></td>
+<td class="grade-cell"><span class="flag">open</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
 <tr>
 <td class="num idx">08-24 18:57</td>
@@ -482,7 +481,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>No</strong></td>
 <td class="num">48.3¢</td>
 <td class="num">$2,869</td>
-<td class="grade-cell"><span class="flag">open</span></td>
+<td class="grade-cell"><span class="flag">open</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
 <tr>
 <td class="num idx">08-24 13:28</td>
@@ -492,7 +491,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>Thiago Seyboth Wild</strong></td>
 <td class="num">57.1¢</td>
 <td class="num">$9,193</td>
-<td class="grade-cell"><span class="stamp g-a">W</span></td>
+<td class="grade-cell"><span class="stamp g-a">W</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
 <tr>
 <td class="num idx">08-24 10:59</td>
@@ -502,7 +501,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>Mia Ristic</strong></td>
 <td class="num">49.7¢</td>
 <td class="num">$10,264</td>
-<td class="grade-cell"><span class="stamp g-a">W</span></td>
+<td class="grade-cell"><span class="stamp g-a">W</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
 <tr>
 <td class="num idx">08-24 09:58</td>
@@ -512,7 +511,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>Gustavo Heide</strong></td>
 <td class="num">53.0¢</td>
 <td class="num">$20,492</td>
-<td class="grade-cell"><span class="stamp g-f">L</span></td>
+<td class="grade-cell"><span class="stamp g-f">L</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
 <tr>
 <td class="num idx">08-24 09:02</td>
@@ -522,7 +521,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>Kimmer Coppejans</strong></td>
 <td class="num">40.2¢</td>
 <td class="num">$5,149</td>
-<td class="grade-cell"><span class="stamp g-f">L</span></td>
+<td class="grade-cell"><span class="stamp g-f">L</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
 <tr>
 <td class="num idx">08-24 08:53</td>
@@ -532,7 +531,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>Juan Pablo Varillas</strong></td>
 <td class="num">29.3¢</td>
 <td class="num">$5,177</td>
-<td class="grade-cell"><span class="stamp g-f">L</span></td>
+<td class="grade-cell"><span class="stamp g-f">L</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
 <tr>
 <td class="num idx">08-23 20:25</td>
@@ -542,7 +541,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>No</strong></td>
 <td class="num">40.8¢</td>
 <td class="num">$4,556</td>
-<td class="grade-cell"><span class="flag">open</span></td>
+<td class="grade-cell"><span class="flag">open</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
 <tr>
 <td class="num idx">08-23 20:25</td>
@@ -552,7 +551,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>Under</strong></td>
 <td class="num">7.9¢</td>
 <td class="num">$14,163</td>
-<td class="grade-cell"><span class="flag">open</span></td>
+<td class="grade-cell"><span class="flag">open</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
 <tr>
 <td class="num idx">08-23 20:25</td>
@@ -562,7 +561,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>Yes</strong></td>
 <td class="num">22.7¢</td>
 <td class="num">$15,012</td>
-<td class="grade-cell"><span class="flag">open</span></td>
+<td class="grade-cell"><span class="stamp g-f">L</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
 <tr>
 <td class="num idx">08-23 20:14</td>
@@ -572,7 +571,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>Stade Rennais FC 1901</strong></td>
 <td class="num">18.1¢</td>
 <td class="num">$1,282</td>
-<td class="grade-cell"><span class="flag">open</span></td>
+<td class="grade-cell"><span class="flag">open</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
 <tr>
 <td class="num idx">08-23 20:04</td>
@@ -582,7 +581,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>Over</strong></td>
 <td class="num">12.8¢</td>
 <td class="num">$1,097</td>
-<td class="grade-cell"><span class="flag">open</span></td>
+<td class="grade-cell"><span class="flag">open</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
 <tr>
 <td class="num idx">08-23 20:03</td>
@@ -592,7 +591,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>Over</strong></td>
 <td class="num">34.1¢</td>
 <td class="num">$6,289</td>
-<td class="grade-cell"><span class="flag">open</span></td>
+<td class="grade-cell"><span class="flag">open</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
 <tr>
 <td class="num idx">08-23 19:22</td>
@@ -602,7 +601,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>Yes</strong></td>
 <td class="num">23.5¢</td>
 <td class="num">$1,215</td>
-<td class="grade-cell"><span class="flag">open</span></td>
+<td class="grade-cell"><span class="flag">open</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
 <tr>
 <td class="num idx">08-23 19:22</td>
@@ -612,7 +611,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-fa
 <td class="l"><strong>No</strong></td>
 <td class="num">45.0¢</td>
 <td class="num">$1,575</td>
-<td class="grade-cell"><span class="flag">open</span></td>
+<td class="grade-cell"><span class="stamp g-a">W</span> <span class="flag" title="replayed from history before the engine went live on 2026-09-04">backfill</span></td>
 </tr>
       </tbody>
     </table>

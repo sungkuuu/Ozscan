@@ -267,6 +267,16 @@ async function run() {
   const bot = process.env.BOT_TOKEN && process.env.COPY_CHAT_ID
     ? new (await import('node-telegram-bot-api')).default(process.env.BOT_TOKEN)
     : null;
+  const notify = async (text) => {
+    if (bot) await bot.sendMessage(process.env.COPY_CHAT_ID, text, { disable_web_page_preview: true });
+    else console.log('\n' + text);
+  };
+  // The executor is loaded only when asked for. It pulls in the trading SDK,
+  // which wants Node 24 — the runners that replay history on Node 22 never
+  // reach this line, and neither does the engine unless AUTO_BET_MODE is set.
+  const autoBet = process.env.AUTO_BET_MODE
+    ? await (await import('./auto-bet.mjs')).createAutoBet(pool, notify)
+    : null;
 
   // Warm position state and thresholds from the lookback window.
   const now = Math.floor(Date.now() / 1000);
@@ -293,14 +303,20 @@ async function run() {
         const s = signalOf(ep, thresholds);
         lastTs = Math.max(lastTs, ep.startTs);
         if (!s) continue;
-        await pool.query(
+        const { rows: [ins] } = await pool.query(
           `INSERT INTO copy_signals (ts,address,condition_id,outcome,market,slug,avg_price,size_usd,wallet_p90)
            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-           ON CONFLICT (ts,address,condition_id) DO NOTHING`,
+           ON CONFLICT (ts,address,condition_id) DO NOTHING
+           RETURNING id`,
           [s.ts, s.address, ep.condition_id, s.outcome, s.market, s.slug, s.avgPrice, s.sizeUsd, s.walletP90]);
-        const text = fmtSignal(s);
-        if (bot) await bot.sendMessage(process.env.COPY_CHAT_ID, text, { disable_web_page_preview: true });
-        else console.log('\n' + text);
+        if (!ins) continue; // already recorded on a previous cycle
+        await notify(`${fmtSignal(s)}\n#${ins.id}`);
+        // The executor keeps its own idempotency, so a crash between the
+        // insert and here costs at most one skipped order, never a double one.
+        if (autoBet) {
+          try { await autoBet(ins.id, s, ep.condition_id); }
+          catch (e) { console.error(`auto-bet #${ins.id}:`, e.message); }
+        }
       }
       await pool.query(
         `INSERT INTO copy_signal_state (k,v) VALUES ('last_ts',$1)

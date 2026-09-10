@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-10T03:33:47.870Z",
-  "note": "A-grade wallet entries that cleared the copy-signal filters. Not advice.",
+  "generated_at": "2026-09-10T04:19:30.669Z",
+  "note": "A-grade wallet entries that cleared the copy-signal filters. Rows with backfilled=true were replayed from history before go-live (2026-09-04) and were not detected live. Not advice.",
   "method": "https://assayscore.com/evidence",
   "count": 40,
   "signals": [
@@ -14,6 +14,7 @@
       "side": "Under",
       "entry_cents": 61.3,
       "size_usd": 3111,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -27,6 +28,7 @@
       "side": "PARIVISION",
       "entry_cents": 58,
       "size_usd": 2104,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -40,8 +42,9 @@
       "side": "No",
       "entry_cents": 50,
       "size_usd": 1092,
-      "settled": false,
-      "won": null
+      "backfilled": false,
+      "settled": true,
+      "won": true
     },
     {
       "ts": 1788975696,
@@ -53,8 +56,9 @@
       "side": "Under",
       "entry_cents": 54,
       "size_usd": 8021,
-      "settled": false,
-      "won": null
+      "backfilled": false,
+      "settled": true,
+      "won": false
     },
     {
       "ts": 1788966129,
@@ -66,6 +70,7 @@
       "side": "Mirra Andreeva",
       "entry_cents": 35,
       "size_usd": 1807,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -79,6 +84,7 @@
       "side": "Yes",
       "entry_cents": 46,
       "size_usd": 2280,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -92,6 +98,7 @@
       "side": "Yes",
       "entry_cents": 58.5,
       "size_usd": 1829,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -105,6 +112,7 @@
       "side": "Yes",
       "entry_cents": 80.9,
       "size_usd": 1108,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -118,6 +126,7 @@
       "side": "No",
       "entry_cents": 90,
       "size_usd": 1959,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -131,6 +140,7 @@
       "side": "FaZe",
       "entry_cents": 72,
       "size_usd": 3285,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -144,6 +154,7 @@
       "side": "Under",
       "entry_cents": 54,
       "size_usd": 27394,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -157,6 +168,7 @@
       "side": "Yes",
       "entry_cents": 15.3,
       "size_usd": 1266,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -170,6 +182,7 @@
       "side": "SPD",
       "entry_cents": 44.3,
       "size_usd": 1501,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -183,6 +196,7 @@
       "side": "Yes",
       "entry_cents": 87.6,
       "size_usd": 3508,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -196,6 +210,7 @@
       "side": "Yes",
       "entry_cents": 46,
       "size_usd": 1552,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -209,6 +224,7 @@
       "side": "Under",
       "entry_cents": 65,
       "size_usd": 1162,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -222,6 +238,7 @@
       "side": "Under",
       "entry_cents": 79,
       "size_usd": 2447,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -235,6 +252,7 @@
       "side": "Cloud9",
       "entry_cents": 55,
       "size_usd": 1170,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -248,6 +266,7 @@
       "side": "Mario Pinto",
       "entry_cents": 77,
       "size_usd": 153035,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -261,6 +280,7 @@
       "side": "Yes",
       "entry_cents": 23,
       "size_usd": 1860,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -274,6 +294,7 @@
       "side": "Over",
       "entry_cents": 50,
       "size_usd": 25680,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -287,6 +308,7 @@
       "side": "Philadelphia Phillies",
       "entry_cents": 51,
       "size_usd": 14391,
+      "backfilled": false,
       "settled": false,
       "won": null
     },
@@ -300,6 +322,7 @@
       "side": "Yes",
       "entry_cents": 92.3,
       "size_usd": 1966,
+      "backfilled": true,
       "settled": false,
       "won": null
     },
@@ -313,6 +336,7 @@
       "side": "Yes",
       "entry_cents": 93.2,
       "size_usd": 1683,
+      "backfilled": true,
       "settled": false,
       "won": null
     },
@@ -326,6 +350,7 @@
       "side": "Yes",
       "entry_cents": 73.7,
       "size_usd": 3032,
+      "backfilled": true,
       "settled": false,
       "won": null
     },
@@ -339,6 +364,7 @@
       "side": "Salahdine Parnasse",
       "entry_cents": 82.9,
       "size_usd": 28952,
+      "backfilled": true,
       "settled": false,
       "won": null
     },
@@ -352,6 +378,7 @@
       "side": "No",
       "entry_cents": 48.3,
       "size_usd": 2869,
+      "backfilled": true,
       "settled": false,
       "won": null
     },
@@ -365,6 +392,7 @@
       "side": "Thiago Seyboth Wild",
       "entry_cents": 57.1,
       "size_usd": 9193,
+      "backfilled": true,
       "settled": true,
       "won": true
     },
@@ -378,6 +406,7 @@
       "side": "Mia Ristic",
       "entry_cents": 49.7,
       "size_usd": 10264,
+      "backfilled": true,
       "settled": true,
       "won": true
     },
@@ -391,6 +420,7 @@
       "side": "Gustavo Heide",
       "entry_cents": 53,
       "size_usd": 20492,
+      "backfilled": true,
       "settled": true,
       "won": false
     },
@@ -404,6 +434,7 @@
       "side": "Kimmer Coppejans",
       "entry_cents": 40.2,
       "size_usd": 5149,
+      "backfilled": true,
       "settled": true,
       "won": false
     },
@@ -417,6 +448,7 @@
       "side": "Juan Pablo Varillas",
       "entry_cents": 29.3,
       "size_usd": 5177,
+      "backfilled": true,
       "settled": true,
       "won": false
     },
@@ -430,6 +462,7 @@
       "side": "No",
       "entry_cents": 40.8,
       "size_usd": 4556,
+      "backfilled": true,
       "settled": false,
       "won": null
     },
@@ -443,6 +476,7 @@
       "side": "Under",
       "entry_cents": 7.9,
       "size_usd": 14163,
+      "backfilled": true,
       "settled": false,
       "won": null
     },
@@ -456,8 +490,9 @@
       "side": "Yes",
       "entry_cents": 22.7,
       "size_usd": 15012,
-      "settled": false,
-      "won": null
+      "backfilled": true,
+      "settled": true,
+      "won": false
     },
     {
       "ts": 1787516043,
@@ -469,6 +504,7 @@
       "side": "Stade Rennais FC 1901",
       "entry_cents": 18.1,
       "size_usd": 1282,
+      "backfilled": true,
       "settled": false,
       "won": null
     },
@@ -482,6 +518,7 @@
       "side": "Over",
       "entry_cents": 12.8,
       "size_usd": 1097,
+      "backfilled": true,
       "settled": false,
       "won": null
     },
@@ -495,6 +532,7 @@
       "side": "Over",
       "entry_cents": 34.1,
       "size_usd": 6289,
+      "backfilled": true,
       "settled": false,
       "won": null
     },
@@ -508,6 +546,7 @@
       "side": "Yes",
       "entry_cents": 23.5,
       "size_usd": 1215,
+      "backfilled": true,
       "settled": false,
       "won": null
     },
@@ -521,8 +560,9 @@
       "side": "No",
       "entry_cents": 45,
       "size_usd": 1575,
-      "settled": false,
-      "won": null
+      "backfilled": true,
+      "settled": true,
+      "won": true
     }
   ]
 }
