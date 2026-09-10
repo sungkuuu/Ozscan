@@ -15,7 +15,12 @@
 // The private key is only ever read from the environment. Nothing here logs,
 // stores, or forwards it.
 
-import { createPublicClient, createSecureClient, OrderSide, OrderType, AssetType } from '@polymarket/client';
+import { createPublicClient, createSecureClient, OrderSide, OrderType } from '@polymarket/client';
+
+// `AssetType` exists only in the type definitions: it is a declared enum that
+// the runtime bundle never exports (2026-09-10: importing it stopped the
+// engine). The wire value is the plain string.
+const COLLATERAL = 'COLLATERAL';
 
 const MODE = process.env.AUTO_BET_MODE || '';
 const BET_USD = Number(process.env.BET_USD || 2);          // per signal, equal stakes
@@ -55,7 +60,7 @@ export async function createAutoBet(pool, notify) {
       wallet: address,
     });
     await client.setupTradingApprovals();
-    const bal = await client.fetchBalanceAllowance({ assetType: AssetType.COLLATERAL });
+    const bal = await client.fetchBalanceAllowance({ assetType: COLLATERAL });
     await notify(`auto-bet LIVE as ${address}\ncollateral balance ${JSON.stringify(bal)}\n$${BET_USD} per signal, cap $${BET_CAP_USD}`);
   } else {
     client = createPublicClient();
