@@ -1,0 +1,264 @@
+{
+  "stamp": "2026-09-10",
+  "settled": [
+    {
+      "address": "0x4bff30af91642dc7d2b19a8664378fe55c45fc26",
+      "market": "Miami Marlins vs. Kansas City Royals",
+      "outcome": "Miami Marlins",
+      "size": "9808.0587",
+      "price": "47",
+      "timestamp": "1788478168",
+      "winning_outcome": "Kansas City Royals",
+      "end_date": "2026-09-10T00:00:00Z",
+      "won": false,
+      "pnl": "-9808.0587",
+      "entry_date": "2026-09-03T00:00:00.000Z",
+      "resolve_date": "2026-09-10T00:00:00.000Z",
+      "held_days": "6.0"
+    },
+    {
+      "address": "0xdc41c39b95453c943174f369926018f6963bdd7e",
+      "market": "Will there be a run scored in the first inning?: San Francisco Giants vs. Pittsburgh Pirates",
+      "outcome": "No",
+      "size": "1276.01568",
+      "price": "48",
+      "timestamp": "1788450321",
+      "winning_outcome": "Yes",
+      "end_date": "2026-09-10T00:00:00Z",
+      "won": false,
+      "pnl": "-1276.01568",
+      "entry_date": "2026-09-03T00:00:00.000Z",
+      "resolve_date": "2026-09-10T00:00:00.000Z",
+      "held_days": "6.3"
+    }
+  ],
+  "open": [
+    {
+      "address": "0x2c335066fe58fe9237c3d3dc7b275c2a034a0563",
+      "market": "Colorado Rockies vs. New York Yankees",
+      "outcome": "New York Yankees",
+      "size": "837147.89115",
+      "price": "85",
+      "timestamp": "1788910507",
+      "end_date": "2026-09-15T00:00:00Z"
+    },
+    {
+      "address": "0x168a51f1cac0ad3b166797069382495a8aa10d24",
+      "market": "Will Sporting CP win on 2026-09-09?",
+      "outcome": "Yes",
+      "size": "509749.91844",
+      "price": "61",
+      "timestamp": "1788979938",
+      "end_date": null
+    },
+    {
+      "address": "0x0f6f76ced62a911bccef92f50faaff143854d977",
+      "market": "Will VfB Stuttgart win on 2026-09-09?",
+      "outcome": "Yes",
+      "size": "459022.47401",
+      "price": "81.88237072999999",
+      "timestamp": "1788972153",
+      "end_date": null
+    },
+    {
+      "address": "0x2dfa4e79eca44b7c774f40a45535adbc368a6f60",
+      "market": "Counter-Strike: Spirit vs MOUZ (BO5) - BLAST Open Porto Playoffs",
+      "outcome": "Spirit",
+      "size": "444751.75951",
+      "price": "62",
+      "timestamp": "1788710613",
+      "end_date": null
+    },
+    {
+      "address": "0x0f6f76ced62a911bccef92f50faaff143854d977",
+      "market": "Will Real Betis Balompié win on 2026-09-08?",
+      "outcome": "No",
+      "size": "271347.23472",
+      "price": "72",
+      "timestamp": "1788890380",
+      "end_date": null
+    },
+    {
+      "address": "0xf0318c32136c2db7fec88b84869aee6a1106c80c",
+      "market": "US Open ATP: Ben Shelton vs Carlos Alcaraz",
+      "outcome": "Carlos Alcaraz",
+      "size": "266000",
+      "price": "76",
+      "timestamp": "1788915258",
+      "end_date": "2026-09-15T00:00:00Z"
+    },
+    {
+      "address": "0x983eedfbd75803602e4a6e6ea9aab6dc6b9c6748",
+      "market": "Will OGC Nice win on 2026-09-05?",
+      "outcome": "Yes",
+      "size": "262014.75",
+      "price": "56.99999999999999",
+      "timestamp": "1788631948",
+      "end_date": null
+    },
+    {
+      "address": "0x983eedfbd75803602e4a6e6ea9aab6dc6b9c6748",
+      "market": "Will OGC Nice win on 2026-09-05?",
+      "outcome": "Yes",
+      "size": "257544",
+      "price": "56.00000000000001",
+      "timestamp": "1788631908",
+      "end_date": null
+    },
+    {
+      "address": "0x2c335066fe58fe9237c3d3dc7b275c2a034a0563",
+      "market": "Colorado Rockies vs. New York Yankees",
+      "outcome": "New York Yankees",
+      "size": "256912.5",
+      "price": "85",
+      "timestamp": "1788910485",
+      "end_date": "2026-09-15T00:00:00Z"
+    },
+    {
+      "address": "0x7c37b52eb226bcb9411375ec48b0169663fb6aeb",
+      "market": "Will Arsenal FC win on 2026-09-09?",
+      "outcome": "Yes",
+      "size": "252712",
+      "price": "62",
+      "timestamp": "1788973716",
+      "end_date": null
+    },
+    {
+      "address": "0xf0318c32136c2db7fec88b84869aee6a1106c80c",
+      "market": "US Open ATP: Ben Shelton vs Stefanos Tsitsipas",
+      "outcome": "Ben Shelton",
+      "size": "252000",
+      "price": "72",
+      "timestamp": "1788735156",
+      "end_date": null
+    },
+    {
+      "address": "0x0f6f76ced62a911bccef92f50faaff143854d977",
+      "market": "Will VfB Stuttgart win on 2026-09-09?",
+      "outcome": "Yes",
+      "size": "249850.79572",
+      "price": "81",
+      "timestamp": "1788971359",
+      "end_date": null
+    },
+    {
+      "address": "0x7c37b52eb226bcb9411375ec48b0169663fb6aeb",
+      "market": "Will Sporting CP win on 2026-09-09?",
+      "outcome": "Yes",
+      "size": "248758",
+      "price": "61",
+      "timestamp": "1788979159",
+      "end_date": null
+    },
+    {
+      "address": "0x0f6f76ced62a911bccef92f50faaff143854d977",
+      "market": "Will VfB Stuttgart win on 2026-09-09?",
+      "outcome": "Yes",
+      "size": "233421.504",
+      "price": "80",
+      "timestamp": "1788970245",
+      "end_date": null
+    },
+    {
+      "address": "0x7c37b52eb226bcb9411375ec48b0169663fb6aeb",
+      "market": "Will BV Borussia 09 Dortmund win on 2026-09-08?",
+      "outcome": "Yes",
+      "size": "228928",
+      "price": "56.00000000000001",
+      "timestamp": "1788888921",
+      "end_date": null
+    }
+  ],
+  "board": [
+    {
+      "address": "0xfbe6717a7b235417aaee2823aa5edd1a052b4a1b",
+      "grade": "A",
+      "resolved_bets": 951,
+      "win_pct": "58.0",
+      "roi_staked_pct": "219.0",
+      "pnl_usd": "30902",
+      "last_bet": "2026-08-22T00:00:00.000Z"
+    },
+    {
+      "address": "0xbcac39ed1f84f7711303e92d53abedc4bc406621",
+      "grade": "A",
+      "resolved_bets": 1135,
+      "win_pct": "54.6",
+      "roi_staked_pct": "128.0",
+      "pnl_usd": "125322",
+      "last_bet": "2026-08-14T00:00:00.000Z"
+    },
+    {
+      "address": "0xd72654f5ab87e3a636715ad63dc5f8ea1279b5c9",
+      "grade": "A",
+      "resolved_bets": 355,
+      "win_pct": "70.7",
+      "roi_staked_pct": "93.9",
+      "pnl_usd": "20660",
+      "last_bet": "2026-08-22T00:00:00.000Z"
+    },
+    {
+      "address": "0x82307f44c9405e73dc1cff466073dcc505535121",
+      "grade": "A",
+      "resolved_bets": 1281,
+      "win_pct": "39.2",
+      "roi_staked_pct": "119.5",
+      "pnl_usd": "61558",
+      "last_bet": "2026-09-02T00:00:00.000Z"
+    },
+    {
+      "address": "0x1e1323cafdf350d87ec61a12b565143b721aaf03",
+      "grade": "A",
+      "resolved_bets": 113,
+      "win_pct": "50.4",
+      "roi_staked_pct": "114.3",
+      "pnl_usd": "24318",
+      "last_bet": "2026-09-04T00:00:00.000Z"
+    },
+    {
+      "address": "0x54a2c4cfc4332d831acc3f5a860d6540982c1d43",
+      "grade": "A",
+      "resolved_bets": 2201,
+      "win_pct": "35.4",
+      "roi_staked_pct": "53.7",
+      "pnl_usd": "45222",
+      "last_bet": "2026-09-05T00:00:00.000Z"
+    },
+    {
+      "address": "0x74cb0070bc348b4322c9e91ee1fec5a470341688",
+      "grade": "A",
+      "resolved_bets": 474,
+      "win_pct": "59.5",
+      "roi_staked_pct": "60.8",
+      "pnl_usd": "16353",
+      "last_bet": "2026-09-06T00:00:00.000Z"
+    },
+    {
+      "address": "0x2d4bf8f846bf68f43b9157bf30810d334ac6ca7a",
+      "grade": "A",
+      "resolved_bets": 592,
+      "win_pct": "42.6",
+      "roi_staked_pct": "93.0",
+      "pnl_usd": "165243",
+      "last_bet": "2026-08-24T00:00:00.000Z"
+    },
+    {
+      "address": "0x8a16eb406b6ecd9334e6202a159c9dd51288c0d5",
+      "grade": "A",
+      "resolved_bets": 139,
+      "win_pct": "59.0",
+      "roi_staked_pct": "132.7",
+      "pnl_usd": "28315",
+      "last_bet": "2026-09-02T00:00:00.000Z"
+    },
+    {
+      "address": "0x7056f248c5098cce2fb0a062cdd2ab0f8318c95c",
+      "grade": "A",
+      "resolved_bets": 165,
+      "win_pct": "69.1",
+      "roi_staked_pct": "71.8",
+      "pnl_usd": "23246",
+      "last_bet": "2026-08-23T00:00:00.000Z"
+    }
+  ]
+}
