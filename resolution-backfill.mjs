@@ -53,7 +53,18 @@ console.log(`Resolutions to fetch (shard ${SHARD_I}/${SHARD_N}, queue=${hasQueue
 let blockStreak = 0;
 
 async function get(url) {
-  const res = await fetch(url);
+  // A hung socket looks exactly like a block from the outside — 30 minutes of
+  // silence after "Endpoint locked" (2026-09-10) — so it is treated as one.
+  let res;
+  try {
+    res = await fetch(url, { signal: AbortSignal.timeout(20_000) });
+  } catch (e) {
+    blockStreak++;
+    if (blockStreak >= 6) { console.log(`${e.name} x6 — exiting, resume later`); process.exit(2); }
+    console.log(`${e.name} on ${url.slice(0, 60)}, backoff ${30 * blockStreak}s`);
+    await sleep(30_000 * blockStreak);
+    return undefined; // caller retries
+  }
   // 404 is a genuine "no such market" (our data holds a few truncated
   // condition_ids) — not a block. Don't count it toward the block streak.
   if (res.status === 404) return null;
