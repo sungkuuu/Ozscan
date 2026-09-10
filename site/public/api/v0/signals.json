@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T04:19:30.669Z",
+  "generated_at": "2026-09-10T05:10:34.039Z",
   "note": "A-grade wallet entries that cleared the copy-signal filters. Rows with backfilled=true were replayed from history before go-live (2026-09-04) and were not detected live. Not advice.",
   "method": "https://assayscore.com/evidence",
   "count": 40,
@@ -15,8 +15,8 @@
       "entry_cents": 61.3,
       "size_usd": 3111,
       "backfilled": false,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": true
     },
     {
       "ts": 1789001139,
@@ -71,8 +71,8 @@
       "entry_cents": 35,
       "size_usd": 1807,
       "backfilled": false,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": false
     },
     {
       "ts": 1788937198,
@@ -99,8 +99,8 @@
       "entry_cents": 58.5,
       "size_usd": 1829,
       "backfilled": false,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": true
     },
     {
       "ts": 1788878319,
@@ -134,15 +134,15 @@
       "ts": 1788857862,
       "time": "2026-09-08T08:57:42.000Z",
       "wallet": "0x0547b2442db4121674a1521ef043291317502ad3",
-      "grade": "A",
+      "grade": "C",
       "market": "Counter-Strike: Alliance vs FaZe - Map 2 Winner",
       "slug": "cs2-all-faze-2026-09-08-game2",
       "side": "FaZe",
       "entry_cents": 72,
       "size_usd": 3285,
       "backfilled": false,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": false
     },
     {
       "ts": 1788831145,
@@ -155,8 +155,8 @@
       "entry_cents": 54,
       "size_usd": 27394,
       "backfilled": false,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": false
     },
     {
       "ts": 1788775501,
@@ -169,8 +169,8 @@
       "entry_cents": 15.3,
       "size_usd": 1266,
       "backfilled": false,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": false
     },
     {
       "ts": 1788710409,
@@ -183,8 +183,8 @@
       "entry_cents": 44.3,
       "size_usd": 1501,
       "backfilled": false,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": true
     },
     {
       "ts": 1788702519,
@@ -225,8 +225,8 @@
       "entry_cents": 65,
       "size_usd": 1162,
       "backfilled": false,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": true
     },
     {
       "ts": 1788639517,
@@ -239,8 +239,8 @@
       "entry_cents": 79,
       "size_usd": 2447,
       "backfilled": false,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": true
     },
     {
       "ts": 1788638382,
@@ -253,8 +253,8 @@
       "entry_cents": 55,
       "size_usd": 1170,
       "backfilled": false,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": true
     },
     {
       "ts": 1788631882,
@@ -267,8 +267,8 @@
       "entry_cents": 77,
       "size_usd": 153035,
       "backfilled": false,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": true
     },
     {
       "ts": 1788595342,
@@ -295,8 +295,8 @@
       "entry_cents": 50,
       "size_usd": 25680,
       "backfilled": false,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": true
     },
     {
       "ts": 1788557211,
@@ -309,8 +309,8 @@
       "entry_cents": 51,
       "size_usd": 14391,
       "backfilled": false,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": false
     },
     {
       "ts": 1788391488,
@@ -323,8 +323,8 @@
       "entry_cents": 92.3,
       "size_usd": 1966,
       "backfilled": true,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": true
     },
     {
       "ts": 1788391488,
@@ -365,14 +365,14 @@
       "entry_cents": 82.9,
       "size_usd": 28952,
       "backfilled": true,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": true
     },
     {
       "ts": 1787597875,
       "time": "2026-08-24T18:57:55.000Z",
       "wallet": "0xe154165732b79548f7533fc45168b102dd7a0b7f",
-      "grade": "A",
+      "grade": "B",
       "market": "Will Nicolás Maduro be the #1 searched person on Google in the US this year?",
       "slug": "will-nicolas-maduro-be-the-1-searched-person-on-google-in-the-us-this-year-20260730192940423",
       "side": "No",
@@ -456,35 +456,35 @@
       "ts": 1787516710,
       "time": "2026-08-23T20:25:10.000Z",
       "wallet": "0xe154165732b79548f7533fc45168b102dd7a0b7f",
-      "grade": "A",
+      "grade": "B",
       "market": "Will Paris Saint-Germain FC vs. Stade Rennais FC 1901 end in a draw?",
       "slug": "fl1-psg-ren-2026-08-23-draw",
       "side": "No",
       "entry_cents": 40.8,
       "size_usd": 4556,
       "backfilled": true,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": false
     },
     {
       "ts": 1787516709,
       "time": "2026-08-23T20:25:09.000Z",
       "wallet": "0xe154165732b79548f7533fc45168b102dd7a0b7f",
-      "grade": "A",
+      "grade": "B",
       "market": "Paris Saint-Germain FC vs. Stade Rennais FC 1901: Paris Saint-Germain FC O/U 1.5",
       "slug": "fl1-psg-ren-2026-08-23-team-total-home-1pt5",
       "side": "Under",
       "entry_cents": 7.9,
       "size_usd": 14163,
       "backfilled": true,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": false
     },
     {
       "ts": 1787516709,
       "time": "2026-08-23T20:25:09.000Z",
       "wallet": "0xe154165732b79548f7533fc45168b102dd7a0b7f",
-      "grade": "A",
+      "grade": "B",
       "market": "Will Stade Rennais FC 1901 win on 2026-08-23?",
       "slug": "fl1-psg-ren-2026-08-23-ren",
       "side": "Yes",
@@ -498,63 +498,63 @@
       "ts": 1787516043,
       "time": "2026-08-23T20:14:03.000Z",
       "wallet": "0xe154165732b79548f7533fc45168b102dd7a0b7f",
-      "grade": "A",
+      "grade": "B",
       "market": "Spread: Stade Rennais FC 1901 (-1.5)",
       "slug": "fl1-psg-ren-2026-08-23-spread-away-1pt5",
       "side": "Stade Rennais FC 1901",
       "entry_cents": 18.1,
       "size_usd": 1282,
       "backfilled": true,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": false
     },
     {
       "ts": 1787515483,
       "time": "2026-08-23T20:04:43.000Z",
       "wallet": "0xe154165732b79548f7533fc45168b102dd7a0b7f",
-      "grade": "A",
+      "grade": "B",
       "market": "Paris Saint-Germain FC vs. Stade Rennais FC 1901: O/U 4.5",
       "slug": "fl1-psg-ren-2026-08-23-total-4pt5",
       "side": "Over",
       "entry_cents": 12.8,
       "size_usd": 1097,
       "backfilled": true,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": false
     },
     {
       "ts": 1787515411,
       "time": "2026-08-23T20:03:31.000Z",
       "wallet": "0xe154165732b79548f7533fc45168b102dd7a0b7f",
-      "grade": "A",
+      "grade": "B",
       "market": "Paris Saint-Germain FC vs. Stade Rennais FC 1901: O/U 3.5",
       "slug": "fl1-psg-ren-2026-08-23-total-3pt5",
       "side": "Over",
       "entry_cents": 34.1,
       "size_usd": 6289,
       "backfilled": true,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": true
     },
     {
       "ts": 1787512959,
       "time": "2026-08-23T19:22:39.000Z",
       "wallet": "0xe154165732b79548f7533fc45168b102dd7a0b7f",
-      "grade": "A",
+      "grade": "B",
       "market": "Will Paris Saint-Germain FC win on 2026-08-23?",
       "slug": "fl1-psg-ren-2026-08-23-psg",
       "side": "Yes",
       "entry_cents": 23.5,
       "size_usd": 1215,
       "backfilled": true,
-      "settled": false,
-      "won": null
+      "settled": true,
+      "won": false
     },
     {
       "ts": 1787512959,
       "time": "2026-08-23T19:22:39.000Z",
       "wallet": "0xe154165732b79548f7533fc45168b102dd7a0b7f",
-      "grade": "A",
+      "grade": "B",
       "market": "Will Stade Rennais FC 1901 win on 2026-08-23?",
       "slug": "fl1-psg-ren-2026-08-23-ren",
       "side": "No",

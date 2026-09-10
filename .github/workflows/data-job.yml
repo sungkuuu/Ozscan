@@ -11,7 +11,7 @@ on:
         description: Script to run
         required: true
         type: choice
-        options: [backfill-gap.mjs, resolution-backfill.mjs, clv-pilot.mjs, copy-signal.mjs, follow-price.mjs]
+        options: [backfill-gap.mjs, resolution-backfill.mjs, clv-pilot.mjs, copy-signal.mjs, follow-price.mjs, bridge-deposit.mjs]
       start_ts:
         description: START_TS override (epoch s, backfill-gap only)
         required: false
