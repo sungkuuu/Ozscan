@@ -1,0 +1,339 @@
+{
+  "stamp": "2026-09-12",
+  "settled": [
+    {
+      "address": "0x5268527977f700f9bf9b6d5cd843859e4e70135d",
+      "market": "US Open WTA: Mirra Andreeva vs Nikola Bartunkova",
+      "outcome": "Nikola Bartunkova",
+      "size": "1412.99928",
+      "price": "16.8",
+      "timestamp": "1788633561",
+      "winning_outcome": "Mirra Andreeva",
+      "end_date": "2026-09-12T00:00:00Z",
+      "won": false,
+      "pnl": "-1412.99928",
+      "entry_date": "2026-09-05T00:00:00.000Z",
+      "resolve_date": "2026-09-12T00:00:00.000Z",
+      "held_days": "6.2"
+    },
+    {
+      "address": "0x5268527977f700f9bf9b6d5cd843859e4e70135d",
+      "market": "US Open WTA: Mirra Andreeva vs Nikola Bartunkova",
+      "outcome": "Mirra Andreeva",
+      "size": "4835.99886",
+      "price": "78.10000000000001",
+      "timestamp": "1788631680",
+      "winning_outcome": "Mirra Andreeva",
+      "end_date": "2026-09-12T00:00:00Z",
+      "won": true,
+      "pnl": "1356.0611399999992071626",
+      "entry_date": "2026-09-05T00:00:00.000Z",
+      "resolve_date": "2026-09-12T00:00:00.000Z",
+      "held_days": "6.2"
+    },
+    {
+      "address": "0x5268527977f700f9bf9b6d5cd843859e4e70135d",
+      "market": "US Open WTA: Mirra Andreeva vs Nikola Bartunkova",
+      "outcome": "Mirra Andreeva",
+      "size": "3754.666666",
+      "price": "88.00000002",
+      "timestamp": "1788628711",
+      "winning_outcome": "Mirra Andreeva",
+      "end_date": "2026-09-12T00:00:00Z",
+      "won": true,
+      "pnl": "511.9999989393939398",
+      "entry_date": "2026-09-05T00:00:00.000Z",
+      "resolve_date": "2026-09-12T00:00:00.000Z",
+      "held_days": "6.3"
+    },
+    {
+      "address": "0x5268527977f700f9bf9b6d5cd843859e4e70135d",
+      "market": "US Open WTA: Mirra Andreeva vs Nikola Bartunkova",
+      "outcome": "Mirra Andreeva",
+      "size": "7819.7027",
+      "price": "94.09987931",
+      "timestamp": "1788632710",
+      "winning_outcome": "Mirra Andreeva",
+      "end_date": "2026-09-12T00:00:00Z",
+      "won": true,
+      "pnl": "490.3002004702450346",
+      "entry_date": "2026-09-05T00:00:00.000Z",
+      "resolve_date": "2026-09-12T00:00:00.000Z",
+      "held_days": "6.2"
+    },
+    {
+      "address": "0x5268527977f700f9bf9b6d5cd843859e4e70135d",
+      "market": "US Open WTA: Mirra Andreeva vs Nikola Bartunkova",
+      "outcome": "Mirra Andreeva",
+      "size": "5813.65276",
+      "price": "94.19999999999999",
+      "timestamp": "1788630754",
+      "winning_outcome": "Mirra Andreeva",
+      "end_date": "2026-09-12T00:00:00Z",
+      "won": true,
+      "pnl": "357.9531423354571307437",
+      "entry_date": "2026-09-05T00:00:00.000Z",
+      "resolve_date": "2026-09-12T00:00:00.000Z",
+      "held_days": "6.3"
+    },
+    {
+      "address": "0x5268527977f700f9bf9b6d5cd843859e4e70135d",
+      "market": "US Open WTA: Mirra Andreeva vs Nikola Bartunkova",
+      "outcome": "Mirra Andreeva",
+      "size": "1259.854014",
+      "price": "86.30000005000001",
+      "timestamp": "1788631533",
+      "winning_outcome": "Mirra Andreeva",
+      "end_date": "2026-09-12T00:00:00Z",
+      "won": true,
+      "pnl": "199.99999905918058804752",
+      "entry_date": "2026-09-05T00:00:00.000Z",
+      "resolve_date": "2026-09-12T00:00:00.000Z",
+      "held_days": "6.2"
+    },
+    {
+      "address": "0x5268527977f700f9bf9b6d5cd843859e4e70135d",
+      "market": "US Open WTA: Mirra Andreeva vs Nikola Bartunkova",
+      "outcome": "Mirra Andreeva",
+      "size": "1147.195384",
+      "price": "87.00000006",
+      "timestamp": "1788631521",
+      "winning_outcome": "Mirra Andreeva",
+      "end_date": "2026-09-12T00:00:00Z",
+      "won": true,
+      "pnl": "171.4199989986560577",
+      "entry_date": "2026-09-05T00:00:00.000Z",
+      "resolve_date": "2026-09-12T00:00:00.000Z",
+      "held_days": "6.2"
+    }
+  ],
+  "open": [
+    {
+      "address": "0x2c335066fe58fe9237c3d3dc7b275c2a034a0563",
+      "market": "Colorado Rockies vs. New York Yankees",
+      "outcome": "New York Yankees",
+      "size": "837147.89115",
+      "price": "85",
+      "timestamp": "1788910507",
+      "end_date": "2026-09-15T00:00:00Z"
+    },
+    {
+      "address": "0x168a51f1cac0ad3b166797069382495a8aa10d24",
+      "market": "Will Sporting CP win on 2026-09-09?",
+      "outcome": "Yes",
+      "size": "509749.91844",
+      "price": "61",
+      "timestamp": "1788979938",
+      "end_date": null
+    },
+    {
+      "address": "0x0f6f76ced62a911bccef92f50faaff143854d977",
+      "market": "Will VfB Stuttgart win on 2026-09-09?",
+      "outcome": "Yes",
+      "size": "459022.47401",
+      "price": "81.88237072999999",
+      "timestamp": "1788972153",
+      "end_date": null
+    },
+    {
+      "address": "0x2dfa4e79eca44b7c774f40a45535adbc368a6f60",
+      "market": "Counter-Strike: Spirit vs MOUZ (BO5) - BLAST Open Porto Playoffs",
+      "outcome": "Spirit",
+      "size": "444751.75951",
+      "price": "62",
+      "timestamp": "1788710613",
+      "end_date": null
+    },
+    {
+      "address": "0x2c335066fe58fe9237c3d3dc7b275c2a034a0563",
+      "market": "Counter-Strike: MIBR vs BetBoom Team - Map 2 Winner",
+      "outcome": "BetBoom Team",
+      "size": "415707.79287",
+      "price": "63",
+      "timestamp": "1789042101",
+      "end_date": null
+    },
+    {
+      "address": "0x0f6f76ced62a911bccef92f50faaff143854d977",
+      "market": "Will Real Betis Balompié win on 2026-09-08?",
+      "outcome": "No",
+      "size": "271347.23472",
+      "price": "72",
+      "timestamp": "1788890380",
+      "end_date": null
+    },
+    {
+      "address": "0xf0318c32136c2db7fec88b84869aee6a1106c80c",
+      "market": "US Open ATP: Ben Shelton vs Carlos Alcaraz",
+      "outcome": "Carlos Alcaraz",
+      "size": "266000",
+      "price": "76",
+      "timestamp": "1788915258",
+      "end_date": "2026-09-15T00:00:00Z"
+    },
+    {
+      "address": "0x983eedfbd75803602e4a6e6ea9aab6dc6b9c6748",
+      "market": "Will OGC Nice win on 2026-09-05?",
+      "outcome": "Yes",
+      "size": "262014.75",
+      "price": "56.99999999999999",
+      "timestamp": "1788631948",
+      "end_date": null
+    },
+    {
+      "address": "0x983eedfbd75803602e4a6e6ea9aab6dc6b9c6748",
+      "market": "Will OGC Nice win on 2026-09-05?",
+      "outcome": "Yes",
+      "size": "257544",
+      "price": "56.00000000000001",
+      "timestamp": "1788631908",
+      "end_date": null
+    },
+    {
+      "address": "0x2c335066fe58fe9237c3d3dc7b275c2a034a0563",
+      "market": "Colorado Rockies vs. New York Yankees",
+      "outcome": "New York Yankees",
+      "size": "256912.5",
+      "price": "85",
+      "timestamp": "1788910485",
+      "end_date": "2026-09-15T00:00:00Z"
+    },
+    {
+      "address": "0x7c37b52eb226bcb9411375ec48b0169663fb6aeb",
+      "market": "Will Arsenal FC win on 2026-09-09?",
+      "outcome": "Yes",
+      "size": "252712",
+      "price": "62",
+      "timestamp": "1788973716",
+      "end_date": null
+    },
+    {
+      "address": "0xf0318c32136c2db7fec88b84869aee6a1106c80c",
+      "market": "US Open ATP: Ben Shelton vs Stefanos Tsitsipas",
+      "outcome": "Ben Shelton",
+      "size": "252000",
+      "price": "72",
+      "timestamp": "1788735156",
+      "end_date": null
+    },
+    {
+      "address": "0x0f6f76ced62a911bccef92f50faaff143854d977",
+      "market": "Will VfB Stuttgart win on 2026-09-09?",
+      "outcome": "Yes",
+      "size": "249850.79572",
+      "price": "81",
+      "timestamp": "1788971359",
+      "end_date": null
+    },
+    {
+      "address": "0x2c335066fe58fe9237c3d3dc7b275c2a034a0563",
+      "market": "US Open ATP: Alexander Zverev vs Karen Khachanov",
+      "outcome": "Alexander Zverev",
+      "size": "249767.904762",
+      "price": "79",
+      "timestamp": "1789118607",
+      "end_date": null
+    },
+    {
+      "address": "0x7c37b52eb226bcb9411375ec48b0169663fb6aeb",
+      "market": "Will Sporting CP win on 2026-09-09?",
+      "outcome": "Yes",
+      "size": "248758",
+      "price": "61",
+      "timestamp": "1788979159",
+      "end_date": null
+    }
+  ],
+  "board": [
+    {
+      "address": "0xfbe6717a7b235417aaee2823aa5edd1a052b4a1b",
+      "grade": "A",
+      "resolved_bets": 951,
+      "win_pct": "58.0",
+      "roi_staked_pct": "219.0",
+      "pnl_usd": "30902",
+      "last_bet": "2026-08-22T00:00:00.000Z"
+    },
+    {
+      "address": "0xd72654f5ab87e3a636715ad63dc5f8ea1279b5c9",
+      "grade": "A",
+      "resolved_bets": 355,
+      "win_pct": "70.7",
+      "roi_staked_pct": "93.9",
+      "pnl_usd": "20660",
+      "last_bet": "2026-08-22T00:00:00.000Z"
+    },
+    {
+      "address": "0x8a16eb406b6ecd9334e6202a159c9dd51288c0d5",
+      "grade": "A",
+      "resolved_bets": 149,
+      "win_pct": "55.0",
+      "roi_staked_pct": "85.1",
+      "pnl_usd": "22830",
+      "last_bet": "2026-09-09T00:00:00.000Z"
+    },
+    {
+      "address": "0x2d4bf8f846bf68f43b9157bf30810d334ac6ca7a",
+      "grade": "A",
+      "resolved_bets": 598,
+      "win_pct": "43.1",
+      "roi_staked_pct": "93.2",
+      "pnl_usd": "166971",
+      "last_bet": "2026-09-06T00:00:00.000Z"
+    },
+    {
+      "address": "0x74cb0070bc348b4322c9e91ee1fec5a470341688",
+      "grade": "A",
+      "resolved_bets": 474,
+      "win_pct": "59.5",
+      "roi_staked_pct": "60.8",
+      "pnl_usd": "16353",
+      "last_bet": "2026-09-06T00:00:00.000Z"
+    },
+    {
+      "address": "0x82307f44c9405e73dc1cff466073dcc505535121",
+      "grade": "A",
+      "resolved_bets": 1294,
+      "win_pct": "39.5",
+      "roi_staked_pct": "107.2",
+      "pnl_usd": "63634",
+      "last_bet": "2026-09-10T00:00:00.000Z"
+    },
+    {
+      "address": "0xdfe4f8e057dbe77485d21c69beeaf5d6c2173cbd",
+      "grade": "A",
+      "resolved_bets": 125,
+      "win_pct": "97.6",
+      "roi_staked_pct": "95.2",
+      "pnl_usd": "24351",
+      "last_bet": "2026-09-08T00:00:00.000Z"
+    },
+    {
+      "address": "0x1e1323cafdf350d87ec61a12b565143b721aaf03",
+      "grade": "A",
+      "resolved_bets": 113,
+      "win_pct": "50.4",
+      "roi_staked_pct": "114.3",
+      "pnl_usd": "24318",
+      "last_bet": "2026-09-04T00:00:00.000Z"
+    },
+    {
+      "address": "0x54a2c4cfc4332d831acc3f5a860d6540982c1d43",
+      "grade": "A",
+      "resolved_bets": 2202,
+      "win_pct": "35.4",
+      "roi_staked_pct": "54.3",
+      "pnl_usd": "46315",
+      "last_bet": "2026-09-09T00:00:00.000Z"
+    },
+    {
+      "address": "0xbcac39ed1f84f7711303e92d53abedc4bc406621",
+      "grade": "A",
+      "resolved_bets": 1135,
+      "win_pct": "54.6",
+      "roi_staked_pct": "128.0",
+      "pnl_usd": "125322",
+      "last_bet": "2026-08-14T00:00:00.000Z"
+    }
+  ]
+}
