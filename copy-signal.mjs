@@ -39,17 +39,34 @@ const SIGNAL_MIN_USD = Number(process.env.SIGNAL_MIN_USD || 1000);
 
 // ---------------------------------------------------------------------------
 
-async function loadFills(sinceTs) {
-  const { rows } = await pool.query(`
-    SELECT s.address, s.condition_id, s.outcome, s.action, s.size::float, s.price::float,
-           s.timestamp::bigint AS ts, s.market, s.slug
-    FROM smart_alerts s
-    JOIN wallet_grades g ON g.address = s.address
-    WHERE g.grade = 'A'
-      AND s.outcome IS NOT NULL AND s.size > 0
-      AND s.timestamp >= $1
-    ORDER BY s.timestamp`, [sinceTs]);
-  return rows;
+// One query per A wallet, not one join over the table.
+//
+// Joining smart_alerts to wallet_grades made the planner scan all 28M rows —
+// it has no way to know grade='A' means 33 addresses. That was affordable only
+// while the whole table sat in page cache. When the Postgres memory limit was
+// cut on 2026-09-14 the scan went from seconds to eight minutes, the ten-second
+// loop kept issuing new ones, and six piled up at once until a routine ALTER
+// queued behind them and blocked everything else in turn.
+//
+// Naming the addresses lets each read walk idx_sa_addr_asset_ts instead. Kept
+// as separate statements rather than `address = ANY($1)` because the planner
+// will still choose a sequential scan for a large IN-list against a table this
+// size; per-address, there is nothing to choose.
+async function loadFills(sinceTs, addrs) {
+  const list = addrs
+    || (await pool.query(`SELECT address FROM wallet_grades WHERE grade = 'A'`)).rows.map((r) => r.address);
+  const out = [];
+  for (const address of list) {
+    const { rows } = await pool.query(`
+      SELECT s.address, s.condition_id, s.outcome, s.action, s.size::float, s.price::float,
+             s.timestamp::bigint AS ts, s.market, s.slug
+      FROM smart_alerts s
+      WHERE s.address = $1
+        AND s.timestamp >= $2
+        AND s.outcome IS NOT NULL AND s.size > 0`, [address, sinceTs]);
+    out.push(...rows);
+  }
+  return out.sort((a, b) => Number(a.ts) - Number(b.ts));
 }
 
 // Group one wallet+market+outcome's BUY fills into episodes; track net USD.
@@ -297,7 +314,9 @@ async function run() {
         if (sw.total || sw.errors) console.log(`poll: +${sw.total} fills, ${sw.errors} errors`);
       }
       if (tick % 60 === 59) aList = await loadAList();
-      const fresh = await loadFills(lastTs - EPISODE_GAP_S * 2); // overlap for episode merging
+      // Reuse the A list already in hand; loadFills would otherwise re-query it
+      // every ten seconds just to name the same 33 addresses.
+      const fresh = await loadFills(lastTs - EPISODE_GAP_S * 2, [...aList]); // overlap for episode merging
       const eps = buildEpisodes(fresh).filter((e) => e.startTs > lastTs);
       for (const ep of eps) {
         const s = signalOf(ep, thresholds);

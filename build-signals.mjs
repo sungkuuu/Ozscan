@@ -84,7 +84,36 @@ const { rows: [back] } = await pool.query(cohortSql(
   has_asof
     ? `cs.ts < ${GO_LIVE} AND EXISTS (SELECT 1 FROM wallet_grades_asof_aug g WHERE g.address = cs.address AND g.grade = 'A')`
     : `cs.ts < ${GO_LIVE}`));
-const { rows: [live] } = await pool.query(cohortSql(`cs.ts >= ${GO_LIVE}`));
+// The live column is scored the way the pre-registered gate scores it, so the
+// page and the decision cannot disagree: the executor's own recorded ask plus
+// the 2c FAK band, with the taker fee on top. That is the price a reader could
+// have paid, measured at the moment the signal fired. px_60 — the last trade a
+// minute later — was the earlier stand-in and it was far too pessimistic:
+// median +3.2c against the wallet, with in-play outliers at +40c, where the
+// real quote gap turned out to be a median +0.3c. Only signals the executor
+// marked fillable count, so this began on 2026-09-10 when the dry run did.
+// Rule and constants: gate-check.mjs.
+const GATE_MIN_N = 30, GATE_SLIP = 2, GATE_FEE = 0.05;
+const { rows: [live] } = await pool.query(`
+  WITH s AS (
+    SELECT cs.id, cs.ts,
+           LEAST(99, d.best_ask * 100 + ${GATE_SLIP}) AS entry,
+           lower(regexp_replace(cs.outcome,'[^a-z0-9]','','gi'))
+             = lower(regexp_replace(r.winning_outcome,'[^a-z0-9]','','gi')) AS won,
+           COALESCE((SELECT a.event_slug FROM smart_alerts a
+                     WHERE a.condition_id = cs.condition_id AND a.event_slug IS NOT NULL LIMIT 1),
+                    cs.condition_id) AS ev
+    FROM copy_signals cs
+    JOIN copy_signal_dryrun d ON d.signal_id = cs.id
+      AND d.note LIKE 'would buy%' AND d.best_ask IS NOT NULL
+    JOIN market_resolutions r ON r.condition_id = cs.condition_id
+    WHERE cs.ts >= ${GO_LIVE} AND r.closed AND r.winning_outcome IS NOT NULL),
+  d AS (SELECT DISTINCT ON (ev) * FROM s ORDER BY ev, ts),
+  e AS (SELECT won, entry / 100.0 * (1 + ${GATE_FEE} * (1 - entry / 100.0)) AS eff FROM d)
+  SELECT count(*) AS settled, count(*) FILTER (WHERE won) AS won, count(*) AS priced,
+         ROUND(AVG(eff * 100), 1) AS avg_entry,
+         ROUND(100.0 * AVG(CASE WHEN won THEN (1 - eff) / eff ELSE -1 END), 1) AS roi
+  FROM e`);
 const { rows: [backAll] } = await pool.query(`
   SELECT count(*) AS n FROM copy_signals cs JOIN market_resolutions r ON r.condition_id = cs.condition_id
   WHERE r.closed AND r.winning_outcome IS NOT NULL AND cs.ts < ${GO_LIVE}`);
@@ -133,7 +162,7 @@ ${nav('/signals/')}
     <div class="spec"><dt>Per day</dt><dd>${perDay}<small>not a feed</small></dd></div>
     <div class="spec"><dt>Wallets firing</dt><dd>${tot.wallets}<small>of ${(await pool.query(`SELECT count(*) n FROM wallet_grades WHERE grade='A'`)).rows[0].n} graded A</small></dd></div>
     <div class="spec"><dt>Backfill, clean</dt><dd>${back.won}/${back.settled}<small>won · ${pct(back.roi)} at +1 min</small></dd></div>
-    <div class="spec"><dt>Live record</dt><dd class="${sign(live.roi)}">${Number(live.settled) ? `${live.won}/${live.settled}` : '0/0'}<small>${Number(live.priced) ? `won · ${pct(live.roi)} at +1 min` : 'settled so far'}</small></dd></div>
+    <div class="spec"><dt>Live record</dt><dd class="${sign(live.roi)}">${live.won}/${live.settled}<small>${Number(live.settled) ? `won · ${pct(live.roi)} after fees` : 'settled so far'} · ${live.settled}/${GATE_MIN_N} to the call</small></dd></div>
   </dl>
 </header>
 
@@ -150,8 +179,9 @@ ${nav('/signals/')}
   <h2>Live signals</h2>
   <p class="sec-note">Every signal as it fired, newest first — no delay, no account. The wallet links to its full grade; the market links to Polymarket. <strong>W/L is the settled outcome</strong> and <span class="flag">open</span> means the market has not resolved. Nothing is removed after the fact: losses stay on this page, which is the point of publishing it at all.</p>
   <p><strong>Two columns, kept apart on purpose.</strong> The engine went live on 4 September. Everything before that date was <em>backfilled</em>: history replayed against the A list as it stood, which means wallets that earned their A in August had their August trades scored — selection with the benefit of hindsight. The clean cut above keeps only wallets that were already A on grades computed from bets through 4 August, and counts one bet per event, since four signals on one match are one outcome. That leaves <strong>${back.won} of ${back.settled}</strong> (of ${backAll.n} backfilled settlements in total), returning <strong>${pct(back.roi)}</strong> on equal stakes at the price a minute after the signal. Its 95% interval reaches below zero. It is evidence of direction, not proof.</p>
-  <p>The <strong>live record</strong> is the only column that earns the word: signals detected as they happened, no replay, no hindsight. It reads <strong>${Number(live.settled) ? `${live.won} of ${live.settled}` : 'nothing settled yet'}</strong>${Number(live.priced) ? `, ${pct(live.roi)} at +1 min` : ''}. At the current rate it needs a few weeks to say anything on its own, and this page will show whatever it says.</p>
-  <p>Both returns are measured at the last traded price one minute after the signal, not the offer you would have to lift, so a real fill is worse. And the edge is in holding: buying a minute after the signal and selling fifteen minutes later returned about nothing; only positions carried to resolution — a median of about a week — showed the return.</p>
+  <p>The <strong>live record</strong> is the only column that earns the word: signals detected as they happened, no replay, no hindsight, priced at the offer actually resting on the book when each one fired — plus two cents, because a real order can fill that much worse than the quote it was placed against, and then the taker fee on top. It reads <strong>${Number(live.settled) ? `${live.won} of ${live.settled}` : 'nothing settled yet'}</strong>${Number(live.settled) ? `, ${pct(live.roi)}` : ''}.</p>
+  <p><strong>We wrote down what would count as working before we could see it.</strong> Thirty settled live signals, and the 95% interval on that return has to clear zero. Below thirty this column is noise and we will not argue from it; at thirty we publish the verdict either way, including the one where it says stop. <strong>${live.settled} of ${GATE_MIN_N}</strong> so far — the count starts on 10 September, when the executor began recording quotes. The rule is frozen in code, not prose: <code>gate-check.mjs</code>.</p>
+  <p>The backfill column above is still priced at the wallet's own fill, which nobody reading this could have got, so the two columns are not comparable. And the edge is in holding: selling fifteen minutes after entry returned about nothing. Only positions carried to resolution — a median of about a week — showed the return.</p>
   <div class="tablewrap">
     <table>
       <thead><tr>
@@ -208,5 +238,5 @@ writeFileSync(`${ROOT}/site/public/api/v0/signals.json`, JSON.stringify({
   })),
 }, null, 2));
 writeFileSync(`${ROOT}/site/public/signals/index.html`, head + body);
-console.log(`Built site/public/signals/index.html — ${tot.n} signals, backfill clean ${back.won}/${back.settled} ${pct(back.roi)}, live ${live.won}/${live.settled} ${pct(live.roi)}`);
+console.log(`Built site/public/signals/index.html — ${tot.n} signals, backfill clean ${back.won}/${back.settled} ${pct(back.roi)}, live ${live.won}/${live.settled} ${pct(live.roi)} (gate ${live.settled}/${GATE_MIN_N})`);
 await pool.end();
