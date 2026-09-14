@@ -39,34 +39,35 @@ const SIGNAL_MIN_USD = Number(process.env.SIGNAL_MIN_USD || 1000);
 
 // ---------------------------------------------------------------------------
 
-// One query per A wallet, not one join over the table.
+// Name the wallets; do not join to find them.
 //
-// Joining smart_alerts to wallet_grades made the planner scan all 28M rows —
-// it has no way to know grade='A' means 33 addresses. That was affordable only
-// while the whole table sat in page cache. When the Postgres memory limit was
-// cut on 2026-09-14 the scan went from seconds to eight minutes, the ten-second
-// loop kept issuing new ones, and six piled up at once until a routine ALTER
-// queued behind them and blocked everything else in turn.
+// Joining smart_alerts to wallet_grades made the planner scan all 28M rows — it
+// has no way to know grade='A' means 33 addresses. That was invisible while the
+// whole table sat in page cache. When the Postgres memory limit was cut on
+// 2026-09-14 the scan went from seconds to eight minutes, this ten-second loop
+// kept issuing new ones, six piled up at once, and a routine ALTER queued behind
+// them and blocked everything else in turn.
 //
-// Naming the addresses lets each read walk idx_sa_addr_asset_ts instead. Kept
-// as separate statements rather than `address = ANY($1)` because the planner
-// will still choose a sequential scan for a large IN-list against a table this
-// size; per-address, there is nothing to choose.
+// The real gap was an index: nothing led on address, so even a single-address
+// query fell back to idx_sa_cond_ts and filtered 28M rows on address. With
+// idx_sa_addr_ts (address, timestamp) in place, `address = ANY($1)` is a clean
+// range scan per wallet in one round trip — measured against 33 separate
+// statements it is ~30x faster on the ten-minute window (0.33s vs 9-11s) and
+// ~11x on the sixty-day warm-up (8.9s vs 101s). The round trips dominated:
+// the worker and the database sit in different regions.
 async function loadFills(sinceTs, addrs) {
   const list = addrs
     || (await pool.query(`SELECT address FROM wallet_grades WHERE grade = 'A'`)).rows.map((r) => r.address);
-  const out = [];
-  for (const address of list) {
-    const { rows } = await pool.query(`
-      SELECT s.address, s.condition_id, s.outcome, s.action, s.size::float, s.price::float,
-             s.timestamp::bigint AS ts, s.market, s.slug
-      FROM smart_alerts s
-      WHERE s.address = $1
-        AND s.timestamp >= $2
-        AND s.outcome IS NOT NULL AND s.size > 0`, [address, sinceTs]);
-    out.push(...rows);
-  }
-  return out.sort((a, b) => Number(a.ts) - Number(b.ts));
+  if (!list.length) return [];
+  const { rows } = await pool.query(`
+    SELECT s.address, s.condition_id, s.outcome, s.action, s.size::float, s.price::float,
+           s.timestamp::bigint AS ts, s.market, s.slug
+    FROM smart_alerts s
+    WHERE s.address = ANY($1)
+      AND s.timestamp >= $2
+      AND s.outcome IS NOT NULL AND s.size > 0
+    ORDER BY s.timestamp`, [list, sinceTs]);
+  return rows;
 }
 
 // Group one wallet+market+outcome's BUY fills into episodes; track net USD.
