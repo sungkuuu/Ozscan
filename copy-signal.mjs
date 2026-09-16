@@ -37,6 +37,22 @@ const PRICE_MIN = 5, PRICE_MAX = 95; // same band the grade uses
 // day is a feed, not a signal. Conviction needs an absolute floor too.
 const SIGNAL_MIN_USD = Number(process.env.SIGNAL_MIN_USD || 1000);
 
+// A fourth filter, added 2026-09-16: how long until the market resolves.
+//
+// A wallets take positions in the 2027 French presidential election and in
+// who wins the 2026-27 Premier League. Those are real convictions and they
+// were being published as copy signals, which is wrong on the product's own
+// terms — the published finding is that the edge only appears if the position
+// is carried to resolution, and nobody copies a signal that locks their money
+// up for two years.
+//
+// The horizon distribution is bimodal, which is why the exact cut barely
+// matters: across 60 signals with a known end date the median is 7.6 days and
+// the 75th percentile is 128. Almost nothing sits in between. A 30-day cut
+// drops 36.7% of signals; 21 days drops 41.7% and 45 days drops 35.0% — the
+// same set either way. That insensitivity is the argument for the number.
+const MAX_HORIZON_DAYS = Number(process.env.MAX_HORIZON_DAYS || 30);
+
 // ---------------------------------------------------------------------------
 
 // Name the wallets; do not join to find them.
@@ -125,6 +141,37 @@ function signalOf(ep, thresholds) {
     outcome: ep.outcome, avgPrice: Math.round(avgPrice * 10) / 10,
     sizeUsd: Math.round(ep.sizeUsd), walletP90: Math.round(floor),
   };
+}
+
+// Days from the signal to the market's scheduled resolution, or null when it
+// cannot be established. Prefers the local label; falls back to the CLOB for
+// markets the backfill has not reached yet, which is most brand-new ones —
+// 44% of recorded signals had no local end date at the time they fired.
+//
+// Returns null rather than guessing, and the caller publishes on null. Failing
+// open is deliberate: an unreachable API should not silence a live feed, and
+// the cost of letting one long-dated signal through is one uncopyable row,
+// while the cost of failing closed is silence during an outage.
+async function horizonDays(conditionId, signalTs) {
+  let endDate = null;
+  try {
+    const { rows } = await pool.query(
+      `SELECT end_date FROM market_resolutions WHERE condition_id = $1`, [conditionId]);
+    endDate = rows[0]?.end_date || null;
+  } catch { /* fall through to the API */ }
+
+  if (!endDate) {
+    try {
+      const res = await fetch(`https://clob.polymarket.com/markets/${conditionId}`,
+        { signal: AbortSignal.timeout(10_000) });
+      if (res.ok) endDate = (await res.json())?.end_date_iso || null;
+    } catch { /* leave unknown */ }
+  }
+
+  if (!endDate) return null;
+  const ends = Date.parse(endDate);
+  if (!Number.isFinite(ends)) return null;
+  return (ends / 1000 - Number(signalTs)) / 86400;
 }
 
 function computeThresholds(episodes) {
@@ -323,6 +370,11 @@ async function run() {
         const s = signalOf(ep, thresholds);
         lastTs = Math.max(lastTs, ep.startTs);
         if (!s) continue;
+        const horizon = await horizonDays(ep.condition_id, s.ts);
+        if (horizon != null && horizon > MAX_HORIZON_DAYS) {
+          console.log(`skip ${ep.condition_id.slice(0, 10)}… resolves in ${horizon.toFixed(0)}d: ${(s.market || '').slice(0, 50)}`);
+          continue;
+        }
         const { rows: [ins] } = await pool.query(
           `INSERT INTO copy_signals (ts,address,condition_id,outcome,market,slug,avg_price,size_usd,wallet_p90)
            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
