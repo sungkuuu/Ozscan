@@ -20,8 +20,12 @@ jobs:
     # finished inside the window; without it, it does not. Every run from 9/15
     # to 9/23 was cancelled at 738-768s — nine in a row, each still writing
     # gigabytes of temp files before it died, and none of it visible anywhere.
-    # The regrade measures 23m32s serially against the capped database.
-    timeout-minutes: 40
+    #
+    # Measured end to end on 2026-09-23: regrade 1197s + settlement feed 1112s
+    # = 2327s. The first attempt at this fix used 40, which came from timing
+    # the regrade alone and forgetting that settlement-feed.mjs takes about as
+    # long again — it passed with 73 seconds to spare, which is not a margin.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -52,4 +56,7 @@ jobs:
           git config user.email "bot@users.noreply.github.com"
           git add -f feed/
           git diff --staged --quiet || git commit -m "feed: ${DATE} settlement digest"
-          git push
+          # This job holds a checkout for ~40 minutes, so any push landing on
+          # main meanwhile makes a bare push fail and throws the digest away
+          # (2026-09-23). Rebase once and retry rather than lose it.
+          git push || { git pull --rebase && git push; }
