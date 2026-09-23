@@ -15,9 +15,12 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # 12 minutes killed this job every day from at least 9/19 to 9/23 — five
-    # silent cancellations in a row, each one still writing gigabytes of temp
-    # files before it died. The regrade alone measures 23m32s serially.
+    # 12 minutes stopped being enough on 2026-09-14, the day the Postgres
+    # replica memory limit went 32GB -> 5GB. With a 32GB page cache the regrade
+    # finished inside the window; without it, it does not. Every run from 9/15
+    # to 9/23 was cancelled at 738-768s — nine in a row, each still writing
+    # gigabytes of temp files before it died, and none of it visible anywhere.
+    # The regrade measures 23m32s serially against the capped database.
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
