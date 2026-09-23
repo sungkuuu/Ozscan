@@ -14,7 +14,30 @@ import { N } from './grade-spec.mjs';
 
 const DB_URL = process.env.DATABASE_URL
   || readFileSync(`${process.env.HOME}/OzScan/backups/.db_url`, 'utf8').trim();
-const pool = new Pool({ connectionString: DB_URL, ssl: { rejectUnauthorized: false } });
+// This job is one big aggregate over 28M fills, and its per-wallet step uses
+// count(DISTINCT …) and percentile_cont — both of which must hold their working
+// set in memory or spill. At the server default of 4MB they always spill: on
+// 2026-09-22/23 the leader and its two parallel workers each wrote gigabytes of
+// temp files, which pushed the Postgres volume from 55% to the 80% alert twice
+// in three days. temp_file_limit is per process, so capping it did not help —
+// three processes simply shared a bigger ceiling.
+//
+// Parallelism is switched off here, not just tuned. Parallel workers exchange
+// tuples through POSIX shared memory sized against work_mem, and this container
+// has the Docker default /dev/shm; raising work_mem with workers enabled fails
+// outright with "could not resize shared memory segment … No space left on
+// device" (measured 2026-09-23). One backend with the whole 192MB both avoids
+// that and spills less than three backends with 4MB each.
+//
+// Raise it only here: the collector's small, frequent queries do not need it,
+// and a server-wide default this size would be reckless at 500 max_connections.
+// Slower without workers, which is fine — this is a batch job that runs twice
+// a day, and the failure mode it replaces was a full disk.
+const pool = new Pool({
+  connectionString: DB_URL,
+  ssl: { rejectUnauthorized: false },
+  options: '-c work_mem=192MB -c max_parallel_workers_per_gather=0',
+});
 
 const MIN_RESOLVED = Number(process.env.MIN_RESOLVED || 50);
 const MIN_MARKETS = Number(process.env.MIN_MARKETS || 20); // one sliced longshot != a record

@@ -15,7 +15,10 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    # 12 minutes killed this job every day from at least 9/19 to 9/23 — five
+    # silent cancellations in a row, each one still writing gigabytes of temp
+    # files before it died. The regrade alone measures 23m32s serially.
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

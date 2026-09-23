@@ -1,14 +1,18 @@
 name: expand-universe
 
-# Grades ~1,200 wallets instead of the stale April 64. Progress lives in the
-# grade_universe table, so these 45-minute runs converge on completion and
-# no-op once done. Free on a public repo. DELETE the schedule after the
-# universe completes.
+# Grew the grading universe from the stale April 64 to ~1,200 wallets. That
+# backfill is done — grade_universe has 1,329 rows and none pending, and every
+# run now logs "UNIVERSE COMPLETE — nothing left to backfill."
+#
+# The half-hourly schedule was removed on 2026-09-23, as this file always said
+# it should be once the universe completed. It had kept firing the regrade step
+# 48 times a day: a full aggregate over 28M fills each time, each spilling
+# gigabytes of temp files, which is what pushed the Postgres volume to its 80%
+# alert twice in three days. Regrading is daily-feed's job now.
+#
+# Dispatch manually if the universe ever needs extending again.
 
 on:
-  schedule:
-    - cron: '13,43 * * * *'  # every 30 min: concurrency serializes runs, so a
-                             # denser tick just keeps the queue primed (no idle gap)
   workflow_dispatch:
 
 concurrency:
